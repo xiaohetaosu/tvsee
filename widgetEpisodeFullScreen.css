@@ -1,0 +1,120 @@
+@charset "utf-8";
+/* CSS Document */
+.bgClaEpisode{
+	background-image: url(images/selectEpisode/episode_dk.png);
+    width: 1280px;
+    height: 321px;
+    position: absolute;
+    top: 399px;
+    left: 0px;
+}
+table,th,td,tr {
+    border-collapse: collapse;
+}
+td{
+    border: 2px solid #585753;
+}
+
+.arrowsCla{
+	position: absolute;
+	width: 33px;
+	height: 41px;
+	top: 160px;
+}
+.arrowLeftCla{
+	background-image: url(images/selectEpisode/left_y.png);
+	left: 143px;
+}
+.arrowRightCla{
+	background-image: url(images/selectEpisode/right_y.png);
+	left: 1134px;
+}
+.episodesDivCla{
+	position: absolute;
+	width: 100%;
+	height: 65px;
+	left: 0px;
+}
+.episodeTabsCla{
+	width: 100%;
+	height: 100%;
+}
+.episode0DivCla{
+	top: 0px;
+}
+.episodeTab0Cla{
+	
+}
+.episode1DivCla{
+	top: 63px;
+}
+.episodeTab1Cla{
+	
+}
+.episodeTabTdsCla{
+	width: 116px;
+}
+.testOne{
+	width: 116px;
+	background-image: url(images/selectEpisode/Tv_vip.png);
+	background-repeat: no-repeat;
+	z-index: 5;
+}
+.episodeIntervalDivCla{
+	top: 126px;
+}
+.episodeIntervaTd0Cla{
+	 width: 230px;
+}
+.episodeIntervaTd1Cla{
+	 width: 230px;
+}
+.episodeIntervaTd2Cla{
+	 width: 230px;
+}
+.episodeIntervaTd3Cla{
+	 width: 230px;
+}
+/*.sSEpisodeFocusCla{
+	background-image:url(images/selectEpisode/dramaeList.png);
+	width: 251px; 
+	height:82px; 
+	position: absolute; 
+	left: 183px; 
+	top: 609px;
+	visibility: hidden;
+	text-align:center;
+	line-height: 82px;
+}
+.sEpisodeFocusCla{
+	background-image:url(images/selectEpisode/dramae.png); 
+	width: 135px; 
+	height:82px; 
+	position: absolute; 
+	left: 183px; 
+	top: 483px;
+	text-align:center;
+	line-height: 82px;
+}
+.episodeNameCla{
+	width: 1098px;
+	height: 30px;
+	position: absolute;
+	top: 42px;
+	left: 63px;
+	color: #FFF;
+    font-size: 28px;
+}
+.episodesCla{
+	position: absolute;
+	left: 190px;
+	top: 91px;
+	color: #FFF;
+	text-align: center;
+	width: 930px;
+	height: 178px;
+	font-size: 26px;
+}*/
+/*div{
+	border: 1px solid red;	
+}*/

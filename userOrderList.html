@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>订单列表页面</title>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}else{
+	eval("tvsee={}");
+	tvsee = {debug:function(){}};
+}
+var globalParams = {
+	pageSize: 10,
+	currPage: 1,
+	totalPage: 0,
+	orderData: []
+}
+function init(){
+	//var tab = document.getElementById("tab");
+	if(typeof(globalVar.get) == "function"){
+		$("key").innerText = "用户名称:" + globalVar.get("ca_stbid") + "(终端编号)";
+	}
+	var ajaxObj = new ajaxClass();
+	ajaxObj.frame = window;
+	ajaxObj.url = getAjaxUrl("memberPayHistoryInfo");
+	ajaxObj.successCallback = function(_xmlHttp, _params){
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		/*for(var i = 0; i < 43; i++){
+			globalParams.orderData.push({serviceName: data[0].serviceName + i,state: data[0].state,orderNo: data[0].orderNo,total:data[0].total ,effectiveDate: data[0].effectiveDate, expireDate: data[0].expireDate});	
+		}*/
+		if(typeof(data) == "object"){
+			globalParams.orderData = data;
+//			alert(data)
+			var dataSize = globalParams.orderData.length;
+			if(dataSize > globalParams.pageSize){
+				dataSize = globalParams.pageSize;
+			}
+			globalParams.totalPage = Math.ceil(globalParams.orderData.length / globalParams.pageSize);
+			var tabObj = $("tab");
+			var rowCount = 1;
+			var row,cell0,cell1,cell2,cell3,cell4,cell5;//,cell6;
+			$("bg").innerText = "";
+			$("orderInfo").style.visibility = "visible";
+			for(var i = 0; i < dataSize; i++){
+				var row = tabObj.insertRow(rowCount);
+				row.style.height = "40px";
+				if(rowCount % 2 == 0){
+					row.bgColor = "#c1ee92";
+				}else{
+					row.bgColor = "#eafece";
+				}
+				row.style.color = "#335a08";
+				cell0 = row.insertCell(0);
+				cell1 = row.insertCell(1);
+				cell2 = row.insertCell(2);
+				cell3 = row.insertCell(3);
+				cell4 = row.insertCell(4);
+				cell5 = row.insertCell(5);
+				cell0.id = "row" + i + "cell0";
+				cell1.id = "row" + i + "cell1";
+				cell2.id = "row" + i + "cell2";
+				cell3.id = "row" + i + "cell3";
+				cell4.id = "row" + i + "cell4";
+				cell5.id = "row" + i + "cell5";
+				cell0.innerText = globalParams.orderData[i].serviceName; 
+				cell1.innerText = getPayState(globalParams.orderData[i].state);//getPayStatus(data[i].effectiveDate);
+				cell2.innerText = globalParams.orderData[i].orderNo;
+				cell3.innerText = (globalParams.orderData[i].total / 100) + "元";
+				cell4.innerText = getPayDate(globalParams.orderData[i].effectiveDate);
+				cell5.innerText =  getPayDate(globalParams.orderData[i].expireDate);
+				rowCount++;
+				
+			}
+			showArrow();
+		}else{
+			$("bg").innerText = "您未订购业务.状态码为:" + data;
+		}
+	}
+	ajaxObj.failureCallback = function(_xmlHttp, _params){
+		$("bg").innerText = "请求超时,请稍后再试.";
+	}
+	ajaxObj.requestData();
+}
+
+function getPayState(_state){
+	if(_state == 0){
+		return "正常";	
+	}else if(_state == 2){
+		return "过期";	
+	}
+	return "";
+}
+
+function getPayStatus(_time){
+	var sysTime  = TvseeDate.getTime();
+	if(_time > sysTime){
+		return "正常";	
+	}else{
+		return "过期";	
+	}
+}
+
+function getPayDate(_time){
+	var date = new Date(_time);
+	return date.getFullYear() + "年" + (date.getMonth() + 1) + "月" + date.getDate() + "日" + " " + date.getHours() + ":" + date.getMinutes();
+}
+function getServiceName(_serviceId){
+	var size = SPEC_PAY_SERVICE_LIST.length;
+	var serviceName = "";
+	for(var i = 0; i < size; i++){
+		if(SPEC_PAY_SERVICE_LIST[i].serviceId == _serviceId){
+			serviceName = SPEC_PAY_SERVICE_LIST[i].serviceName;
+			break;
+		}	
+	}
+	return serviceName;
+}
+window.onload = init;
+
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_BACK"){
+		//if(globalParams.fromPage == "HOME"){
+			if(typeof(fromPage) != "undefined" && fromPage == "userManager"){
+				gotoPageUrl("userManager.html");
+			}else if(typeof(fromPage) != "undefined" && fromPage == "LAUNCHER"){
+				gotoPageUrl("about:blank");
+				tvsee.pageWidgets.getByName("widgetLauncher").showWin();
+			}else if(typeof(fromPage) != "undefined" && fromPage == "userManager_kunming"){
+				gotoPageUrl("userManager_kunming.html");
+			}else{
+				gotoPageUrl("about:blank");
+				tvsee.pageWidgets.getByName("widgetMenu").showWin();
+			}
+		//}
+	}else if(_eventObj.code == "KEY_LEFT"){
+		pageUD(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		pageUD(1);
+	}
+	return _eventObj.args.type;
+}
+function pageUD(_num){
+	if(globalParams.orderData.length < globalParams.pageSize){
+		return;	
+	}
+	if(_num < 0 && globalParams.currPage == 1){
+		return;
+	}
+	if(_num > 0 && globalParams.currPage == globalParams.totalPage){
+		return;	
+	}
+	globalParams.currPage += _num;
+	var size = globalParams.currPage * globalParams.pageSize;
+	if(globalParams.orderData.length < size){
+		size = globalParams.orderData.length;	
+	}
+	var count = 0;
+	for(var i = (globalParams.currPage - 1) * globalParams.pageSize; i < size; i++){
+		$("row" + count + "cell0").innerText = globalParams.orderData[i].serviceName;
+		$("row" + count + "cell1").innerText = getPayState(globalParams.orderData[i].state);
+		$("row" + count + "cell2").innerText = globalParams.orderData[i].orderNo;
+		$("row" + count + "cell3").innerText = (globalParams.orderData[i].total / 100) + "元";
+		$("row" + count + "cell4").innerText = getPayDate(globalParams.orderData[i].effectiveDate);
+		$("row" + count + "cell5").innerText = getPayDate(globalParams.orderData[i].expireDate);
+		$("row" + count + "cell5").parentNode.style.visibility = "visible";
+		count++;
+	}
+	for(var i = count; i < globalParams.pageSize; i++){
+		$("row" + count + "cell5").parentNode.style.visibility = "hidden";
+		count++;
+	}
+	showArrow();
+}
+function showArrow(){
+	if(globalParams.currPage == 1){
+		$("leftArrow").style.display = "none";	
+	}else{
+		$("leftArrow").style.display = "block";	
+	}
+	if(globalParams.currPage == globalParams.totalPage){
+		$("rightArrow").style.display = "none";
+	}else{
+		$("rightArrow").style.display = "block";	
+	}
+}
+</script>
+</head>
+
+<body>
+<!--表格线框#afe168
+表第一排#5da90c
+表第二排#eafece
+表第三排#c1ee92
+表中文字#335a08
+第一排文字和其他是白色-->
+
+<div style="position: absolute; position:absolute; width: 1280px; height: 720px; top: 0px; left: 0px; background-image:url(images/order/bg.png); color: #FFF; font-size: 30px; line-height: 720px; text-align:center;" id="bg">
+	正在加载数据...
+</div>
+<div id="orderInfo" style="visibility:hidden;">
+	<div style="position:absolute; top: 50px; width: 1280px; height: 40px; font-size: 35px; line-height: 40px; color: #FFF; text-align:center;">订购记录</div>
+   <div style="position:absolute; top: 100px; width: 1280px; height: 40px; font-size: 25px; line-height: 40px; color: #FFF; text-align:center;" id="key">用户名称:0000000000000000000(终端编号)</div> 
+   
+   <div style="position:absolute; background-image:url(images/detail/left_y.png); width: 33px; height: 41px; top: 350px; left: 50px; display: none;" id="leftArrow"></div>
+   <div style="position:absolute; background-image:url(images/detail/right_y.png); width: 33px; height: 41px; top: 350px; left: 1189px; display: none;" id="rightArrow"></div>
+   <table border="1px solid #afe168"  id="tab" width="1100" style="position: absolute; top: 150px; text-align:center; left: 90px; font-size: 22px;">
+   		<tr bgcolor="#5da90c" height="40">
+        	<!--<td >名称</td>-->
+            <td>服务名称</td>
+            <td>订购状态</td>
+            <td>订单号</td>
+            <td>价格</td>
+            <td>订购时间</td>
+            <td>到期时间</td>
+        </tr>
+   </table>
+</div>
+
+</body>
+</html>

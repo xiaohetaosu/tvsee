@@ -1,0 +1,1232 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>订购页面</title>
+<style type="text/css">
+.detailBtnCla{
+	top: 378px; 
+	font-size:30px;
+	width:157px; 
+	position:absolute;
+	height:68px; 
+	line-height: 68px;
+	text-align:center; 
+}
+.xianshi{
+	 position: absolute;
+    /*left: 109px;*/
+    z-index: 999;
+    /*top: 61px;*/
+    font-size: 22px;
+    font-style: oblique;
+    font-weight: bolder;
+}
+.tipBtnCla{
+	top: 275px; 
+	font-size:30px;
+	width:157px; 
+	position:absolute;
+	height:68px; 
+	line-height: 68px;
+	text-align:center; 
+}
+.pagesCla{
+	position: absolute; 
+	top: 0px; 
+	left: 0px;
+	width:1280px; 
+	height:720px;
+}
+.productNameCla{
+	position: absolute; 
+	top: 148px; 
+	font-size: 40px; 
+	width: 360px;
+	height: 50px; 
+	text-align: center;
+	color: blue;
+	left: 29px;
+}
+.productImgCla{
+	width: 289px;
+	height: 272px; 
+	position: absolute; 
+	top: -22px; 
+	left: 46px;
+}
+</style>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="common/orderData.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}
+var cacheZan ={
+	numB:null,
+}
+function init(){
+	if(typeof(areaPos) != "undefined"){
+		globalParams.areaPos = areaPos;
+	}
+	globalParams.detailsPageObj = new detailsPageClass();
+	globalParams.detailsPageObj.initData();
+	globalParams.listsPageObj = new listsPageClass();
+	globalParams.listsPageObj.initData();
+	globalParams.listsPageObj.init();
+	globalParams.selectDefrayModePageObj = new selectDefrayModePageClass();
+	globalParams.selectDefrayModePageObj.initData();
+	globalParams.defrayPageObj = new defrayPageClass();
+	globalParams.defrayPageObj.initData();
+}
+
+function showWin(_fromPage, _window, _serviceId){
+	/*try{
+		var widgetEpisode = tvsee.pageWidgets.getByName("widgetEpisode");
+		widgetEpisode.minimize();
+	}catch(e){
+		//TODO handle the exception
+	}*/
+	globalParams.fromPage = _fromPage;
+	globalParams.fromWin = _window;
+	tvsee.pageWidgets.getByName("widgetOrder").show();
+	$("detailsPage").innerText = "正在加载....";
+	if(typeof(_serviceId) == "string"){
+		var testServiceId =  _serviceId.split(",");
+		if(testServiceId.length >=3){
+			if(testServiceId[0] == 1 && testServiceId[1] == 2 &&testServiceId[2] == 3){
+				globalParams.serviceId = yinHeVipServiceIds;
+		   	 	document.getElementById("listBg").style.backgroundImage = "url(images/order/listbg.jpg)";
+			}
+		}
+		if(_serviceId == "66,65,51,52,53" || _serviceId == "53,52,51,65,66" ||　_serviceId == "51,52,53,65,66" ||_serviceId =="51,52,53,65"){
+			globalParams.serviceId = ttmeiju;//"51,52,53";
+			document.getElementById("listBg").style.backgroundImage = "url(images/order/tiantianBg.jpg)";
+		}else if(_serviceId == jiluVipSErviceIds){
+			globalParams.serviceId = jiluVipSErviceIds;
+			document.getElementById("listBg").style.backgroundImage = "url(images/order/jiluBg.jpg)";
+		}else if(_serviceId == "1,2,3,6,7,9,10,14,15,16,17,18,31,32,33,39"){
+		    globalParams.serviceId = yinHeVipServiceIds;
+		    document.getElementById("listBg").style.backgroundImage = "url(images/order/listbg.jpg)";
+		}else if(_serviceId == jiqingVipSErviceIds){
+			globalParams.serviceId = jiqingVipSErviceIds;
+			document.getElementById("listBg").style.backgroundImage = "url(images/order/listbg.png)";
+		}else if(_serviceId == yinHeVipServiceIds){
+			globalParams.serviceId = yinHeVipServiceIds;
+		    document.getElementById("listBg").style.backgroundImage = "url(images/order/listbg.jpg)";
+		}else if(_serviceId == tttbVipServiceIds){
+			globalParams.serviceId = tttbVipServiceIds;
+			document.getElementById("listBg").style.backgroundImage = "url(images/order/tttbbg.jpg)";
+		}
+		getServiceInfo();
+	}else{
+		globalParams.serviceInfoData = _serviceId;
+		globalParams.serviceId = _serviceId.serviceId + "";
+		getPayInfo(0);	
+	}
+}
+
+function getServiceInfo(){
+	globalParams.serviceInfoAjax = new ajaxClass();
+	globalParams.serviceInfoAjax.frame = window;
+	globalParams.serviceInfoAjax.url = getAjaxUrl("getServiceInfo", globalParams.serviceId);
+	globalParams.serviceInfoAjax.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		globalParams.serviceInfoData = data;
+		getPayInfo(0);
+	};
+	globalParams.serviceInfoAjax.failureCallback = function(_xmlHttp, _params) {
+		$("detailsPage").innerText = "功能暂不能使用，请稍后再试....";
+	};
+	globalParams.serviceInfoAjax.requestData();
+}
+
+function initLayout(){
+	globalParams.xuding = 0;
+	globalParams.areaPos = 0;
+	globalParams.isPayScu = false;
+	if(globalParams.listsPageObj != null){
+		globalParams.listsPageObj.init();	
+	}
+	if(globalParams.selectDefrayModePageObj != null){
+		globalParams.selectDefrayModePageObj.init();
+	}
+	if(globalParams.defrayPageObj != null){
+		globalParams.defrayPageObj.init();
+	}
+	$("defrayPage").style.display = "none"; 
+	$("selectDefrayModePage").style.display = "none"; 
+	$("listsPage").style.display = "none";  
+	$("listBg").style.visibility = "hidden";
+	$("defautBg").style.visibility = "visible";
+	$("detailsPage").style.display = "block";
+	$("detailsPage").innerText = "正在加载....";
+	
+}
+
+function goBack(){
+	if(globalParams.areaPos == 3){
+		globalParams.defrayPageObj.goBack();
+	}else if(globalParams.areaPos == 2){
+		if(globalParams.fromPage == "LIVEPAY" || globalParams.fromPage == "USERMANAGER" || globalParams.fromPage == "PAYLIST"){
+			initLayout();
+			tvsee.pageWidgets.getByName("widgetOrder").minimize();
+			globalParams.expireDate = null;	
+			if(globalParams.fromPage == "LIVEPAY"){
+				gotoPageUrl("livePay.html");
+			}else if(globalParams.fromPage == "USERMANAGER"){
+				gotoPageUrl("userManager_kunming.html");	
+			}else if(globalParams.fromPage == "PAYLIST"){
+				tvsee.pageWidgets.getByName("widgetPayList").show();
+			}
+			return;
+		}
+		globalParams.selectDefrayModePageObj.init();
+		$("selectDefrayModePage").style.display = "none";	
+		$("listsPage").style.display = "block";	
+		$("defautBg").style.visibility = "visible";
+		$("listBg").style.visibility = "visible";
+		globalParams.areaPos  = 1;
+	}else if(globalParams.areaPos == 1){
+		/*$("detailsPage").style.display = "block";	
+		$("listsPage").style.display = "none";	
+		globalParams.areaPos  = 0;
+		globalParams.listsPageObj.init();*/
+		
+		exitWidgetOrder(0);
+	}else if(globalParams.areaPos == 0){
+		//globalParams.defrayPageObj.goBack();
+		exitWidgetOrder(0);
+	}
+}
+
+function exitWidgetOrder(_type){
+	//globalParams.detailsPageObj.init();
+	initLayout();
+	tvsee.pageWidgets.getByName("widgetOrder").minimize();
+	globalParams.expireDate = null;
+	//if(_type == 1){
+	if(globalParams.fromPage == "LIVEPAY"){
+		var url = "livePay.html";
+		if(_type == 1){
+			url = "about:blank";
+			tvsee.eventFrame.globalParams.focusCache.remove("livePay");
+			tvsee.pageWidgets.getByName("widgetLauncher").showWin();
+		}
+		gotoPageUrl(url);
+		return;
+	}else if(globalParams.fromPage == "USERMANAGER"){
+		var url = "userManager_kunming.html";
+		if(_type == 1){
+			tvsee.eventFrame.globalParams.focusCache.remove("userManager");
+			url = "about:blank";
+			tvsee.pageWidgets.getByName("widgetLauncher").showWin();
+		}
+		gotoPageUrl(url);	
+		return;
+	}else if(globalParams.fromPage == "PAYLIST"){
+		tvsee.pageWidgets.getByName("widgetPayList").show();
+		
+		return;
+	}	
+	//}
+	if(globalParams.fromPage == "vodDetail"){
+		globalParams.fromWin.initShowBtn();
+	}else if(globalParams.fromPage == "vodPlay"){
+		/*if(_type == 0){
+			globalParams.fromWin.clickExitBtn(0);
+		}else{*/
+			if(typeof(tvsee.mainFrame.initShowBtn) == "function"){
+				tvsee.mainFrame.initShowBtn();
+				if(tvsee.mainFrame.globalParams.areaPos == 2){
+					tvsee.mainFrame.openSelectEpisode(2);
+				}
+			}else{
+				var widgetVodDetail= tvsee.pageWidgets.getByName("widgetVodDetail");	
+				if(widgetVodDetail != null){
+					widgetVodDetail.initShowBtn();
+				}
+			}
+		//}
+	}else if(globalParams.fromPage =="widgetEpisode"){
+		var widgetEpisode = tvsee.pageWidgets.getByName("widgetEpisode");
+		widgetEpisode.show();
+	}
+}
+function goToUserOrderList(){
+	tvsee.eventFrame.globalParams.focusCache.put("userManager", globalParams);
+	gotoPageUrl("userOrderList.html?fromPage=userManager_kunming");	
+}
+function byMovieTypeGetDetailWidget(_movieType) {
+	var widgetVodDetail = null;
+	if(getMovieTypeDetail(_movieType) == "vodVarietyDetail") {
+		widgetVodDetail = tvsee.pageWidgets.getByName("widgetVodVarietyDetail");
+	} else if(getMovieTypeDetail(_movieType) == "vodVarietyDetailNew") {
+		widgetVodDetail = tvsee.pageWidgets.getByName("widgetVodVarietyDetailNew");
+	} else {
+		widgetVodDetail = tvsee.pageWidgets.getByName("widgetVodDetail");
+	}
+	return widgetVodDetail;
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		goBack();
+	}
+	return _eventObj.args.type;
+}
+
+function moveLR(_num){
+	if(globalParams.areaPos == 0){
+		globalParams.detailsPageObj.moveLR(_num);	
+	}else if(globalParams.areaPos == 1){
+		globalParams.listsPageObj.moveLR(_num);
+	}else if(globalParams.areaPos == 2){
+		globalParams.selectDefrayModePageObj.moveLR(_num);
+	}else if(globalParams.areaPos == 3){
+		globalParams.defrayPageObj.moveLR(_num);	
+	}
+}
+function doSelect(){
+	if(globalParams.areaPos == 0){
+		globalParams.detailsPageObj.doSelect();	
+	}else if(globalParams.areaPos == 1){
+		globalParams.listsPageObj.doSelect();
+	}else if(globalParams.areaPos == 2){
+		globalParams.selectDefrayModePageObj.doSelect();
+	}else if(globalParams.areaPos == 3){
+		globalParams.defrayPageObj.doSelect();	
+	}
+}
+function moveUD(_num){
+	if(globalParams.areaPos == 0){
+		globalParams.detailsPageObj.moveUD(_num);	
+	}else if(globalParams.areaPos == 1){
+		globalParams.listsPageObj.moveUD(_num);
+	}else if(globalParams.areaPos == 2){
+		globalParams.selectDefrayModePageObj.moveUD(_num);
+	}else if(globalParams.areaPos == 3){
+		globalParams.defrayPageObj.moveUD(_num);	
+	}
+}
+var globalParams = {
+	areaPos: 0,
+	detailsPageObj: null,
+	listsPageObj: null,
+	selectDefrayModePageObj: null,
+	defrayPageObj: null,
+	payQrCodeAjaxObj: null,
+	payInfoAjaxObj: null,
+	payInfoResult: null,
+	expireDate: null,
+	payTimeout: -1,
+	xuding: 0,
+	serviceId: 0,
+	isPayScu: false,
+	serviceInfoAjax: null,
+	serviceInfoData: null
+}
+
+function getPayInfo(_type){
+	if(globalParams.payInfoAjaxObj !=  null){
+		globalParams.payInfoAjaxObj.requestAbort();
+	}
+	if(_type == 1){
+		window.clearTimeout(globalParams.payTimeout);
+		$("payRequestTip").innerText = "正在请求支付状态，请稍等...";	
+	}else if(_type == 2){
+		$("payRequestTip").innerText = "正在加载其他支付方式，请稍等...";		
+	}
+	globalParams.payInfoAjaxObj = new ajaxClass();
+	globalParams.payInfoAjaxObj.frame = window;
+	globalParams.payInfoAjaxObj.url = getAjaxUrl("memberPayInfo");
+	globalParams.payInfoAjaxObj.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ")");
+		tvsee.eventFrame.globalParams.globalCache.put("payInfo_CACHE", data);
+		var json = getMemberPayStatus(globalParams.serviceId);
+		tvsee.debug("globalParams.serviceId:" + globalParams.serviceId + " ,globalParams.expireDate:" + globalParams.expireDate + " ,json.expireDate:" + json.expireDate);
+		if(_type == 1){
+			if(json.status == true){
+				if(globalParams.expireDate != json.expireDate){
+					$("payRequestTip").innerText = "";	
+					exitWidgetOrder(1);
+					return;
+				}else{
+					payRequestResult();
+				}
+			}else{
+				payRequestResult();
+			}
+		}else if(_type == 2){
+			if(globalParams.fromPage == "LIVEPAY" || globalParams.fromPage == "USERMANAGER" || globalParams.fromPage == "PAYLIST"){
+				var json = isServiceCode(globalParams.serviceInfoData.serviceCode);
+				if(json.status == true){//json.status == true
+					globalParams.expireDate = json.expireDate;
+					globalParams.xuding = 1;
+				}
+			}else{
+				var zanServiceId =",21,22,23,14,15,16"
+				json = getMemberPayStatus(globalParams.serviceId+zanServiceId) ;
+				if(json.status == true){
+					globalParams.expireDate = json.expireDate;
+					globalParams.xuding = 1;	
+				}
+			}
+			
+			globalParams.defrayPageObj.init();
+			$("selectDefrayModePage").style.display = "block";	
+			$("defrayPage").style.display = "none";	
+			globalParams.areaPos = 2;	
+		}else{
+			if(globalParams.fromPage == "LIVEPAY" || globalParams.fromPage == "USERMANAGER" || globalParams.fromPage == "PAYLIST"){ //显示微信支付宝选择支付
+				$("detailsPage").innerText = "";
+				//var json = getMemberPayStatus(globalParams.serviceId);
+				var json = isServiceCode(globalParams.serviceInfoData.serviceCode);
+//				if(json.status ==false && globalParams.serviceInfoData.serviceCode == 15){
+//					var oldServiceCode = "3"
+//					var json = isServiceCode(oldServiceCode)
+//				}
+				console.log(globalParams.serviceInfoData.serviceCode)
+				if(json.status == true){//json.status == true
+					globalParams.expireDate = json.expireDate;
+					globalParams.xuding = 1;
+				}
+				goSelectDefrayModePage();
+			}else{
+				goListsPage();	
+			}
+		}
+	};
+	globalParams.payInfoAjaxObj.failureCallback = function(_xmlHttp, _params) {
+		if(_type == 0){
+			//getPayInfo(_type);
+			$("detailsPage").innerText = "功能暂不能使用，请稍后再试....";
+		}
+	};
+	globalParams.payInfoAjaxObj.requestData();
+}
+
+function payRequestResult(){
+	$("payRequestTip").innerText = "支付未成功或支付状态未更新，请稍后试...";	
+	globalParams.payTimeout = setTimeout(function(){
+		$("payRequestTip").innerText = "";											  
+	},2000);	
+}
+
+function getLivePayObj(_serviceId){
+	for(var i = 0; i < livePay.length; i++){
+		if(livePay[i].serviceId == _serviceId){
+			return livePay[i]	
+		}	
+	}
+}
+function getLiveOrVodPayObj(_serviceId){
+	for(var i = 0; i < liveOrVodPay.length; i++){
+		if(liveOrVodPay[i].serviceId == _serviceId){
+			return liveOrVodPay[i];	
+		}	
+	}
+}
+function getPayQrCode(){
+	var zanServiceId =",21,22,23,14,15,16";
+	var json = getMemberPayStatus(globalParams.serviceId + cardServiceId +zanServiceId);
+	
+	if(globalParams.serviceId == ttmeiju || globalParams.serviceId == jiluVipSErviceIds||globalParams.serviceId == ttban){
+		 json = getMemberPayStatus(globalParams.serviceId);
+	}
+	if(json.status == true){
+		xuding = 1;
+	}else{
+		xuding = 0;
+	}
+	//globalParams.listsPageObj.areaPos; var position = positionInfo[globalParams.serviceId].position; 
+	var packageInfo = getPackageInfo();
+	if(packageInfo.serviceId == 65){
+		if(getMemberPayStatus(packageInfo.serviceId + "").status == false){
+			globalParams.expireDate = null;
+			globalParams.xuding = 0;
+		}	
+	}else{
+		if(globalParams.serviceId == ttmeiju || globalParams.serviceId == yinHeVipServiceIds){
+			var payJson = getMemberPayStatus(globalParams.serviceId);
+			if(payJson.status == true){
+				globalParams.expireDate = payJson.expireDate;
+				globalParams.xuding = 1;
+			}
+		}
+		if(packageInfo.serviceId ==1 ||packageInfo.serviceId ==2||packageInfo.serviceId ==3){
+			var payJson = getMemberPayStatus(vipServiceId+cardServiceId);
+			if(payJson.status == true){
+				globalParams.expireDate = payJson.expireDate;
+				globalParams.xuding = 1;
+			}else{
+				globalParams.xuding = 0;
+			}
+		}
+	}
+	var defrayModeInfo = orderDefrayMode.defrayModesInfo[globalParams.selectDefrayModePageObj.areaPos];
+	//globalParams.serviceId = packageInfo.serviceId + "";
+	$("defrayLogo").src = defrayModeInfo.payLogo;
+	var imgUrl = getAjaxUrl("payQrCode", "", "", packageInfo.price, packageInfo.sessionId, "", packageInfo.serviceId, packageInfo.serviceName, packageInfo.serviceCode, packageInfo.periodLength, defrayModeInfo.payMethod, 342, 342, globalParams.xuding);
+	$("twoDimensionCodeImg").src = imgUrl;
+	$("twoDimensionCodeTip").innerText = "";
+	$("twoDimensionCodeImg").onerror = function(){
+		if(globalParams.payQrCodeAjaxObj !=  null){
+			globalParams.payQrCodeAjaxObj.requestAbort();
+		}
+		globalParams.payQrCodeAjaxObj = new ajaxClass();
+		globalParams.payQrCodeAjaxObj.frame = window;
+		var packageInfo = getPackageInfo();
+		var defrayModeInfo = orderDefrayMode.defrayModesInfo[globalParams.selectDefrayModePageObj.areaPos];
+		globalParams.payQrCodeAjaxObj.url = getAjaxUrl("payQrCode", "", "", packageInfo.price, globalParams.sessionId, "", packageInfo.serviceId, packageInfo.serviceName, packageInfo.serviceCode, packageInfo.periodLength, defrayModeInfo.payMethod, 258, 258, globalParams.xuding);
+		globalParams.payQrCodeAjaxObj.successCallback = function(_xmlHttp, _params) {
+			$("twoDimensionCodeImg").src = "images/global_tm.gif";
+			//eval("var data = (" + _xmlHttp.responseText + ")");
+			var data = _xmlHttp.responseText.split("=");
+			var flag = data[1];
+			if(flag == 4){ //能正确生成二维码
+				$("twoDimensionCodeTip").innerText = "用户不存在,状态码:" + flag;
+			}else if(flag == 9){ //订单生成失败
+				$("twoDimensionCodeTip").innerText = "系统发生异常,状态码:" + flag;
+			}else if(flag == 3){ //支付网关异常
+				$("twoDimensionCodeTip").innerText = "支付网关异常,状态码:" + flag;
+			}else if(flag == 2){
+				$("twoDimensionCodeTip").innerText = "创建订单失败,状态码:" + flag;
+			}else if(flag == 5){
+				globalParams.isPayScu = true;
+				$("payRequestTip").innerText = "您已支付完成，无需重新支付，按[确认]键退出支付";	
+				$("twoDimensionCodeTip").innerText = "用户已经订购该业务，无需重复订购:" + flag;
+			}else if(flag == 6){
+				$("twoDimensionCodeTip").innerText = "未发现存在的订购信息，无法续订:" + flag;
+			}
+		};
+		globalParams.payQrCodeAjaxObj.failureCallback = function(_xmlHttp, _params) {
+			
+		};
+		globalParams.payQrCodeAjaxObj.requestData();
+	}
+}
+function detailsPageClass(){
+	this.areaPos = 0;
+	this.moveUD = function(_num){
+		return;
+	}
+	this.moveLR = function(_num){
+		return;
+		this.areaPos += _num;
+		if(this.areaPos > 1){
+			this.areaPos = 0;	
+		}else if(this.areaPos < 0){
+			this.areaPos = 1;	
+		}
+		if(this.areaPos == 1){
+			$("detailBtn0").style.backgroundImage = "url(images/order/btn_1.png)";
+			$("detailBtn1").style.backgroundImage = "url(images/order/list_btn_0.png)";
+		}else if(this.areaPos == 0){
+			$("detailBtn0").style.backgroundImage = "url(images/order/btn_0.png)";
+			$("detailBtn1").style.backgroundImage = "url(images/order/list_btn_1.png)";
+		}
+	}
+	this.doSelect = function(){
+		return;
+		if(this.areaPos == 0){
+			goListsPage();
+		}else{//进入列表
+			var widgetVodList = tvsee.pageWidgets.getByName("widgetVodList");
+			if(widgetVodList != null){
+				tvsee.pageWidgets.getByName("widgetOrder").minimize();
+				widgetVodList.show();
+				widgetVodList.initMenu(SPEC_CATALOG_ID.VIP_JYJC_CATEID,SPEC_CATALOG_NAME.VIP_JYJC_CATENAME);
+			}
+			//exitWidgetOrder(0);	
+		}
+	}
+	this.initData = function(){
+		return;
+		$("detailImg").src = orderPayDesc.picurl;
+		$("detailTitle").innerHTML = orderPayDesc.title;
+		$("detailOrderName").innerHTML = orderPayDesc.orderName;
+		$("detailDesc").innerText = orderPayDesc.desc;
+	}
+	this.init = function(){
+		return;
+		this.areaPos = 0;
+		$("detailBtn0").style.backgroundImage = "url(images/order/btn_0.png)";
+		$("detailBtn1").style.backgroundImage = "url(images/order/list_btn_1.png)";
+	}
+}
+
+function goListsPage(){
+	globalParams.areaPos = 1;
+	if(globalParams.listsPageObj != null){
+		globalParams.listsPageObj.init();
+		globalParams.listsPageObj.initData();
+	}
+	$("listTitle").innerText = orderListPackages.title;
+//	console.log(globalParams.serviceId+cardServiceId)
+	var zanServiceId =",21,22,23,14,15,16"
+	var json = getMemberPayStatus(globalParams.serviceId + cardServiceId +zanServiceId);
+	if(globalParams.serviceId == ttmeiju ){
+		var jidu = ",66"; 
+		 json = getMemberPayStatus(globalParams.serviceId + jidu) ;
+		 
+	}
+	if(globalParams.serviceId == jiluVipSErviceIds||globalParams.serviceId == ttban){
+		 json = getMemberPayStatus(globalParams.serviceId) ;
+		 
+	}
+	if(json.status == true){
+		globalParams.expireDate = json.expireDate;
+		tvsee.debug("globalParams.expireDate:" + globalParams.expireDate);
+		var date = new Date(globalParams.expireDate);
+		globalParams.xuding = 1;
+		$("listTitle").innerText = "您订购的产品包，到" + date.getFullYear() + "年" + (date.getMonth()+1) + "月" + date.getDate() + "日到期，请选择续订时长";
+	}
+	$("defautBg").style.visibility = "hidden";
+	$("listBg").style.visibility = "visible";
+	$("detailsPage").style.display = "none";
+	$("listsPage").style.display = "block";
+}
+function listsPageClass(){
+	this.areaPos = 1;
+	this.moveUD = function(_num){
+		
+	}
+	this.moveLR = function(_num){
+		$("package" + this.areaPos + "Sel0").style.visibility = "hidden";
+		$("package" + this.areaPos + "Sel1").style.visibility = "visible";
+		//$("productName" + this.areaPos).style.visibility = "hidden";
+		//$("productName" + this.areaPos).style.color = "#989898";
+		//$("productName" + this.areaPos).style.fontSize = "19px";
+		$("productLine" + this.areaPos).style.backgroundImage = "url(images/order/font_nosel.png)";
+		this.areaPos += _num;
+		if(this.areaPos < 0){
+			this.areaPos = globalParams.serviceInfoData.length - 1;
+		}else if(this.areaPos > globalParams.serviceInfoData.length - 1){
+			this.areaPos = 0;	
+		}
+		//$("productName" + this.areaPos).style.fontSize = "22px";
+		//$("productName" + this.areaPos).style.color = "#FFFFFF";
+		$("productLine" + this.areaPos).style.backgroundImage = "url(images/order/font_sel.png)";
+		//$("productName" + this.areaPos).style.visibility = "visible";
+		$("package" + this.areaPos + "Sel0").style.visibility = "visible";
+		$("package" + this.areaPos + "Sel1").style.visibility = "hidden";
+	}
+	this.doSelect = function(){
+		goSelectDefrayModePage();
+	}
+	this.initData = function(){
+		$("listTitle").innerText = orderListPackages.title;
+		var packpageName = "";
+		if(typeof(positionInfo[globalParams.serviceId]) == "undefined"){
+			return;	
+		}
+		var position = positionInfo[globalParams.serviceId].position;
+		this.areaPos = positionInfo[globalParams.serviceId].focus;
+		for(var i = 0; i < position.length; i++){
+			$("package" + i + "Sel0").style.backgroundImage = "url(" + position[i].getFocusImg + ")";
+			$("package" + i + "Sel1").style.backgroundImage = "url(" + position[i].loseFocusImg + ")";
+			var payInfo = tvsee.eventFrame.globalParams.globalCache.get("payInfo_CACHE");
+			var jiluServiceId = "19,20"
+			if(globalParams.serviceId == jiluServiceId || globalParams.serviceId == ttban){
+				cacheZan.numB = 1;
+				hideYuanjia();
+			}else{
+			if(payInfo != false &&payInfo.result != 2 &&payInfo.result != 4 && payInfo.result != 9){
+				if(payInfo.result == "" || payInfo.result == null){
+					cacheZan.numB = 1;
+				}else{
+					var payInfo = payInfo.result;
+					var cacheServiced = new Array();
+					if(payInfo.length!= 0){
+						var chengdugqServiceId = "34,35,36,37,50";
+						var arrObj = chengdugqServiceId.split(",");
+						
+						for(var k = 0; k<payInfo.length;k++){
+							for(var j = 0 ;j<arrObj.length;j++){
+								if(payInfo[k].serviceId == arrObj[j]){
+									cacheServiced.push(payInfo[k].serviceId)
+								}
+							}
+						}
+//						console.log(cacheServiced)
+						if(cacheServiced.length == 0){
+							cacheZan.numB = 1;
+						}else if(cacheServiced.length == 1){
+							if(cacheServiced[0] == 50){
+								cacheZan.numB = 1;
+								setYuanjia();
+							}else if(cacheServiced[0] == 37){
+								cacheZan.numB = 0.5;
+								setYuanjia();
+							}else if(cacheServiced[0] == 36){
+								cacheZan.numB = 0.6;
+								setYuanjia();
+							}else if(cacheServiced[0] == 35){
+								cacheZan.numB = 0.7;
+								setYuanjia();
+							}else if(cacheServiced[0] == 34){
+								cacheZan.numB = 0.7;
+								setYuanjia();
+							}
+						}else if(cacheServiced.length >1){
+							cacheServiced.sort(function cat(a,b){return b-a});
+							if(cacheServiced[0] == 50){
+								if(cacheServiced[1] == 37){
+									cacheZan.numB = 0.5;
+									setYuanjia();
+								}else if(cacheServiced[1] == 36){
+									cacheZan.numB = 0.6;
+									setYuanjia();
+								}else if(cacheServiced[1] == 35){
+									cacheZan.numB = 0.7;
+									setYuanjia();
+								}else if(cacheServiced[1] == 34){
+									cacheZan.numB = 0.7;
+									setYuanjia();
+							}
+							}else{
+								if(cacheServiced[0] == 37){
+									cacheZan.numB = 0.5;
+									setYuanjia();
+								}else if(cacheServiced[0] == 36){
+									cacheZan.numB = 0.6;
+									setYuanjia();
+								}else if(cacheServiced[0] == 35){
+									cacheZan.numB = 0.7;
+									setYuanjia();
+								}else if(cacheServiced[0] == 34){
+									cacheZan.numB = 0.7;
+									setYuanjia();
+							}
+							}
+						}
+					}else{
+						cacheZan.numB = 1;
+					}
+				}
+			}
+			}
+			if(cacheZan.numB == 0 || cacheZan.numB == null || cacheZan.numB == ""){
+				cacheZan.numB =1;
+			}
+			if(globalParams.serviceId == "51,52,53" || globalParams.serviceId == "53,52,51"){
+				cacheZan.numB =1;
+			}
+			var packpageName = cacheZan.numB * globalParams.serviceInfoData[i].price;
+			var zanprice = changeTwoDecimal(packpageName);
+			
+			if(globalParams.serviceId ==ttmeiju){
+				$("productName" + i).innerHTML = (globalParams.serviceInfoData[i].price / 100);
+			}else{
+				if(i<2){
+					$("productName" + i).innerHTML = (globalParams.serviceInfoData[i].price / 100);
+				}else{
+					$("productName" + i).innerHTML = (zanprice / 100);
+				}
+			}
+			
+			$("productName" + i).style.top = positionInfo[globalParams.serviceId].productNamePosition.top;
+			$("productName" + i).style.left = positionInfo[globalParams.serviceId].productNamePosition.left;
+			$("productName" + i).style.color = positionInfo[globalParams.serviceId].color;
+			//$("productName" + i).style.visibility = "hidden";
+			
+			$("productLine" + i).style.visibility = "hidden";
+			//$("productName" + i).innerText = packpageName;
+		}
+	}
+	this.init = function(){
+		this.areaPos = 1;
+		$("listBg").style.visibility = "hidden";
+		var info = positionInfo[globalParams.serviceId];
+		if(typeof(info) == "object"){
+			var size = info.position.length;
+			for(var i = 0; i < size; i++){
+				$("listDiv" + i).style.display = "block";
+				$("listDiv" + i).style.left = info.position[i].left;
+				$("listDiv" + i).style.top = info.listDivTop;
+				
+				if(info.focus == i){
+					$("package" + i + "Sel0").style.visibility = "visible"; 
+					$("package"+ i +"Sel1").style.visibility = "hidden";	
+					this.areaPos = info.focus;
+				}else{
+					$("package" + i + "Sel0").style.visibility = "hidden"; 
+					$("package"+ i +"Sel1").style.visibility = "visible";		
+				}
+			}
+			for(var i = size; i < 4; i++){
+				$("listDiv" + i).style.display = "none";	
+			}
+		}
+	}
+}
+function setYuanjia(){
+	for(var r = 0;r<3;r++){
+		document.getElementById("yuanjia_"+ r).style.display = "none";
+		document.getElementById("yuanjia_0_"+ r).innerText = "原价"+(globalParams.serviceInfoData[r].price/100);
+		}
+}
+function hideYuanjia(){
+	for(var r = 0;r<3;r++){
+		document.getElementById("yuanjia_"+ r).style.display = "none";
+//		document.getElementById("yuanjia_0_"+ r).innerText = "原价"+(globalParams.serviceInfoData[r].price/100);
+		}
+}
+function goSelectDefrayModePage(){
+	globalParams.areaPos = 2;
+	$("selectDefrayModePage").style.display = "block";
+	$("listsPage").style.display = "none";
+	$("defautBg").style.visibility = "visible";
+	$("listBg").style.visibility = "hidden";
+}
+function selectDefrayModePageClass(){
+	this.areaPos = 0;
+	this.moveUD = function(_num){
+		
+	}
+	this.moveLR = function(_num){
+		$("defray" + this.areaPos + "Img0").style.visibility = "hidden";
+		$("defray" + this.areaPos + "Img1").style.visibility = "visible";
+		this.areaPos += _num;
+		if(this.areaPos < 0){
+			this.areaPos = 1;
+		}else if(this.areaPos > 1){
+			this.areaPos = 0;	
+		}
+		$("defray" + this.areaPos + "Img0").style.visibility = "visible";
+		$("defray" + this.areaPos + "Img1").style.visibility = "hidden";
+	}
+	this.doSelect = function(){
+		
+		getPayQrCode(); //请求支付二维码
+		goDefrayPage();
+	}
+	this.initData = function(){
+		//defray1Img0 defray1Bg0
+		$("selectDefraTitle").innerText = orderDefrayMode.title;
+		for(var i = 0; i < 2; i++){
+		    $("defray" + i + "Img0").style.backgroundImage = "url("+orderDefrayMode.defrayModesInfo[i].getFocusImg+")";
+		    $("defray" + i + "Img1").style.backgroundImage = "url("+orderDefrayMode.defrayModesInfo[i].loseFocusImg+")";
+			$("defray" + i + "Bg0").innerText = orderDefrayMode.defrayModesInfo[i].title;
+			$("defray" + i + "Bg1").innerText = orderDefrayMode.defrayModesInfo[i].title;
+			$("defray" + i + "Bg0").style.backgroundImage = "url("+orderDefrayMode.defrayModesInfo[i].getFocusTitleBg+")";
+		    $("defray" + i + "Bg1").style.backgroundImage = "url("+orderDefrayMode.defrayModesInfo[i].loseFocusTitleBg+")";
+		}
+	}
+	this.init = function(){
+		this.areaPos = 0;
+		$("defray1Img0").style.visibility = "hidden";
+		$("defray1Img1").style.visibility = "visible";
+		$("defray0Img0").style.visibility = "visible";
+		$("defray0Img1").style.visibility = "hidden";
+		$("defautBg").style.visibility = "hidden";
+	}
+}
+function getPackageInfo(){
+	var packageInfo = null;
+	if(globalParams.fromPage == "LIVEPAY"){
+		packageInfo = globalParams.serviceInfoData;//getLivePayObj(globalParams.serviceId);
+	}else if(globalParams.fromPage == "USERMANAGER"){
+		packageInfo = globalParams.serviceInfoData;//getLiveOrVodPayObj(globalParams.serviceId);
+	}else if(globalParams.fromPage == "PAYLIST"){
+		packageInfo = globalParams.serviceInfoData;
+	}else{
+		packageInfo = globalParams.serviceInfoData[globalParams.listsPageObj.areaPos];
+	}
+	return packageInfo;
+}
+function goDefrayPage(){
+	//defrayPage selectDefrayModePage
+	globalParams.areaPos = 3;
+	$("defrayPage").style.display = "block";
+	$("selectDefrayModePage").style.display = "none";
+	globalParams.defrayPageObj.orderInfo();
+	//payUser payPrice payDate
+	if(typeof(globalVar.get) == "function"){
+		$("payUser").innerText  = globalVar.get("ca_mac");
+		$("payNumber").innerText = globalVar.get("ca_stbid");
+	}
+	var packageInfo = getPackageInfo();
+	$("defrayPageTitle").innerText = packageInfo.serviceName;
+	var time = null;
+	if(globalParams.expireDate == null){
+		time = TvseeDate.getTime();
+	}else{
+		time = globalParams.expireDate;
+	}
+	if(packageInfo.serviceId == shengjiServiceId){
+		var json = getMemberPayStatus(livePayChengduServiceId_0 + halfServiceId_70);
+		time = json.expireDate;
+	} 
+	
+	if(packageInfo.serviceId == "1"||packageInfo.serviceId == "2"||packageInfo.serviceId == "3"){
+		var zanServiceId =",21,22,23,14,15,16";
+		var json = getMemberPayStatus(globalParams.serviceId + cardServiceId +zanServiceId);
+		if(json.status == true){
+			time =json.expireDate;
+		}
+	}
+	var date = new Date(time);
+	if(packageInfo.serviceId == 34){
+		var toMonth = Math.floor(packageInfo.periodLength/30) ;
+		date.setMonth(date.getMonth());
+		
+	}else{
+		if(packageInfo.monthLength==undefined){
+			packageInfo.monthLength = packageInfo.periodLength;
+		}
+		date.setMonth(date.getMonth() + packageInfo.monthLength);
+	}
+	
+//	if(cacheZan.numB == 0 || cacheZan.numB == null){
+//		cacheZan.numB = 1;
+		var payInfo = tvsee.eventFrame.globalParams.globalCache.get("payInfo_CACHE");
+			var jiluServiceId = "19,20"
+			if(globalParams.serviceId == jiluServiceId || globalParams.serviceId == ttban ){
+				cacheZan.numB = 1;
+//				hideYuanjia();
+			}else{
+			if(payInfo != false &&payInfo.result != 2 &&payInfo.result != 4 && payInfo.result != 9){
+				if(payInfo.result == "" || payInfo.result == null){
+					cacheZan.numB = 1;
+				}else{
+					var payInfo = payInfo.result;
+					var cacheServiced = new Array();
+					if(payInfo.length!= 0){
+						var chengdugqServiceId = "34,35,36,37,50";
+						var arrObj = chengdugqServiceId.split(",");
+						
+						for(var k = 0; k<payInfo.length;k++){
+							for(var j = 0 ;j<arrObj.length;j++){
+								if(payInfo[k].serviceId == arrObj[j]){
+									cacheServiced.push(payInfo[k].serviceId)
+								}
+							}
+						}
+//						console.log(cacheServiced)
+						if(cacheServiced.length == 0){
+							cacheZan.numB = 1;
+						}else if(cacheServiced.length == 1){
+							if(cacheServiced[0] == 50){
+								cacheZan.numB = 1;
+//								setYuanjia();
+							}else if(cacheServiced[0] == 37){
+								cacheZan.numB = 0.5;
+//								setYuanjia();
+							}else if(cacheServiced[0] == 36){
+								cacheZan.numB = 0.6;
+//								setYuanjia();
+							}else if(cacheServiced[0] == 35){
+								cacheZan.numB = 0.7;
+//								setYuanjia();
+							}else if(cacheServiced[0] == 34){
+								cacheZan.numB = 0.7;
+//								setYuanjia();
+							}
+						}else if(cacheServiced.length >1){
+							cacheServiced.sort(function cat(a,b){return b-a});
+							if(cacheServiced[0] == 50){
+								if(cacheServiced[1] == 37){
+									cacheZan.numB = 0.5;
+//									setYuanjia();
+								}else if(cacheServiced[1] == 36){
+									cacheZan.numB = 0.6;
+//									setYuanjia();
+								}else if(cacheServiced[1] == 35){
+									cacheZan.numB = 0.7;
+//									setYuanjia();
+								}else if(cacheServiced[1] == 34){
+									cacheZan.numB = 0.7;
+//									setYuanjia();
+							}
+							}else{
+								if(cacheServiced[0] == 37){
+									cacheZan.numB = 0.5;
+//									setYuanjia();
+								}else if(cacheServiced[0] == 36){
+									cacheZan.numB = 0.6;
+//									setYuanjia();
+								}else if(cacheServiced[0] == 35){
+									cacheZan.numB = 0.7;
+//									setYuanjia();
+								}else if(cacheServiced[0] == 34){
+									cacheZan.numB = 0.7;
+//									setYuanjia();
+							}
+							}
+						}
+					}else{
+						cacheZan.numB = 1;
+					}
+				}
+			}
+			}
+			if(cacheZan.numB == 0 || cacheZan.numB == null || cacheZan.numB == ""){
+				cacheZan.numB =1;
+			}
+			if(globalParams.serviceId == "51,52,53" || globalParams.serviceId == "53,52,51"){
+				cacheZan.numB =1;
+			}
+	
+	
+	if(packageInfo.serviceId == 2 ||packageInfo.serviceId == 3){
+//		$("payPrice").innerText = cacheZan.numB*(packageInfo.price / 100) + "元";
+		var price = cacheZan.numB*(packageInfo.price / 100);
+		var callprice = changeTwoDecimal(price);
+		$("payPrice").innerText =callprice +"元";;
+	}else{
+		$("payPrice").innerText = packageInfo.price / 100 + "元";
+	}
+	$("payDate").innerText = date.getFullYear() + "年" + (date.getMonth() + 1) + "月" + date.getDate() + "日";//packageInfo.periodLength
+}
+
+changeTwoDecimal = function changeTwoDecimal(floatvar){
+	var f_x = parseFloat(floatvar);
+	if(isNaN(f_x)){
+		return false;
+	}
+	var f_x = Math.round(floatvar*100)/100;
+	return f_x;
+}
+
+function defrayPageClass(){
+	this.areaPos = 0;
+	this.btnPos = 0;
+	this.payBtnPos = 0;
+	this.moveUD = function(_num){
+		
+	}
+	this.moveLR = function(_num){
+		if(this.areaPos == 1){
+			this.btnPos += _num;
+			if(this.btnPos > 1){
+				this.btnPos = 0;	
+			}else if(this.btnPos < 0){
+				this.btnPos = 1;	
+			}
+			if(this.btnPos == 1){
+				$("tipBtn0").style.backgroundImage = "url(images/order/btn_1.png)";
+				$("tipBtn1").style.backgroundImage = "url(images/order/btn_0.png)";
+			}else if(this.btnPos == 0){
+				$("tipBtn0").style.backgroundImage = "url(images/order/btn_0.png)";
+				$("tipBtn1").style.backgroundImage = "url(images/order/btn_1.png)";
+			}
+		}else if(this.areaPos == 0){
+			this.payBtnPos += _num;
+			if(this.payBtnPos > 1){
+				this.payBtnPos = 0;	
+			}else if(this.payBtnPos < 0){
+				this.payBtnPos = 1;	
+			}
+			if(this.payBtnPos == 1){
+				$("payBtn0_0").style.visibility = "hidden";
+				$("payBtn0_1").style.visibility = "visible";
+				$("payBtn1_0").style.visibility = "visible";
+				$("payBtn1_1").style.visibility = "hidden";
+				//$("payBtn0").style.backgroundImage = "url(images/order/defrayBtn_1.png)";
+				//$("payBtn1").style.backgroundImage = "url(images/order/otherPayBtn_0.png)";
+			}else if(this.payBtnPos == 0){
+				$("payBtn0_0").style.visibility = "visible";
+				$("payBtn0_1").style.visibility = "hidden";
+				$("payBtn1_0").style.visibility = "hidden";
+				$("payBtn1_1").style.visibility = "visible";
+				//$("payBtn0").style.backgroundImage = "url(images/order/defrayBtn_0.png)";
+				//$("payBtn1").style.backgroundImage = "url(images/order/otherPayBtn_1.png)";	
+			}
+		}
+	}
+	
+	this.doSelect = function(){
+		if(this.areaPos == 0){
+			//this.goBack();
+			if(this.payBtnPos == 0){
+				if(globalParams.isPayScu == true){
+					exitWidgetOrder(1);
+				}else{
+					getPayInfo(1);
+				}
+			}else if(this.payBtnPos == 1){
+				getPayInfo(2);//add longcheng 20170307
+				/*this.init();
+				$("selectDefrayModePage").style.display = "block";	
+				$("defrayPage").style.display = "none";	
+				globalParams.areaPos = 2;*/
+			}
+		}else if(this.areaPos == 1){
+			if(this.btnPos == 0){
+				/*this.init();
+				$("selectDefrayModePage").style.display = "block";	
+				$("defrayPage").style.display = "none";	
+				globalParams.areaPos = 2;*/
+				exitWidgetOrder(0);
+				//exitWidgetOrder();
+			}else if(this.btnPos == 1){
+				this.goBack();
+			}
+		}
+	}
+	this.initData = function(){
+		
+	}
+	this.orderInfo = function(){
+		
+	}
+	this.init = function(){
+		$("payDate").innerText = "";
+		$("payPrice").innerText = "";
+		$("payUser").innerText = "";
+		$("payNumber").innerText = "";
+		$("exitTip").style.visibility = "hidden";
+		this.btnPos = 0;
+		this.areaPos = 0;
+		this.payBtnPos = 0;
+		$("tipBtn0").style.backgroundImage = "url(images/order/btn_0.png)";
+		$("tipBtn1").style.backgroundImage = "url(images/order/btn_1.png)";
+		//$("payBtn0").style.backgroundImage = "url(images/order/defrayBtn_0.png)";
+		//$("payBtn1").style.backgroundImage = "url(images/order/otherPayBtn_1.png)";
+		$("payBtn0_0").style.visibility = "visible";
+		$("payBtn0_1").style.visibility = "hidden";
+		$("payBtn1_0").style.visibility = "hidden";
+		$("payBtn1_1").style.visibility = "visible";
+	}
+	this.goBack = function(){
+		if(this.areaPos == 0){
+			this.areaPos = 1;
+			$("exitTip").style.visibility = "visible";
+		}else{
+			this.areaPos  = 0;
+			$("exitTip").style.visibility = "hidden";
+		}
+	}
+}
+window.onload = init;
+</script>
+</head>
+
+<body>
+<!--images/order/bg.jpg style="visibility:hidden;" order/bg.png-->
+<div style="position: absolute; width: 1280px; height: 720px; top: 0px; left: 0px; background-image: url(images/order/bg.png);" id="defautBg"></div>
+<div style="position: absolute; width: 1280px; height: 720px; top: 0px; left: 0px; background-image: url(images/order/tiantianBg.jpg);background-size: cover; background-position:center;visibility:hidden;" id="listBg"></div>
+<div id="detailsPage" class="pagesCla" style="text-align:center; line-height: 720px; font-size:30px; color: #FFF;">
+	<!--<div id="detailTitle" style="position:absolute; left: 64px; top: 58px; font-size:32px;">银河VIP,您的私人影院</div>
+    <img id="detailImg" style="position:absolute; left: 64px; top: 145px; " width="246" height="345"/>
+    <div id="detailOrderName" style="position:absolute; left: 329px; top: 185px; width:500px; height:40px; font-size: 22px; color:#FFD100;"></div>
+    <img src="images/order/detail_line.jpg" width="893" height="2" style="position: absolute; left: 329px;  top:235px;"/>
+    <div id="detailDesc" style="position:absolute; left: 329px; top:250px; width: 870px; height: 130px; font-size: 26px;"></div>
+    <div style="background-image:url(images/order/btn_0.png);left: 333px;" class="detailBtnCla" id="detailBtn0">购买</div>
+    <div style="background-image:url(images/order/list_btn_1.png);left: 533px; top: 378px; font-size:30px; width:207px; position:absolute;height:68px; line-height: 68px; text-align:center;" id="detailBtn1">进入影片列表</div>-->
+</div>
+<!--进入购买列表 style="display:none;"-->
+<div id="listsPage" class="pagesCla" >
+	<div id="listTitle" style="position:absolute; left: 64px; top: 58px; font-size:32px; display:none;">请选择您购买的时长</div>
+    <div style="position:absolute; width:289px; height: 272px; top: 433px; left: 60px; display: none;" id="listDiv0">
+    	<div id="yuanjia_0" style="display: none;"><span id="yuanjia_0_0" style="font-family: '黑体';font-size: 30px;color: white;position: absolute;top: 76px;left: 118px;font-weight: bold;font-style: oblique;">原价19.8</span></div>
+    	<div id="yuanjia_1" style="display: none;"><span id="yuanjia_0_1" style="font-family: '黑体';font-size: 30px;color: white;position: absolute;top: 76px;left: 535px;width: 200px;font-weight: bold;font-style: oblique;">原价198</span></div>
+    	<div id="yuanjia_2" style="display: none;"><span id="yuanjia_0_2" style="font-family: '黑体';font-size: 30px;color: white;position: absolute;top: 76px;left: 945px;width: 200px;font-weight: bold;font-style: oblique;">原价298</span></div>
+    	<!--<span id="" class="xianshi">限时</span>
+    	<span id="" class="xianshi" style="top: 81px;">特惠</span>-->
+    	<div style="background-image:url(images/order/year_sel.png); visibility:hidden" class="productImgCla" id="package0Sel0"></div>
+        <div style="background-image:url(images/order/year_nosel.png); " class="productImgCla" id="package0Sel1"></div>
+        <div class="productNameCla" id="productName0"></div>
+        <div style="position:absolute; width:177px; height: 1px; background-image:url(images/order/font_sel.png); top: 190px; left: 200px;" id="productLine0"></div>
+    </div>
+  
+    <div style="position:absolute;width:289px; height: 272px; top: 433px; left: 476px; display: none" id="listDiv1">
+    	<div style="background-image:url(images/order/six_months_sel.png); visibility:hidden" class="productImgCla" id="package1Sel0"></div>
+        <div style="background-image:url(images/order/six_months_nosel.png); " class="productImgCla" id="package1Sel1"></div>
+        <div class="productNameCla"  id="productName1" ></div>
+        <div style="position:absolute; width:177px; height: 1px; background-image:url(images/order/font_nosel.png); top: 190px; left: 200px;" id="productLine1"></div>
+    </div>
+    
+     <div style="position:absolute; width:289px; height: 272px; top: 433px; left: 892px; display: none" id="listDiv2">
+    	<div style="background-image:url(images/order/month_sel.png); visibility:hidden" class="productImgCla" id="package2Sel0"></div>
+        <div style="background-image:url(images/order/month_nosel.png);" class="productImgCla" id="package2Sel1"></div>
+        <div class="productNameCla" id="productName2" ></div>
+        <div style="position:absolute; width:177px; height: 1px; background-image:url(images/order/font_nosel.png); top: 190px; left: 200px;" id="productLine2"></div>
+    </div>
+    
+    <div style="position:absolute; width:289px; height: 272px; top: 433px; left: 340px;display: none" id="listDiv3">
+    	<div style="background-image:url(images/order/season_sel.png); " class="productImgCla" id="package3Sel0"></div>
+        <div style="background-image:url(images/order/season_nosel.png); visibility:hidden;" class="productImgCla" id="package3Sel1"></div>
+        <div class="productNameCla" id="productName3"></div>
+        <div style="position:absolute; width:177px; height: 1px; background-image:url(images/order/font_sel.png); top: 190px; left: 200px;" id="productLine3"></div>
+    </div>
+</div>
+
+<!--选择支付方式，微信或者支付宝-->
+<div id="selectDefrayModePage" class="pagesCla"  style="display:none;" >
+	<div id="selectDefraTitle" style="position:absolute; left: 64px; top: 58px; font-size:32px;">请选择您支付的方式</div>
+    <div id="defray0Img0" style="position:absolute; background-image:url(images/order/defray0Img0.png); width:327px; height: 469px; left:290px; top: 142px;">
+    	<div style=" position:absolute; text-align:center; line-height: 61px; width:290px; height: 61px; background-image:url(images/order/defrayBg0.png); top: 351px; left: 21px; font-size: 28px;" id="defray0Bg0">
+        	手机扫描，完成支付
+        </div>
+    </div>
+    <div id="defray0Img1" style="position:absolute; background-image:url(images/order/defray0Img1.png); width:296px; height: 425px; left:305px; top: 164px; visibility:hidden;">
+    	<div style=" position:absolute; text-align:center; line-height: 56px; width:263px; height: 56px; background-image:url(images/order/defrayBg1.png); top: 320px; left: 19px; font-size: 24px;" id="defray0Bg1">
+        	手机扫描，完成支付
+        </div>
+    </div>  
+    
+  <div id="defray1Img0" style="position:absolute; background-image:url(images/order/defray1Img0.png); width:327px; height: 469px; left:660px; top: 142px; visibility:hidden;">
+    	<div style=" position:absolute; text-align:center; line-height: 61px; width:290px; height: 61px; background-image:url(images/order/defrayBg0.png); top: 351px; left: 21px; font-size: 28px;" id="defray1Bg0">
+        	手机扫描，完成支付
+        </div>
+    </div>
+    <div id="defray1Img1" style="position:absolute; background-image:url(images/order/defray1Img1.png); width:296px; height: 425px; left:675px; top: 164px;">
+    	<div style=" position:absolute; text-align:center; line-height: 56px; width:263px; height: 56px; background-image:url(images/order/defrayBg1.png); top: 320px; left: 19px; font-size: 24px;" id="defray1Bg1">
+        	手机扫描，完成支付
+        </div>
+    </div> 
+</div>
+
+<!--扫描二维码支付页 -->
+<div id="defrayPage" class="pagesCla"  style="display:none;">
+	<div id="defrayPageTitle" style="position:absolute; left: 64px; top: 58px; font-size:32px;">银河VIP影院包月</div>
+    <div style="width: 850px; height: 400px; left: 220px; position:absolute; top: 150px;">
+    	<div style="position:absolute; width: 290px; height: 400px;">
+    		<img src="images/order/zhifubao.png" id="defrayLogo" style="position:absolute; top: 8px; left:80px;" />
+            <div id="defrayLogoName" style="position: absolute; font-size:24px; left:136px; top:32px;">支付</div>
+            <!--<img src="" id="twoDimensionCodeImg" /> width="258" height="258" -->
+            <img  id="twoDimensionCodeImg" style="position:absolute; top: 70px; left:10px;"/>
+            <div id="twoDimensionCodeTip" style="position:absolute; width:258px; height: 258px; top: 70px; left:10px; font-size:22px; color:#FFF" >
+            </div>
+            <div style="position:absolute; width: 258px; top:350px; height: 30px; font-size:19px; text-align:center; left: 10px;">扫描二维码，手机上完成支付</div>
+        </div>
+        <div style="position: absolute; width: 580px; height: 310px; top: 58px; left: 298px;">
+        	<div style="position:absolute; font-size:22px; top: 10px; left: 8px;" id="">购买后有效期至:</div> 
+            <div style="position:absolute; left: 182px; font-size: 30px; top: 2px; color:#FFD100;" id="payDate">2015年11月30日</div>
+            <div style="position:absolute; font-size:22px; top: 50px; left: 8px;">订单金额:</div>
+            <div style="position:absolute; font-size:30px; top: 45px; left: 108px; color:#FFD100;" id="payPrice"></div>
+            <div style="position:absolute; font-size:22px; top: 85px; left: 8px;">默认账户:</div>
+            <div style="position:absolute; font-size:30px; top: 80px; left: 108px;" id="payUser">00:00:00:00:00:00</div>
+			<div style="position:absolute; font-size:22px; top: 120px; left: 8px;">终端编号:</div>
+            <div style="position:absolute; font-size:30px; top: 115px; left: 108px;" id="payNumber">00:00:00:00:00:00</div>
+            <img src="images/order/line.png"  style="position:absolute; top: 150px;"/>
+            <div style="position:absolute; top: 170px; font-size:21px;">温馨提示:订购用户可观看相应付费视频,手机上支付完成后,请按遥控器“OK”键即时生效,退出支付请按“返回”键。</div>
+            <div style="position:absolute; top: 225px; font-size:22px;" id="payRequestTip"></div>
+            <div style="position:absolute; width:187px; height:68px; background-image:url(images/order/defrayBtn_0.png); top: 258px; left: 12px; text-align:center; line-height:68px; font-size:30px;" id="payBtn0_0">已完成支付</div>
+             <div style="position:absolute; width:187px; height:68px; background-image:url(images/order/defrayBtn_1.png); top: 258px; left: 12px; text-align:center; line-height:68px; font-size:30px; visibility:hidden;" id="payBtn0_1">已完成支付</div>
+             <div style="position:absolute; width:207px; height:68px; background-image:url(images/order/otherPayBtn_0.png); top: 258px; left: 242px; text-align:center; line-height:68px; font-size:30px; visibility:hidden;" id="payBtn1_0">其它支付方式</div>
+            <div style="position:absolute; width:207px; height:68px; background-image:url(images/order/otherPayBtn_1.png); top: 258px; left: 242px; text-align:center; line-height:68px; font-size:30px;" id="payBtn1_1">其它支付方式</div>
+        </div>
+    </div>
+    <div id="exitTip" style="position:absolute; background-image:url(images/order/tip_bg.png); visibility:hidden; width:707px; height: 466px; top: 145px; left:280px;">		<div style="position: absolute; font-size: 33px; color:#FFF; width: 500px; left: 103px; height: 40px; line-height: 40px; top: 160px; text-align:center;">确认放弃此次支付</div>
+    	<div style="background-image:url(images/order/btn_0.png);left: 173px;" class="tipBtnCla" id="tipBtn0">确认</div>
+   		<div style="background-image:url(images/order/btn_1.png);left: 393px;" class="tipBtnCla" id="tipBtn1">返回</div>
+    </div>
+</div>
+</body>
+</html>

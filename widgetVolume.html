@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>音量设置</title>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script type="text/javascript">
+/*if(parent != self) {
+	parent.jsExtendedInterface(window);
+}*/
+initPage(window);
+var globalParams = {
+	maxVolumeValue: 0,
+	volumeValue: 0,
+	volumeChangeValue: 0,
+	volumeBarTimeout: -1,
+	setVolumeTimeout: -1,
+	volumeShowFalg: false
+}
+
+function initVolume(){
+	if(typeof(parent.mediaPlayer) == "undefined"){
+		setTimeout("initVolume()", 100);
+	}else{
+		window.mediaPlayer = parent.mediaPlayer;
+		/*window.mediaPlayer.getMaxVolume = function(){return 14;}
+		window.mediaPlayer.volume = function(){return 0};
+		window.mediaPlayer.mute = function(){return true;}
+		window.mediaPlayer.setMute = function(){}*/
+		window.tvsee = parent.tvseeObject;
+		try{
+			globalParams.maxVolumeValue = mediaPlayer.getMaxVolume();
+			globalParams.volumeValue = mediaPlayer.volume();
+			globalParams.volumeChangeValue = Math.round(globalParams.maxVolumeValue / 14);
+			setVolumeStatus();
+		}catch(e){}	
+	}
+}
+
+function show(){
+	if(typeof(tvsee.eventFrame.$) != "function"){
+		setTimeout("show()",100);	
+	}else{
+		tvsee.eventFrame.$("widgetVolume").style.visibility = "visible";
+	}
+
+}
+function hide(){
+	tvsee.eventFrame.$("widgetVolume").style.visibility = "hidden";
+}
+function setMute(){
+	var isMute = mediaPlayer.mute();
+	window.clearTimeout(globalParams.volumeBarTimeout);
+	if(isMute == true){
+		mediaPlayer.setMute(false);	
+		globalParams.volumeValue = mediaPlayer.volume();
+	}else{
+		mediaPlayer.setMute(true);
+	}
+	setVolumeStatus();
+}
+
+function setVolumeStatus(){
+	var isMute = mediaPlayer.mute();
+	if(globalParams.volumeValue <= 0 || isMute == true){//显示静音标识|| mediaPlayer.volume() <= 0
+		$("muteOrNoMute").src = "images/play/mute.png";
+		showVolumeBar();
+		show();
+	}else{
+		$("muteOrNoMute").src = "images/play/smallTrumpet.png";	
+		hideVolumeBarAction();
+	}
+	var value = Math.ceil(globalParams.volumeValue / globalParams.volumeChangeValue);
+	if(isMute == true){
+		value = 0;	
+	}
+	if(value > 14){
+		value = 14;	
+	}
+	for(var i = 0; i < value; i++){ //音量值显示
+		$("volumeShow" + i).style.visibility = "visible";	
+	}
+	for(var i = value; i < 14; i++){ //不是音量值显示
+		$("volumeShow" + i).style.visibility = "hidden";	
+	}
+}
+function showVolumeBar(){
+	show();
+	globalParams.volumeShowFalg = true;
+	$("volumeBar").style.display = "block";
+}
+function hideVolumeBar(){
+	hide();
+	globalParams.volumeShowFalg = false;
+	$("volumeBar").style.display = "none";
+}
+function hideVolumeBarAction(){
+	window.clearTimeout(globalParams.volumeBarTimeout);
+	var isMute = mediaPlayer.mute();
+	if(isMute == true || globalParams.volumeValue <= 0){//显示静音标识
+		return;
+	}
+	globalParams.volumeBarTimeout = setTimeout("hideVolumeBar()", 5000);
+}
+
+function volumeUD(_num){
+	if(globalParams.volumeValue <= 0 && _num > 0){
+		return;	
+	}
+	if(globalParams.volumeShowFalg == false){
+		showVolumeBar();
+		hideVolumeBarAction();
+		return;
+	}
+	window.clearTimeout(globalParams.volumeBarTimeout);
+	window.clearTimeout(globalParams.setVolumeTimeout);
+	globalParams.volumeValue += _num * -1 * globalParams.volumeChangeValue;
+	var isMute = mediaPlayer.mute();
+	if(isMute == true){
+		mediaPlayer.setMute(false);	
+		mediaPlayer.setVolume(globalParams.volumeValue);
+	}
+	if(globalParams.volumeValue < 0){
+		globalParams.volumeValue = 0;	
+	}else if(globalParams.volumeValue > mediaPlayer.getMaxVolume()){
+		globalParams.volumeValue = 	mediaPlayer.getMaxVolume();
+	}
+	setVolumeStatus();
+	hideVolumeBarAction();
+	globalParams.setVolumeTimeout = setTimeout(function(){
+		mediaPlayer.setVolume(globalParams.volumeValue);
+	}, 500);
+}
+window.onload = initVolume;
+</script>
+<style type="text/css">
+.volumeShowCla{
+	background-image:url(images/play/volumeShow.png);
+	width: 64px;
+	height: 25px;
+	position: absolute;
+	visibility: hidden;
+}
+</style>
+</head>
+<body style="background-color: transparent; width: 1280px; height: 720px; margin:0px; overflow: hidden;">
+<!--音量条-->
+<div style="position: absolute;  top: 170px; height: 299px; width: 85px; left: 1158px; display: none;" id="volumeBar">
+	<div style="position: absolute; left: 0px; top: 0px;  background-image: url(images/play/volumeBg.png); height: 299px; width: 85px;"></div>
+	<div style="position: absolute; left: 30px; top: 15px; width: 42px; height: 39px;">
+		<img src="images/play/smallTrumpet.png" width="42" height="39"  id="muteOrNoMute" />
+    </div>
+    <div style="width: 64px; left: 12px; height: 238px; position: absolute; top: 56px;">
+        <div id="volumeShow13" style="top: 0px;" class="volumeShowCla"></div>
+        <div id="volumeShow12" style="top: 16px;" class="volumeShowCla"></div>
+        <div id="volumeShow11" style="top: 32px;" class="volumeShowCla"></div>
+     	<div id="volumeShow10" style="top: 48px;" class="volumeShowCla"></div>
+        <div id="volumeShow9" style="top: 64px;" class="volumeShowCla"></div>
+        <div id="volumeShow8" style="top: 80px;" class="volumeShowCla"></div>
+        <div id="volumeShow7" style="top: 96px;" class="volumeShowCla"></div>
+        <div id="volumeShow6" style="top: 112px;" class="volumeShowCla"></div>
+        <div id="volumeShow5" style="top: 128px;" class="volumeShowCla"></div>
+        <div id="volumeShow4" style="top: 144px;" class="volumeShowCla"></div>
+        <div id="volumeShow3" style="top: 160px;" class="volumeShowCla"></div>
+        <div id="volumeShow2" style="top: 176px;" class="volumeShowCla"></div>
+        <div id="volumeShow1" style="top: 192px;" class="volumeShowCla"></div>
+        <div id="volumeShow0" style="top: 208px;" class="volumeShowCla"></div>
+    </div>
+</div>
+</body>
+</html>

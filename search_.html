@@ -1,0 +1,1791 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>search</title>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="common/showList2d.js"></script>
+<script src="common/focusMoveObj.js"></script>
+<!--<script src="newEpg/details/showDetails.js"></script>-->
+</head>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) { 
+	parent.jsExtendedInterface(window);
+}else{
+	eval("tvsee={}");
+	tvsee = {debug:function(){}}; 
+}
+var globalParams = {
+	gCurObjId:'',
+	gNxtObjId:'',
+	searchType:0,
+	areaPos: 3,
+	tmpAreaPos: 0,
+	lwObj: null,
+	lenovoWordsData: null,
+	groupTypeData: null,
+	classObj:null,
+	typeObj:null,
+	programObj:null,
+	keyObj:null,
+	totalCount: 0,
+	defaltRow: 4,
+	listStartHigh: 21,
+	listLineHigh: 249,
+	listLineNumber: 4,
+	listDataPos: 0,
+	createHTMLRow: 4,
+	listLoadDataTimeout: -1,
+	listY: 0,
+	programDataArr: [],
+	showTextListTimeout: -1,
+	isStartMoveFlag: false,
+	jiansuoAjaxObj:null,
+	jiansuoAjaxObj:null,
+	groupTypeAjaxObj:null,
+	lenovoWordsAjaxObj:null,
+	timeout:-1,
+	flag:1,//按照片名还是主演搜索联想词 flag: 1:片名  2:还是主演
+	typeField:[
+		{type:'0',field:'movieclass',value:''},
+		{type:'1',field:'zone',value:''},
+		{type:'2',field:'years',value:''}
+	]//查询类型字段，可以配置多个字段查询,适用以后增加类型
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);	
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);	
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		goBack();
+	}
+}
+function doSelect(){
+	if(globalParams.areaPos == 0){//搜索
+		if(this.tmpDataPos != -1){
+			$("class"+globalParams.classObj.tmpDataPos).style.color = "#FFFFFF";
+			$("class"+globalParams.classObj.tmpDataPos).style.fontSize = "24px";
+		}
+		$("sousuo").style.display = "block";
+		$("jiansuo").style.display = "none";
+		globalParams.classObj.tmpDataPos = -1;
+		clearData();
+	}else if(globalParams.areaPos == 1){//检索大分类
+		hashtable.put("cateIdLevel1", 0);
+		hashtable.put("epgName", 20);
+		tvsLogger.saveOperLog(11);
+		globalParams.classObj.doAction();
+	}else if(globalParams.areaPos == 2){//类型信息
+		globalParams.typeObj.doAction();
+	}else if(globalParams.areaPos == 3 || globalParams.areaPos == 4){//软键盘
+		globalParams.keyObj.doAction();
+	}else if(globalParams.areaPos == 5){//联想词
+		globalParams.lwObj.doAction();
+	}else if(globalParams.areaPos == 6){//节目列表
+		var cacheFocus = {
+			searchType:globalParams.searchType,
+			selAreaPos:globalParams.tmpAreaPos,
+			searchInput:$("searchInput").innerText,
+			keyFocus:globalParams.keyObj.focusPos,
+			lwFocus:globalParams.lwObj.dataPos,
+			lwSelFocus:globalParams.lwObj.tmpDataPos,
+			classSelFocus:globalParams.classObj.tmpDataPos,
+			classFocus:globalParams.classObj.dataPos,
+			typeListFocus:globalParams.typeObj.listPos,
+			typeSelFocus:globalParams.typeObj.tmpDataPos,
+			typeFocus:globalParams.typeObj.dataPos,
+			proListFocus:globalParams.listDataPos,
+			proListY:globalParams.listY,
+			typeField:globalParams.typeField
+		};
+		tvsee.eventFrame.globalParams.focusCache.put("SEARCH",cacheFocus);
+		var pid = globalParams.programDataArr[globalParams.listDataPos * globalParams.listLineNumber + globalParams.listY].pid;
+		window.location.href = "vodDetail.html?pid="+pid+"&fromPage=TYPESEARCH&windowSize=fullScreen";
+	}
+}
+var focusData = tvsee.eventFrame.globalParams.focusCache.get("SEARCH");
+function init(){
+	window.focus();
+	globalParams.scrollObj = new scrollBarClass("scroll", "scrollBar", window);
+	if(focusData != false){
+	 	$("searchInput").innerText = focusData.searchInput;
+	}else{
+		hashtable.put("cateIdLevel1", 0);
+		hashtable.put("epgName", 4);
+		tvsLogger.saveOperLog(11);
+	}
+ 	initGroupType();
+	initKey();
+	initLenovoWords();
+	initBackPageFocus();
+	//clearData();
+}
+function initBackPageFocus(){
+	if(focusData != false){
+		globalParams.searchType = focusData.searchType;
+		globalParams.tmpAreaPos = focusData.selAreaPos;
+		globalParams.keyObj.focusPos = focusData.keyFocus;
+		globalParams.lwObj.dataPos = focusData.lwFocus;
+		globalParams.lwObj.tmpDataPos = focusData.lwSelFocus
+		globalParams.classObj.tmpDataPos = focusData.classSelFocus;
+		globalParams.classObj.dataPos = focusData.classFocus;
+		globalParams.typeObj.listPos = focusData.typeListFocus;
+		globalParams.typeObj.tmpDataPos = focusData.typeSelFocus;
+		globalParams.listDataPos = focusData.proListFocus;
+		globalParams.listY = focusData.proListY;
+		globalParams.typeField = focusData.typeField;
+		globalParams.typeObj.dataPos = focusData.typeFocus;
+		$("searchInput").innerText = focusData.searchInput;
+		if(globalParams.tmpAreaPos == 3 || globalParams.tmpAreaPos == 5){
+			$("sousuoBtn").style.color="#F7BA02";
+			$("sousuoBtn").style.fontSize = "26px";
+			if(globalParams.classObj.tmpDataPos != -1){
+				$("class"+globalParams.classObj.tmpDataPos).style.color = "#FFFFFF";
+				$("class"+globalParams.classObj.tmpDataPos).style.fontSize = "24px";
+			}
+			if(globalParams.lwObj.tmpDataPos != -1){
+				$("lwt"+globalParams.lwObj.tmpDataPos).style.color = "#F7BA02";
+			}
+			$("sousuo").style.display = "block";
+			$("jiansuo").style.display = "none";
+			sousuoProgram();
+		}else if(globalParams.tmpAreaPos == 1 || globalParams.tmpAreaPos == 2){
+			$("sousuoBtn").style.color="#FFFFFF";
+			$("sousuoBtn").style.fontSize = "24px";
+			if(globalParams.classObj.tmpDataPos != -1){
+				$("class"+globalParams.classObj.tmpDataPos).style.color = "#F7BA02";
+				$("class"+globalParams.classObj.tmpDataPos).style.fontSize = "26px";
+			}
+			globalParams.typeObj.showType();
+			$("sousuo").style.display = "none";
+			$("jiansuo").style.display = "block";
+			jiansuoProgram();
+		}
+		focusData = false;
+		tvsee.eventFrame.globalParams.focusCache.remove("SEARCH");
+	}
+}
+
+//联想词
+function initLenovoWords(){
+	globalParams.lwObj = new showLenovoWords();
+	var value = tvsee.eventFrame.globalParams.dataCache.get("lenovoWords"+$("searchInput").innerText);
+	if(value == false){	
+		globalParams.lenovoWordsAjaxObj = new ajaxClass();
+		globalParams.lenovoWordsAjaxObj.frame = window;
+		globalParams.lenovoWordsAjaxObj.url = getAjaxUrl("mediaLenovoSearch",globalParams.flag,$("searchInput").innerText);
+		globalParams.lenovoWordsAjaxObj.successCallback = function(_xmlHttp, _params) {
+			eval("globalParams.lenovoWordsData = (" + _xmlHttp.responseText + ").movieName");
+			tvsee.eventFrame.globalParams.dataCache.put("lenovoWords"+$("searchInput").innerText,globalParams.lenovoWordsData);
+			globalParams.lwObj.showData();
+		};
+		globalParams.lenovoWordsAjaxObj.failureCallback = function(_xmlHttp, _params) {
+			//$("type_0").innerText = "加载数据失败！";
+		};
+		globalParams.lenovoWordsAjaxObj.requestData();
+	}else{
+		globalParams.lenovoWordsData = value;
+		globalParams.lwObj.showData();
+	}
+}
+function showLenovoWords(){
+	this.dataPos = 0;
+	this.tmpDataPos = -1;
+	this.inx = 0;
+	this.lwData = null;
+	this.lwDataLen = 0;
+	this.showData = function() {
+		this.lwData = globalParams.lenovoWordsData;
+		this.lwDataLen = objSize(globalParams.lenovoWordsData);
+		var j = 0;
+		this.clearDiv();
+		for(var i=this.inx;i<this.lwDataLen;i++){
+			if(j<5){
+				$("lwt"+j).innerText = this.lwData[i];
+			}
+			j++;
+		}
+	};
+	this.clearDiv = function(){
+		for(var i=0;i<5;i++){
+			$("lwt"+i).innerText = "";
+			$("lenoWord"+(i+1)).style.display = "none";
+		}
+		if(this.lwDataLen>=5){
+			$("lenoWord5").style.display = "block";
+		}else if(this.lwDataLen>0){
+			$("lenoWord"+this.lwDataLen).style.display = "block";
+		}
+	};
+	this.doAction = function(){
+		if(this.tmpDataPos != -1){
+			$("lwt"+this.tmpDataPos).style.color = "#FFFFFF";
+		}
+		globalParams.searchType = 0;
+		globalParams.listDataPos = 0;
+		globalParams.listY = 0;
+		globalParams.tmpAreaPos = 5;
+		sousuoProgram();
+	};
+	this.defautFocus = function(){
+		if(this.lwDataLen>0){
+			globalParams.areaPos= 5;
+			this.setFocusStyle();
+			globalParams.gNxtObjId = "lw"+this.dataPos;
+		}
+		getFocus();
+	};
+	this.setFocusStyle = function() {
+		hideFrame();
+		$("FRAME_FOCUS").style.width = "502px";
+		$("FRAME_FOCUS").style.height = "69px";
+		setFocusMoveParams({isBorder: false,backgroundImage: "images/search/lenvoWord_focus.png"});
+	};
+}
+//类型信息
+function initGroupType(){
+	var value = tvsee.eventFrame.globalParams.dataCache.get("typeList");
+	if(value == false){	
+		if(globalParams.groupTypeAjaxObj != null){
+			globalParams.groupTypeAjaxObj.requestAbort();
+		}
+		globalParams.groupTypeAjaxObj = new ajaxClass();
+		globalParams.groupTypeAjaxObj.frame = window;
+		globalParams.groupTypeAjaxObj.url = getAjaxUrl("getAllGroupType");
+		globalParams.groupTypeAjaxObj.successCallback = function(_xmlHttp, _params) {
+			eval("globalParams.groupTypeData = (" + _xmlHttp.responseText + ").PSGTAllList");
+			globalParams.classObj = new showClassifyList();
+			globalParams.typeObj = new showTypeList();
+			globalParams.classObj.showClassify();
+			globalParams.typeObj.showType();
+			tvsee.eventFrame.globalParams.dataCache.put("typeList", globalParams.groupTypeData);
+		};
+		globalParams.groupTypeAjaxObj.failureCallback = function(_xmlHttp, _params) {
+			//$("type_0").innerText = "加载数据失败！";
+		};
+		globalParams.groupTypeAjaxObj.requestData();
+	}else{
+		globalParams.groupTypeData = value;
+		globalParams.classObj = new showClassifyList();
+		globalParams.typeObj = new showTypeList();
+		globalParams.classObj.showClassify();
+	}
+}
+//显示一级大分类
+function showClassifyList(){
+	this.dataPos = 0;
+	this.tmpDataPos = -1;
+	this.dataLen = objSize(globalParams.groupTypeData);
+	this.colSize = 3;
+	this.showClassify = function(){
+		var j=0;
+		for(var i = 0; i < this.dataLen; i++){
+			if(j<12){
+				$("class"+j).innerText = globalParams.groupTypeData[i].classifyName;
+			}
+			j++;
+		}
+		$("jiansuo").style.top=getRow(this.dataLen,this.colSize)*45 + "px";
+	};
+	this.doAction = function(){
+		$("sousuoBtn").style.color="#FFFFFF";
+		$("sousuoBtn").style.fontSize = "24px";
+		$("sousuo").style.display = "none";
+		$("jiansuo").style.display = "block";
+		if(this.tmpDataPos != -1){
+			$("class"+this.tmpDataPos).style.color = "#FFFFFF";
+			$("class"+this.tmpDataPos).style.fontSize = "24px";
+		}
+		this.tmpDataPos = this.dataPos;
+		for(var i=0;i<globalParams.typeField.length;i++){
+			globalParams.typeField[i].value = "";
+		}
+		globalParams.typeObj.types = "";
+		globalParams.typeObj.showType();
+		jiansuoProgram();
+	};
+	this.setFocusStyle = function() {
+		hideFrame();
+		this.changeFocusBgimg(0);
+		this.changeFocusBgimg(1);
+		if((globalParams.groupTypeData[this.dataPos].classifyName).length>2){
+			$("FRAME_FOCUS").style.width = "157px";
+			$("FRAME_FOCUS").style.height = "62px";
+			setFocusMoveParams({isBorder: false,backgroundImage: "images/search/nav_focus2.png"});
+		}else{
+			$("FRAME_FOCUS").style.width = "107px";
+			$("FRAME_FOCUS").style.height = "62px";
+			setFocusMoveParams({isBorder: false,backgroundImage: "images/search/nav_focus1.png"});
+		}
+		if(this.tmpDataPos != -1){
+			$("class"+this.tmpDataPos).style.color = "#F7BA02";
+			$("class"+this.tmpDataPos).style.fontSize = "26px";
+		}
+		$("class"+this.dataPos).style.color = "#FFFFFF";
+		$("class"+this.dataPos).style.fontSize = "26px";
+		
+	};
+	this.changeFocusBgimg = function(flag){
+		if(flag == 0){
+			if(globalParams.gCurObjId.indexOf("class")==-1)return;
+			$(globalParams.gCurObjId).style.fontSize = "24px";
+			if(($(globalParams.gCurObjId).innerText).length>2){
+				$(globalParams.gCurObjId).style.width = "107px";
+				$(globalParams.gCurObjId).style.height = "62px";
+				$(globalParams.gCurObjId).style.left = ($(globalParams.gCurObjId).offsetLeft+25)+"px";
+			}
+		}else{
+			if((globalParams.groupTypeData[this.dataPos].classifyName).length>2 && flag == 1){
+				$("class"+this.dataPos).style.width = "157px";
+				$("class"+this.dataPos).style.height = "62px";
+				$("class"+this.dataPos).style.left = ($("class"+this.dataPos).offsetLeft-25)+"px";
+			}
+		}
+	};
+	this.defautFocus = function(){
+		globalParams.areaPos = 1;
+		this.setFocusStyle();
+		globalParams.gNxtObjId = "class"+this.dataPos;
+		getFocus();
+	}
+}
+//显示影片类型信息
+function showTypeList(){
+	this.listPos = 0;
+	this.dataPos = 0;
+	this.tmpDataPos = new Array();
+	this.groupData = null;
+	this.listLen = 0
+	this.dataLen = 0;
+	this.colSize = 4;
+	this.types = "";
+	this.showType = function(){
+		$("jiansuo").innerHTML = "";
+		var top = 0;
+		if(globalParams.classObj.tmpDataPos != -1){
+			this.groupData = globalParams.groupTypeData[globalParams.classObj.tmpDataPos].groups;
+		}
+		this.listLen = objSize(this.groupData);
+		for(var i= 0; i < this.listLen; i++){
+			var groupDivObj=document.createElement("div");
+			groupDivObj.id="group"+i;
+			groupDivObj.style.position="absolute";
+			groupDivObj.style.left="0px";
+			//具体类型
+			var typeData = this.groupData[i].types;
+			this.dataLen = objSize(typeData);
+			for(var j = 0; j < objSize(typeData); j++){
+				var typeDivObj = document.createElement("div");
+				typeDivObj.id = "type"+i+j;
+				typeDivObj.className = "typeStyle typeStyle"+j;
+				var childDivObj = document.createElement("div");
+				childDivObj.id = "typeName"+i+j;
+				childDivObj.className = "typeNameStyle";
+				childDivObj.innerText = typeData[j].typeName;
+				typeDivObj.appendChild(childDivObj);
+				var markDivObj = document.createElement("div");
+				markDivObj.id = "tmarkImg"+i+j;
+				markDivObj.className = "markImgStyle";
+				typeDivObj.appendChild(markDivObj);
+				groupDivObj.appendChild(typeDivObj);
+			}
+			if(i > 0){
+				top += getRow(this.groupData[i-1].types.length,this.colSize)*49 + 40;
+			}
+			groupDivObj.style.top = top+"px";
+			$("jiansuo").appendChild(groupDivObj);
+			
+			//页面返回时焦点选中位置
+			if(focusData != false){
+				if(this.tmpDataPos[i]!=-1){
+					$("type"+i+this.tmpDataPos[i]).style.backgroundImage = "url(images/search/jiansuo_leaveFocus.png)";
+					$("tmarkImg"+i+this.tmpDataPos[i]).style.display = "block";
+				}
+			}else{
+				this.tmpDataPos[i] = -1;
+			}
+		}
+	};
+	this.doAction = function(){
+		this.types = "";
+		this.setMarkIcon();
+		for(var i=0;i<globalParams.typeField.length;i++){
+			if(globalParams.typeField[i].type == this.groupData[this.listPos].groupId){
+				if($("tmarkImg"+this.listPos+this.dataPos).style.display == "block"){
+					var typeName = this.groupData[this.listPos].types[this.dataPos].typeName;
+					if(typeName == "中国"){
+						typeName = typeName+",大陆,台湾,香港";
+					}else if(typeName == "日韩"){
+						typeName = typeName+",日本,韩国";
+					}else if(typeName == "欧美"){
+						typeName = typeName+",美国,德国,法国,英国,意大利,俄国";
+					}else if(typeName == "70年代"){
+						typeName = typeName+",1970-1979";
+					}else if(typeName == "80年代"){
+						typeName = typeName+",1980-1989";
+					}else if(typeName == "90年代"){
+						typeName = typeName+",1990-1999";
+					}else if(typeName == "10年代"){
+						typeName = typeName+",2000-2099";
+					}
+					globalParams.typeField[i].value = typeName;
+				}else{
+					this.tmpDataPos[this.listPos]=-1;
+					globalParams.typeField[i].value = "";
+				}
+			}
+			if(globalParams.typeField[i].value != ""){
+				if(this.types != ""){
+					this.types += ";"; 
+				}
+				this.types += globalParams.typeField[i].field+":"+globalParams.typeField[i].value;
+			}
+		}
+		jiansuoProgram();
+	};
+	this.setMarkIcon =  function(){
+		for(var i=0;i<this.groupData[this.listPos].types.length;i++){
+			if(i == this.dataPos && ($("tmarkImg"+this.listPos+this.dataPos).style.display == "none" || $("tmarkImg"+this.listPos+this.dataPos).style.display == "")){
+				$("type"+this.listPos+this.dataPos).style.backgroundImage = "url(images/search/jiansuo_leaveFocus.png)";
+				$("tmarkImg"+this.listPos+this.dataPos).style.display = "block";
+				this.tmpDataPos[this.listPos]=this.dataPos;
+			}else{
+				$("tmarkImg"+this.listPos+i).style.display = "none";
+				$("type"+this.listPos+i).style.color = "#FFFFFF";
+				$("type"+this.listPos+i).style.backgroundImage = "url()";
+			}
+		}
+	};
+	
+	this.defautFocus = function(){
+		if(objSize(this.groupData[this.listPos].types)==0){
+			return;
+		}
+		globalParams.areaPos = 2;
+		if(this.tmpDataPos[this.listPos]!=-1){
+			this.dataPos = this.tmpDataPos[this.listPos];
+		}
+		this.setFocusStyle();
+		globalParams.gNxtObjId = "typeName"+this.listPos+this.dataPos;
+		getFocus();
+	};
+	this.setFocusStyle = function(){
+		hideFrame();
+		$("FRAME_FOCUS").style.width = "123px";
+		$("FRAME_FOCUS").style.height = "55px";
+		setFocusMoveParams({isBorder: false,backgroundImage: "images/search/jiansuo_selFocus.png"});
+	}
+}
+//检索节目按分类信息
+function jiansuoProgram(){
+	var cid = globalParams.groupTypeData[globalParams.classObj.tmpDataPos].classifyId;
+	var cName = globalParams.groupTypeData[globalParams.classObj.tmpDataPos].classifyName;
+	if(globalParams.typeObj.types != ""){
+		var str = cid + ":" + cName + ";";
+		for(var i= 0; i < globalParams.typeObj.groupData.length; i++){
+			var obj = globalParams.typeObj.groupData[i].types[globalParams.typeObj.tmpDataPos[i]];
+			if(typeof(obj) == "object"){
+				str += obj.typeId + ":" + obj.typeName + ";"
+			}
+		}
+		str = str.substring(0, str.length - 1); 
+		hashtable.put("VOD_LOG_searchKeywords", str);
+	}else{
+		hashtable.put("VOD_LOG_searchKeywords", cid + ":" + cName);
+	}
+	tvsLogger.saveOperLog(30);
+	var value = tvsee.eventFrame.globalParams.dataCache.get("proList" + cid + "_" + globalParams.typeObj.types);
+	if(value == false){
+		if(globalParams.jiansuoAjaxObj != null){
+			globalParams.jiansuoAjaxObj.requestAbort();
+		}
+		globalParams.jiansuoAjaxObj = new ajaxClass();
+		globalParams.jiansuoAjaxObj.frame = window;
+		globalParams.jiansuoAjaxObj.url = getAjaxUrl("searchProgramByClass",cid,globalParams.typeObj.types);
+		globalParams.jiansuoAjaxObj.successCallback = function(_xmlHttp, _params) {
+			eval("globalParams.programDataArr = (" + _xmlHttp.responseText + ").movieInfoProxy.programs");
+			tvsee.eventFrame.globalParams.dataCache.put("proList" + cid+"_"+globalParams.typeObj.types, globalParams.programDataArr);
+			initProgramList();
+		};
+		globalParams.jiansuoAjaxObj.failureCallback = function(_xmlHttp, _params) {
+			//$("type_0").innerText = "加载数据失败！";
+		};
+		globalParams.jiansuoAjaxObj.requestData();
+	}else{
+		globalParams.programDataArr = value;
+		initProgramList();
+	}
+}
+//搜索节目按首字母或联想词
+function sousuoProgram(){
+	var searchContent = "";
+	if(globalParams.searchType == 0){
+		searchContent = globalParams.lwObj.lwData[globalParams.lwObj.inx + globalParams.lwObj.dataPos];
+	}else{
+		searchContent = $("searchInput").innerText;
+	}
+	var value = tvsee.eventFrame.globalParams.dataCache.get(searchContent);
+	if(value == false){
+		if(globalParams.jiansuoAjaxObj != null){
+			globalParams.jiansuoAjaxObj.requestAbort();
+		}
+		globalParams.sousuoAjaxObj = new ajaxClass();
+		globalParams.sousuoAjaxObj.frame = window;
+		globalParams.sousuoAjaxObj.url = getAjaxUrl("searchProgramByInitial",globalParams.searchType,searchContent,1);
+		globalParams.sousuoAjaxObj.successCallback = function(_xmlHttp, _params) {
+			eval("globalParams.programDataArr = (" + _xmlHttp.responseText + ").movieInfoProxy.programs");
+			tvsee.eventFrame.globalParams.dataCache.put(searchContent,globalParams.programDataArr);
+			initProgramList();
+		};
+		globalParams.sousuoAjaxObj.failureCallback = function(_xmlHttp, _params) {
+			//$("type_0").innerText = "加载数据失败！";
+		};
+		globalParams.sousuoAjaxObj.requestData();
+	}else{
+		globalParams.programDataArr = value;
+		initProgramList();
+	}
+}
+//初始化节目集
+function initProgramList(){
+	$("pInfos").style.top = "0px";
+	//页面返回时焦点选中位置
+	if(focusData != false){
+		createPInfoHTML(globalParams.listDataPos);
+	}else{
+		globalParams.listY = 0;
+		globalParams.listDataPos = 0;
+	}
+	clearListInfoPN();
+	globalParams.totalCount = globalParams.programDataArr.length;
+	
+	var dataLen = globalParams.defaltRow * globalParams.listLineNumber < globalParams.totalCount ?　globalParams.defaltRow * globalParams.listLineNumber :　globalParams.totalCount;
+	if(globalParams.createHTMLRow == 4){
+		showListInfo(0, dataLen);	
+		clearListInfo(dataLen, globalParams.defaltRow * globalParams.listLineNumber);
+	}else{
+		var len = globalParams.createHTMLRow * globalParams.listLineNumber > globalParams.totalCount ? globalParams.totalCount : globalParams.createHTMLRow * globalParams.listLineNumber;
+		showListInfo(0, len);	
+		clearListInfo(len, globalParams.createHTMLRow * globalParams.listLineNumber);
+	}
+	if(globalParams.areaPos==5){
+		moveFocusToProList();
+		if(globalParams.totalCount>0){
+			globalParams.lwObj.tmpDataPos = globalParams.lwObj.dataPos;
+			$("lwt"+globalParams.lwObj.tmpDataPos).style.color = "#F7BA02";
+		}
+	}
+	if(focusData != false){
+		moveFocusToProList();
+	}
+	initScrollTip(Math.ceil(globalParams.totalCount / globalParams.listLineNumber),globalParams.listDataPos);
+	showPageInfo();
+}
+function initScrollTip(dataPosCount,curPos){
+	globalParams.scrollObj.init(dataPosCount, 1, 336, 92, "h");
+	globalParams.scrollObj.scroll(curPos);
+}
+function clearListInfoPN(){
+	var row = 0;
+	var j = 0;
+	for(var i = 0; i < globalParams.listLineNumber * globalParams.createHTMLRow; i++){
+		$("pNameRow" + row + "Cell" + j).innerText =  "";
+		$("imgRow" + row + "Cell" + j).src = "images/global_tm.gif";
+		$("markRow" + row + "Cell" + j).style.visibility = "hidden";
+		if(j !=0 && j % 3 == 0){
+			row++;	
+			j = 0;
+		}else{	
+			j++;
+		}	
+	}	
+}
+function showListInfo(_start , _end){
+	var row = 0;
+	var j = 0;
+	for(var i = _start; i < _end; i++){
+		$("imgRow" + row + "Cell" + j).src = PICURL + globalParams.programDataArr[i].picurl;
+		//$("imgRow" + row + "Cell" + j).onload = function(){ 
+		//	fImageSizeToDiv(this);
+		//}
+		var  programName =  globalParams.programDataArr[i].programname;
+		if(getCharByte(programName, 14)  == true){
+				programName = subStr(programName, 14, "...");	
+		}
+		$("pNameRow" + row + "Cell" + j).innerText = programName;
+		$("pInfoRow" + row + "Cell" + j).style.visibility = "visible";
+		if(j !=0 && j % 3 == 0){
+			row++;	
+			j = 0;
+		}else{	
+			j++;
+		}
+	}
+}
+function showPageInfo(){
+	if(globalParams.totalCount == 0){
+		$("count").innerText = 0;
+	}else{
+		$("count").innerText = (globalParams.listDataPos * globalParams.listLineNumber + globalParams.listY + 1);
+	}
+	$("totalCount").innerText = "/" + globalParams.totalCount + "部"
+}
+function clearListInfo(_start, _end){
+	var row = 0;
+	if(_start % globalParams.listLineNumber == 0){
+		row = Math.ceil(_start / globalParams.listLineNumber);
+	}else{
+		row = Math.ceil(_start / globalParams.listLineNumber) - 1;
+	}
+	
+	var j = _start % globalParams.listLineNumber;
+	for(var i = _start; i < _end; i++){
+		$("pInfoRow" + row + "Cell" + j).style.visibility = "hidden";
+		if(j !=0 && j % 3 == 0){
+			row++;	
+			j = 0;
+		}else{	
+			j++;
+		}
+	}	
+}
+function createPInfoHTML(count){
+	var pInfosObj = $("pInfos");
+	var leftArr = [20, 185, 350, 515];
+	for(var i = 0; i < count; i++){
+		var rowDivObj = document.createElement("div");
+		rowDivObj.id = "rows" + globalParams.createHTMLRow;
+		rowDivObj.style.top = (globalParams.createHTMLRow * 249 + globalParams.listStartHigh) +"px";
+		rowDivObj.className = "rowsCla";
+		for(var j = 0; j < globalParams.listLineNumber; j++){
+			var pInfoRowObj = document.createElement("div");
+			pInfoRowObj.id = "pInfoRow" + globalParams.createHTMLRow + "Cell" + j;
+			pInfoRowObj.style.left = leftArr[j] + "px";
+			pInfoRowObj.className = "pInfoCla";
+			var imageObj = new Image();
+			imageObj.className = "pImgCla";
+			imageObj.id = "imgRow" + globalParams.createHTMLRow + "Cell" + j;
+			pInfoRowObj.appendChild(imageObj);
+			var HDMarkObj = document.createElement("div");
+			HDMarkObj.className = "HDMarkCla";
+			HDMarkObj.id = "markRow" + globalParams.createHTMLRow + "Cell" + j;
+			pInfoRowObj.appendChild(HDMarkObj);
+			var pNameObj = document.createElement("div");
+			pNameObj.id = "pNameRow" + globalParams.createHTMLRow + "Cell" + j;
+			pNameObj.className = "pNameCla";
+			if(typeof(globalParams.programDataArr[globalParams.createHTMLRow * globalParams.listLineNumber + j]) != "undefined"){
+				imageObj.src = PICURL + globalParams.programDataArr[globalParams.createHTMLRow * globalParams.listLineNumber + j].picurl;
+				//imageObj.onload = function(){ 
+				//	fImageSizeToDiv(this);
+				//}
+				var programName = globalParams.programDataArr[globalParams.createHTMLRow * globalParams.listLineNumber + j].programname;
+				if(getCharByte(programName, 14)  == true){
+					programName = subStr(programName, 14, "...");	
+				}
+				pNameObj.innerText =  programName;	
+				if(globalParams.programDataArr[globalParams.createHTMLRow * globalParams.listLineNumber + j].definition == 2){
+					HDMarkObj.style.visibility = "visible";
+				}
+			}else{
+				imageObj.src = "images/global_tm.gif";	
+				pInfoRowObj.style.visibility = "hidden";
+			}
+			pInfoRowObj.appendChild(pNameObj);
+			rowDivObj.appendChild(pInfoRowObj);
+		}
+		pInfosObj.appendChild(rowDivObj);
+		globalParams.createHTMLRow++;
+	}
+}
+function listFocusStyle(){
+	//$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransitionDuration = "200ms";
+	$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransform = "scale(1.1)";		
+	
+}
+function selectedListFocusStyle(){
+	$("listFocus").style.left = (11 + globalParams.listY * 165) + "px";
+	$("listFocusBg").style.left = (-14 + globalParams.listY * 165) + "px";	
+	globalParams.showTextListTimeout = setTimeout(function(){
+		showProgramNameText();
+	}, 200);	
+}
+function showProgramNameText(){
+	var programName = globalParams.programDataArr[globalParams.listDataPos * globalParams.listLineNumber + globalParams.listY].programname;
+	if(getCharByte(programName) > 14){
+		globalParams.marqueeObj = new marqueeClass("pNameRow" + globalParams.listDataPos + "Cell" + globalParams.listY, programName);
+		globalParams.marqueeObj.scroll();
+	}
+}
+function listLoseFocusStyle(){
+	document.getElementById("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransform = "scale(1)";	
+	var programName = globalParams.programDataArr[globalParams.listDataPos * globalParams.listLineNumber + globalParams.listY].programname;
+	if(globalParams.marqueeObj != null){
+		globalParams.marqueeObj.removeScroll();	
+		globalParams.marqueeObj = null;
+	}
+	if(getCharByte(programName) > 14){
+		programName = subStr(programName, 14, "...");	
+		$("pNameRow" + globalParams.listDataPos + "Cell" + globalParams.listY ).innerText = programName;
+	}
+	lostListFocus();
+}
+function getListFocus(){
+	$("listFocus").style.visibility = "visible";
+	//$("listFocus").style.left = "11px";
+	$("listFocus").style.left = (11 + globalParams.listY * 165) + "px";
+	$("listFocusBg").style.visibility = "visible";
+	$("listFocusBg").style.left = (-14 + globalParams.listY * 165) + "px";	
+	showProgramNameText();
+	showPageInfo();
+}
+function lostListFocus(){
+	$("listFocus").style.visibility = "hidden";
+	$("listFocusBg").style.visibility = "hidden";	
+}
+//按键操作
+function initKey(){
+	globalParams.keyObj = new keyList();
+	if(focusData == false){
+		globalParams.keyObj.defautFocus();
+	}
+}
+function keyList(){
+    this.focusPos = 1;
+    this.dataPos = 1;
+	this.doAction = function(){
+		if(globalParams.areaPos == 3){
+			if(this.focusPos == 0 || this.focusPos == 10){
+				$("searchInput").innerText += $("key"+this.focusPos).innerText;
+			}else if(this.focusPos == 8){
+				if($("searchInput").innerText.length>0){
+					$("searchInput").innerText = $("searchInput").innerText.substring(0,$("searchInput").innerText.length-1);
+				}
+			}else if(this.focusPos == 11){
+				$("searchInput").innerText = "";
+			}else{
+				if(this.focusPos !=0 && this.focusPos !=8 && this.focusPos !=10 && this.focusPos !=11){
+					if(this.focusPos==6 || this.focusPos==9){
+						$("selBox"+this.focusPos).style.backgroundImage = "url(images/search/key_selbox2.png)";
+					}else{
+						$("selBox"+this.focusPos).style.backgroundImage = "url(images/search/key_selbox1.png)";
+					}
+					$("key"+this.focusPos).style.display="none";
+					$("selBox"+this.focusPos).style.display="block";
+					globalParams.areaPos = 4;
+					this.dataPos = 1;
+					this.setFocusStyle();
+					globalParams.gNxtObjId = "keyVal"+this.focusPos+this.dataPos;
+					$(globalParams.gNxtObjId).style.fontSize = "26px";
+					getFocus();
+					return;
+				}
+			}
+			if($("searchInput").innerText.length==0){
+				initLenovoWords();
+				clearData();
+				return;
+			};
+		}else if(globalParams.areaPos == 4){
+			$("searchInput").innerText += $("keyVal"+this.focusPos+this.dataPos).innerText;
+			$("key"+this.focusPos).style.display="block";
+			$("selBox"+this.focusPos).style.display="none";
+			globalParams.areaPos = 3;
+			this.setFocusStyle();
+			globalParams.gNxtObjId = "key"+this.focusPos;
+			getFocus();
+		}
+		if(globalParams.lwObj.tmpDataPos != -1){
+			$("lwt"+globalParams.lwObj.tmpDataPos).style.color = "#FFFFFF";
+		}
+		hashtable.put("VOD_LOG_searchKeywords", $("searchInput").innerText);
+		tvsLogger.saveOperLog(22);
+		globalParams.lwObj.tmpDataPos = -1;
+		initLenovoWords();
+		globalParams.searchType = 1;
+		sousuoProgram();
+	};
+	this.setFocusStyle = function(){
+		if(globalParams.areaPos == 3){
+			hideFrame();
+			$("FRAME_FOCUS").style.width = "120px";
+			$("FRAME_FOCUS").style.height = "79px";
+			setFocusMoveParams({isBorder: false,backgroundImage: "images/search/key_focus.png"});
+		}else if(globalParams.areaPos == 4){
+			if(this.dataPos == 2 || this.dataPos == 3){
+				$("FRAME_FOCUS").style.width = "47px";
+				$("FRAME_FOCUS").style.height = "79px";
+				setFocusMoveParams({isBorder: false,backgroundImage: "images/search/key_value_lr.png"});
+			}else if(this.dataPos == 0 || this.dataPos == 4){
+				$("FRAME_FOCUS").style.width = "120px";
+				$("FRAME_FOCUS").style.height = "47px";
+				setFocusMoveParams({isBorder: false,backgroundImage: "images/search/key_value_ud.png"});
+			}else if(this.dataPos == 1){
+				$("FRAME_FOCUS").style.width = "120px";
+				$("FRAME_FOCUS").style.height = "79px";
+				setFocusMoveParams({isBorder: false,backgroundImage: "images/search/key_focus.png"});
+			}
+		}
+	};
+	this.setButStyle  = function(){
+		if(globalParams.gNxtObjId == "key8"){
+			$("key8").style.backgroundImage = "url(images/search/key_back_focus.png)";
+		}else if(globalParams.gCurObjId == "key8"){
+			$("key8").style.backgroundImage = "url(images/search/key_back_nofocus.png)";
+		}
+		if(globalParams.gNxtObjId == "key11"){
+			$("key11").style.backgroundImage = "url(images/search/key_clear_focus.png)";
+		}else if(globalParams.gCurObjId == "key11"){
+			$("key11").style.backgroundImage = "url(images/search/key_clear_nofocus.png)";
+		}
+	};
+	this.defautFocus = function(){
+		globalParams.areaPos = 3;
+		this.setFocusStyle();
+		globalParams.gNxtObjId = "key"+this.focusPos;
+		getFocus();
+	}
+}
+function clearData(){
+	globalParams.totalCount = 0;
+	clearListInfoPN();
+	showPageInfo();
+	globalParams.scrollObj.init(0, 1, 336, 92, "h");
+	clearListInfo(0, globalParams.defaltRow * globalParams.listLineNumber);
+}
+function moveFocusToProList(){
+	if(globalParams.totalCount >0){
+		hideFrame();
+		globalParams.areaPos = 6;
+		$("pInfos").style.top = - globalParams.listDataPos * globalParams.listLineHigh+"px";
+		globalParams.gCurObjId = "pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY;
+		listFocusStyle();
+		setTimeout("getListFocus()", 200);
+	}
+}
+function souSuoButFocus(){
+	globalParams.areaPos = 0;
+	hideFrame();
+	$("FRAME_FOCUS").style.width = "107px";
+	$("FRAME_FOCUS").style.height = "62px";
+	setFocusMoveParams({isBorder: false,backgroundImage: "images/search/nav_focus1.png"});
+	$("sousuoBtn").style.color="#FFFFFF";
+	$("sousuoBtn").style.fontSize = "26px";
+	globalParams.gNxtObjId = "sousuoBtn";
+	getFocus();
+}
+function moveLR(_num){
+	if(globalParams.areaPos == 0){//搜索按钮
+		if(_num == -1)return;
+		if(globalParams.classObj.dataLen>0){
+			if(globalParams.classObj.tmpDataPos !=-1){
+				$("sousuoBtn").style.color = "#FFFFF";
+				$("sousuoBtn").style.fontSize = "24px";
+			}else{
+				$("sousuoBtn").style.color = "#F7BA02";
+				$("sousuoBtn").style.fontSize = "26px";
+			}
+			globalParams.classObj.defautFocus();
+		}
+		return;
+	}else if(globalParams.areaPos == 1){//一级大分类
+		if(_num == -1){
+			if(getRem(globalParams.classObj.dataPos,globalParams.classObj.colSize) == 0){
+				if(globalParams.classObj.tmpDataPos != -1){
+					$("class"+globalParams.classObj.tmpDataPos).style.color = "#F7BA02";
+					$("class"+globalParams.classObj.tmpDataPos).style.fontSize = "26px";
+				}
+				souSuoButFocus();
+				return;
+			}else{
+				globalParams.classObj.dataPos -= 1;
+			}
+		}else if(_num == 1){
+			if(globalParams.classObj.dataPos == (globalParams.classObj.dataLen-1)){
+				globalParams.tmpAreaPos = 1;
+				moveFocusToProList();
+				return;
+			}
+			if(getRem(globalParams.classObj.dataPos,globalParams.classObj.colSize) == (globalParams.classObj.colSize-1)){
+				globalParams.tmpAreaPos = 1;
+				moveFocusToProList();
+				return;
+			}
+			globalParams.classObj.dataPos += 1;
+		}
+		globalParams.classObj.setFocusStyle();
+		globalParams.gNxtObjId = "class"+globalParams.classObj.dataPos;
+	}else if(globalParams.areaPos == 2){//类型操作
+		if(_num == -1){
+			if(getRem(globalParams.typeObj.dataPos,globalParams.typeObj.colSize) == 0)return;
+			globalParams.typeObj.dataPos -= 1;
+		}else if(_num == 1){
+			if(getRem(globalParams.typeObj.dataPos,globalParams.typeObj.colSize) == (globalParams.typeObj.colSize-1) || globalParams.typeObj.dataPos == (objSize(globalParams.typeObj.groupData[globalParams.typeObj.listPos].types)-1)){
+				if(globalParams.totalCount >0){
+					globalParams.tmpAreaPos = 2;
+					moveFocusToProList();
+				}
+				return;
+			}
+			globalParams.typeObj.dataPos += 1;
+		}
+		globalParams.gNxtObjId = "typeName"+globalParams.typeObj.listPos+globalParams.typeObj.dataPos;
+	}else if(globalParams.areaPos == 3){//按键选择
+		if(_num == -1){
+			if(globalParams.keyObj.focusPos % 4 == 0)return;
+			globalParams.keyObj.focusPos -= 1;
+		}else{
+			if(globalParams.keyObj.focusPos % 4 == 3){
+				globalParams.tmpAreaPos = 3;
+				moveFocusToProList();
+				return;
+			}
+			globalParams.keyObj.focusPos += 1;
+		}
+		globalParams.gNxtObjId = "key"+globalParams.keyObj.focusPos;
+		globalParams.keyObj.setButStyle();
+	}else if(globalParams.areaPos == 4){//按键值选择
+		if(_num == -1){
+			if(globalParams.keyObj.dataPos == 1)globalParams.keyObj.dataPos=2;
+			else if(globalParams.keyObj.dataPos == 3)globalParams.keyObj.dataPos=1;
+			else return;
+		}else{
+			if(globalParams.keyObj.dataPos == 1)globalParams.keyObj.dataPos=3;
+			else if(globalParams.keyObj.dataPos == 2)globalParams.keyObj.dataPos=1;
+			else return;
+		} 
+		$(globalParams.gCurObjId).style.fontSize = "18px";
+		globalParams.keyObj.setFocusStyle();
+		globalParams.gNxtObjId = "keyVal"+globalParams.keyObj.focusPos+globalParams.keyObj.dataPos;
+		$(globalParams.gNxtObjId).style.fontSize = "26px";
+	}else if(globalParams.areaPos == 5){
+		if(_num == -1)return;
+		if(globalParams.totalCount>0){
+			globalParams.tmpAreaPos = 5;
+			if(globalParams.lwObj.tmpDataPos != -1){
+				$("lwt"+globalParams.lwObj.tmpDataPos).style.color = "#F7BA02";
+			}
+			globalParams.lwObj.setFocusStyle();
+			moveFocusToProList();
+		}
+		return;
+	}else if(globalParams.areaPos == 6){
+		if(_num < 0 && globalParams.listY == 0){
+			if(globalParams.tmpAreaPos == 1){
+				globalParams.classObj.defautFocus();
+			}else if(globalParams.tmpAreaPos == 2){
+				globalParams.typeObj.defautFocus();
+			}else if(globalParams.tmpAreaPos == 3){
+				globalParams.keyObj.defautFocus();
+			}else if(globalParams.tmpAreaPos == 5){
+				if(globalParams.lwObj.tmpDataPos != -1 && globalParams.lwObj.tmpDataPos == globalParams.lwObj.dataPos){
+					$("lwt"+globalParams.lwObj.tmpDataPos).style.color = "#FFFFFF";
+				}
+				globalParams.lwObj.defautFocus();
+			}
+			listLoseFocusStyle();
+		}else{
+			globalParams.listY += _num;
+			if(globalParams.listY == globalParams.listLineNumber && _num > 0){
+				globalParams.listY--;
+				return;
+			}
+			var dataPosCount = Math.ceil(globalParams.totalCount / globalParams.listLineNumber) - 1;
+			if(globalParams.listDataPos == dataPosCount){
+				var endRowDataCount = globalParams.totalCount % globalParams.listLineNumber - 1;
+				if((globalParams.listY > endRowDataCount && _num > 0 && endRowDataCount > 0) || endRowDataCount==0){
+					globalParams.listY--;	
+					return;
+				}	
+			}
+			$("pInfoRow" + globalParams.listDataPos + "Cell" + (globalParams.listY - _num)).style.webkitTransform = "scale(1)";
+			window.clearTimeout(globalParams.showTextListTimeout);
+			if(globalParams.marqueeObj != null){
+				globalParams.marqueeObj.removeScroll();
+				globalParams.marqueeObj = null;
+			}
+			var programName = globalParams.programDataArr[globalParams.listDataPos * globalParams.listLineNumber + globalParams.listY - _num].programname;
+			if(getCharByte(programName) > 14){
+				programName = subStr(programName, 14, "...");	
+				$("pNameRow" + globalParams.listDataPos + "Cell" + (globalParams.listY - _num)).innerText = programName;
+			}
+			listFocusStyle();
+			selectedListFocusStyle();
+			showPageInfo();
+		}	
+		return;
+	}
+	getFocus();
+}
+function moveUD(_num){
+	if(globalParams.areaPos == 0){
+		var display = $("sousuo").style.display;
+		if(_num == -1 || display=="none" || display=="")return;
+		$("sousuoBtn").style.color=FOCUS_STYLE.COLOR;
+		if(globalParams.lwObj.lwDataLen>0){
+			globalParams.lwObj.dataPos = 0;
+			globalParams.lwObj.defautFocus();
+		}else{
+			globalParams.keyObj.defautFocus();
+		}
+		return;
+	}else if(globalParams.areaPos == 1){//一级分类
+		if(_num == -1){
+			if(globalParams.classObj.dataPos < globalParams.classObj.colSize)return;
+			globalParams.classObj.dataPos -= globalParams.classObj.colSize;
+		}else if(_num == 1){
+			if(getRow(globalParams.classObj.dataPos+1,globalParams.classObj.colSize) < getRow(globalParams.classObj.dataLen,globalParams.classObj.colSize)){
+				globalParams.classObj.dataPos += globalParams.classObj.colSize;
+				if(globalParams.classObj.dataPos >= (globalParams.classObj.dataLen-1)){
+					globalParams.classObj.dataPos = globalParams.classObj.dataLen-1;
+				}
+			}else{
+				var display = $("jiansuo").style.display;
+				if(globalParams.typeObj.listLen==0 || display=="none" || display=="")return;
+				globalParams.classObj.setFocusStyle();
+				if(globalParams.classObj.tmpDataPos != -1 && globalParams.classObj.tmpDataPos != globalParams.classObj.dataPos){
+					$("class"+globalParams.classObj.dataPos).style.fontSize = "24px";
+				}
+				
+				var rew = getRem(globalParams.classObj.dataPos,globalParams.classObj.colSize);
+				var dataLength = objSize(globalParams.groupTypeData[globalParams.classObj.tmpDataPos].groups[0].types);
+				globalParams.typeObj.dataPos = rew;
+				if((rew+1)>=dataLength){
+					globalParams.typeObj.dataPos = dataLength;
+				}
+				globalParams.typeObj.defautFocus();
+				return;
+			}
+		}
+		globalParams.classObj.setFocusStyle();
+		globalParams.gNxtObjId = "class"+globalParams.classObj.dataPos;
+	}else if(globalParams.areaPos == 2){//类型操作
+		if(_num == -1){
+			if(globalParams.typeObj.dataPos < globalParams.typeObj.colSize){
+				if(globalParams.typeObj.listPos > 0){
+					var rew = getRem(globalParams.typeObj.dataPos,globalParams.typeObj.colSize);
+					globalParams.typeObj.listPos -= 1;
+					var toalRow = getRow(objSize(globalParams.typeObj.groupData[globalParams.typeObj.listPos].types),globalParams.typeObj.colSize);
+					var dataLength = objSize(globalParams.typeObj.groupData[globalParams.typeObj.listPos].types)-1;
+					var _rew = dataLength-(toalRow-1)*globalParams.typeObj.colSize;
+					if(rew>=_rew){
+						globalParams.typeObj.dataPos = dataLength;
+					}else{
+						globalParams.typeObj.dataPos = (toalRow-1)*globalParams.typeObj.colSize+rew;
+					}
+					globalParams.typeObj.defautFocus();
+				}else{
+					var rew = getRem(globalParams.typeObj.dataPos,globalParams.typeObj.colSize);
+					var toalRow = getRow(objSize(globalParams.groupTypeData),globalParams.classObj.colSize);
+					var dataLength = objSize(globalParams.groupTypeData)-1;
+					var _rew = dataLength-(toalRow-1)*globalParams.classObj.colSize;
+					if(rew>=_rew){
+						globalParams.classObj.dataPos = dataLength;
+					}else{
+						globalParams.classObj.dataPos = (toalRow-1)*globalParams.classObj.colSize+rew;
+					}
+					globalParams.classObj.defautFocus();
+				}
+				return;
+			}else{
+				globalParams.typeObj.dataPos -= globalParams.typeObj.colSize;
+			}
+		}else if(_num == 1){
+			var row = getRow(globalParams.typeObj.dataPos+1,globalParams.typeObj.colSize);
+			var toalRow = getRow(objSize(globalParams.typeObj.groupData[globalParams.typeObj.listPos].types),globalParams.typeObj.colSize);
+			var dataLength = objSize(globalParams.typeObj.groupData[globalParams.typeObj.listPos].types)-1;
+			if(row < toalRow){
+				globalParams.typeObj.dataPos += globalParams.typeObj.colSize;
+				if(globalParams.typeObj.dataPos >= dataLength){
+					globalParams.typeObj.dataPos = dataLength;
+				}
+			}else{
+				if(globalParams.typeObj.listPos<(globalParams.typeObj.listLen-1)){
+					var rew = getRem(globalParams.typeObj.dataPos,globalParams.typeObj.colSize);
+					globalParams.typeObj.listPos += 1;
+					var _dataLength = objSize(globalParams.typeObj.groupData[globalParams.typeObj.listPos].types)-1;
+					globalParams.typeObj.dataPos = rew;
+					if(rew>=_dataLength){
+						globalParams.typeObj.dataPos = _dataLength;
+					}
+					globalParams.typeObj.defautFocus();
+					return;
+				}else{
+					return;
+				}
+			}
+		}
+		globalParams.gNxtObjId = "typeName"+globalParams.typeObj.listPos+globalParams.typeObj.dataPos;
+	}else if(globalParams.areaPos == 3){//按键选择
+		if(_num == -1){
+			if(globalParams.keyObj.focusPos <=3){
+				if(globalParams.lwObj.lwDataLen>0){
+					globalParams.lwObj.dataPos = globalParams.lwObj.lwDataLen;
+					if(globalParams.lwObj.lwDataLen>=5){
+						globalParams.lwObj.dataPos = 4;
+					}
+					globalParams.lwObj.defautFocus();
+				}else{
+					souSuoButFocus();
+				}
+				return;
+			}
+			globalParams.keyObj.focusPos -= 4;
+		}else{
+			if(globalParams.keyObj.focusPos >= 8)return;
+			globalParams.keyObj.focusPos += 4;
+		}
+		globalParams.gNxtObjId = "key"+globalParams.keyObj.focusPos;
+		globalParams.keyObj.setButStyle();
+	}else if(globalParams.areaPos == 4){//按键值选择
+		if(_num == -1){
+			if(globalParams.keyObj.dataPos == 1)globalParams.keyObj.dataPos=0;
+			else if(globalParams.keyObj.dataPos == 4)globalParams.keyObj.dataPos=1;
+			else return;
+		}else{
+			if(globalParams.keyObj.dataPos == 0)globalParams.keyObj.dataPos=1;
+			else if(globalParams.keyObj.dataPos == 1 && (globalParams.keyObj.focusPos == 6 || globalParams.keyObj.focusPos == 9))globalParams.keyObj.dataPos=4;
+			else return;
+		}
+		$(globalParams.gCurObjId).style.fontSize = "18px";
+		globalParams.keyObj.setFocusStyle();
+		globalParams.gNxtObjId = "keyVal"+globalParams.keyObj.focusPos+globalParams.keyObj.dataPos;
+		$(globalParams.gNxtObjId).style.fontSize = "26px";
+	}else if(globalParams.areaPos == 5){//联想词
+		if(_num == -1){
+			if(globalParams.lwObj.dataPos == 0 && globalParams.lwObj.inx > 0){
+				globalParams.lwObj.inx--;
+		    	globalParams.lwObj.showData();
+		    	return;
+		    }else if(globalParams.lwObj.dataPos > 0){
+		    	globalParams.lwObj.dataPos -= 1;
+	   		}else{
+	   			globalParams.areaPos = 0;
+	   			souSuoButFocus();
+	   			return;
+	   		}
+		}else{
+			if(globalParams.lwObj.dataPos == (globalParams.lwObj.lwDataLen-1)){
+				globalParams.keyObj.defautFocus();
+				return;
+			}else if(globalParams.lwObj.dataPos < 4){
+				globalParams.lwObj.dataPos += 1;
+			}else if(globalParams.lwObj.inx<(globalParams.lwObj.lwDataLen-5)){
+				this.inx++;
+		    	this.showData();
+				return;
+			}else{
+				globalParams.keyObj.defautFocus();
+				return;
+			}
+		}
+		if(globalParams.lwObj.tmpDataPos != -1){
+			$("lwt"+globalParams.lwObj.tmpDataPos).style.color = "#F7BA02";
+		}
+		$("lwt"+globalParams.lwObj.dataPos).style.color = "#FFFFFF";
+		globalParams.gNxtObjId = "lw"+globalParams.lwObj.dataPos;
+	}else if(globalParams.areaPos == 6){
+		if(globalParams.isStartMoveFlag == true){
+			tvsee.debug("END");
+			return;	
+		}
+		window.clearTimeout(globalParams.listLoadDataTimeout);
+		//alert(globalParams.totalCount);
+		var dataPosCount = Math.ceil(globalParams.totalCount / globalParams.listLineNumber);
+		var backupListY = globalParams.listY;
+		globalParams.listDataPos += _num;
+		if(globalParams.listDataPos < 0){
+			globalParams.listDataPos = 0;
+		}else if(globalParams.listDataPos >= dataPosCount){
+			globalParams.listDataPos = dataPosCount - 1;	
+			return;
+		}
+		if(dataPosCount - globalParams.listDataPos > 3 && _num > 0){
+			if(globalParams.createHTMLRow <= dataPosCount){
+				createPInfoHTML(1);
+			//	return;	
+			}
+			
+		}
+		var dataPosCount = Math.ceil(globalParams.totalCount / globalParams.listLineNumber) - 1;
+		if(globalParams.listDataPos == dataPosCount){
+			var endRowDataCount = globalParams.totalCount % globalParams.listLineNumber - 1;
+			if(globalParams.listY > endRowDataCount && _num > 0 && endRowDataCount > 0){
+				globalParams.listY = endRowDataCount;
+			}	
+		}	
+		$("pInfoRow" + (globalParams.listDataPos - _num) + "Cell" + backupListY).style.webkitTransform = "scale(1)";
+		globalParams.isStartMoveFlag = true;
+		window.clearTimeout(globalParams.showTextListTimeout);
+		if(globalParams.marqueeObj != null){
+			globalParams.marqueeObj.removeScroll();
+			globalParams.marqueeObj = null;
+		}
+		var programName = globalParams.programDataArr[(globalParams.listDataPos - _num) * globalParams.listLineNumber + backupListY].programname;
+		if(getCharByte(programName) > 14){
+			programName = subStr(programName, 14, "...");	
+			$("pNameRow" + (globalParams.listDataPos - _num) + "Cell" + backupListY).innerText = programName;
+		}
+		window.clearTimeout(globalParams.timeout);
+		globalParams.timeout = setTimeout(function(){
+			startMove($("pInfos"), {"top" : - globalParams.listDataPos * globalParams.listLineHigh}, function(){
+				globalParams.isStartMoveFlag = false;
+			});
+		}, 200);
+		
+		selectedListFocusStyle();
+		listFocusStyle();		
+		showPageInfo();
+		globalParams.scrollObj.scroll(globalParams.listDataPos);
+		return;
+	}
+	getFocus();
+}
+function getFocus(){
+	if($(globalParams.gCurObjId) != null){
+		$(globalParams.gCurObjId).style.zIndex = "0";
+	}
+	if($(globalParams.gNxtObjId) != null){
+		globalParams.gCurObjId = globalParams.gNxtObjId;
+		$(globalParams.gNxtObjId).style.zIndex = "9999";
+		drawFrame(globalParams.gNxtObjId);
+	}
+}
+function goBack(){
+	if(globalParams.areaPos == 4){
+		$("selBox"+globalParams.keyObj.focusPos).style.display="none";
+		$("key"+globalParams.keyObj.focusPos).style.display="block";
+		globalParams.areaPos = 3;
+		globalParams.gNxtObjId = "key"+globalParams.keyObj.focusPos;
+		globalParams.keyObj.setFocusStyle();
+		getFocus();
+	}else if(typeof(fromPage) != "undefined"){
+		if(fromPage == "OTHER_APP"){
+			exitAppTip();	
+		}	
+	}else{
+		tvsee.eventFrame.globalParams.focusCache.remove("SEARCH");
+		tvsee.mainFrame.location.href = "index.html";
+	}
+}
+function getRem(pos,colSize){
+	return pos%colSize;
+}
+function getRow(dataLen,colSize){
+	return Math.ceil(dataLen/colSize);
+}
+
+function getCol(dataLen,colSize){
+	return (dataLen%colSize+1);
+}
+
+function objSize(_obj){
+	if(_obj == null || _obj == ""){
+		return 0;
+	}else{
+		return _obj.length;
+	}
+}
+window.onload = init;
+</script>
+<style type="text/css">
+body {
+	color: #FFFFFF;
+	font-family: "方正粗圆简体";
+}
+.claStyle{
+	color:#FFF;
+	position: absolute;
+	font-size: 24px; 
+	text-align:center; 
+	line-height: 52px; 
+	width: 107px;
+	height:62px;
+	z-index:9999;
+}
+.claStyle0{top:10px;left:125px;}
+.claStyle1{top:10px;left:255px;}
+.claStyle2{top:10px;left:385px;}
+.claStyle3{top:58px;left:125px;}
+.claStyle4{top:58px;left:255px;}
+.claStyle5{top:58px;left:385px;}
+.claStyle6{top:106px;left:125px;}
+.claStyle7{top:106px;left:255px;}
+.claStyle8{top:106px;left:385px;}
+.claStyle9{top:154px;left:125px;}
+.claStyle10{top:154px;left:255px;}
+.claStyle11{top:154px;left:385px;}
+
+.typeStyle{
+	position: absolute;
+	width: 119px;
+	height:51px;
+	background-color:#1C1C1C;
+	border: 1px solid #555555;
+}
+.markImgStyle{
+	position:absolute;
+	width: 48px;
+	height:49px;
+	left:-7px;
+	top:-7px;
+	display:none;
+	z-index:9999;
+	background-image: url(images/search/markIcon.png); 
+}
+.typeNameStyle{
+	color:#FFF;
+	position: absolute;
+	font-size: 22px; 
+	text-align:center; 
+	line-height: 49px; 
+	width: 123px;
+	height:55px;
+	left:-2px;
+	top:-2px;
+	
+}
+.typeStyle0{top: 40px;left:20px;}
+.typeStyle1{top: 40px;left:140px;}
+.typeStyle2{top: 40px;left:260px;}
+.typeStyle3{top: 40px;left:380px;}
+.typeStyle4{top: 90px;left:20px;}
+.typeStyle5{top: 90px;left:140px;}
+.typeStyle6{top: 90px;left:260px;}
+.typeStyle7{top: 90px;left:380px;}
+.typeStyle8{top: 140px;left:20px;}
+.typeStyle9{top: 140px;left:140px;}
+.typeStyle10{top: 140px;left:260px;}
+.typeStyle11{top: 140px;left:380px;}
+.typeStyle12{top: 190px;left:20px;}
+.typeStyle13{top: 190px;left:140px;}
+.typeStyle14{top: 190px;left:260px;}
+.typeStyle15{top: 190px;left:380px;}
+
+.lwbgStyle{
+	position: absolute; 
+	top: 150px;
+	left: 23px; 
+	width: 481px;
+}
+.lwbgStyle1{height:50px;}
+.lwbgStyle2{height:99px;}
+.lwbgStyle3{height:148px;}
+.lwbgStyle4{height:197px;}
+.lwbgStyle5{height:247px;}
+
+.lwStyle{
+	color:#FFF;
+	position: absolute;
+	font-size: 22px; 
+	text-align:center; 
+	line-height: 69px; 
+	width: 502px;
+	height:69px;
+	left: 13px;
+}
+.keyStyle{
+	position: absolute;
+	width: 120px;
+	height:79px; 
+	color:#FFF;
+	text-align:center;
+}
+.keyStyle0{top: -5px;left:-5px;}
+.keyStyle1{top: -5px;left:100px;}
+.keyStyle2{top: -5px;left:205px;}
+.keyStyle3{top: -5px;left:310px;}
+.keyStyle4{top: 59px;left:-5px;}
+.keyStyle5{top: 59px;left:100px;}
+.keyStyle6{top: 59px;left:205px;}
+.keyStyle7{top: 59px;left:310px;}
+.keyStyle8{top: 123px;left:-5px;background-image: url(images/search/key_back_nofocus.png);}
+.keyStyle9{top: 123px;left:100px;}
+.keyStyle10{top: 123px;left:205px;}
+.keyStyle11{top: 123px;left:310px;background-image: url(images/search/key_clear_nofocus.png);}
+
+
+.letStyle{
+	position: absolute;
+	width: 120px;
+	height:79px; 
+	top: 40px; 
+	text-align:center; 
+	font-size: 18px; 
+}
+.numStyle{
+	position: absolute;
+	width: 120px;
+	height:79px; 
+	top: 12px; 
+	text-align:center; 
+	font-size: 26px; 
+}
+.selBoxStyle{
+	position: absolute;
+	width: 186px;
+	height:145px; 
+	display:none;
+	background-image: url(images/search/key_selbox1.png); 
+}
+.selBoxStyle0{top: -38px;left:-39px;}
+.selBoxStyle1{top: -38px;left:66px;}
+.selBoxStyle2{top: -38px;left:171px;}
+.selBoxStyle3{top: -38px;left:276px;}
+.selBoxStyle4{top: 26px;left:-39px;}
+.selBoxStyle5{top: 26px;left:66px;}
+.selBoxStyle6{top: 26px;left:171px;}
+.selBoxStyle7{top: 26px;left:276px;}
+.selBoxStyle8{top: 90px;left:-39px;}
+.selBoxStyle9{top: 90px;left:66px;}
+.selBoxStyle10{top: 90px;left:171px;}
+.selBoxStyle11{top: 90px;left:276px;}
+
+.keyValStyle{
+	position: absolute; 
+	text-align:center; 
+	font-size: 18px;
+}
+.keyValStyle0{top: 0px;left:34px;width:120px;height:47px;line-height: 47px;}
+.keyValStyle1{top: 32px;left:34px;width:120px;height:79px;line-height:79px;}
+.keyValStyle2{top: 32px;left:3px;width:47px;height:79px;line-height: 79px;}
+.keyValStyle3{top: 32px;left:138px;width:47px;height:79px;line-height: 79px;}
+.keyValStyle4{top: 96px;left:34px;width:120px;height:47px;line-height: 47px;}
+
+.rowsCla{
+	position: absolute; 
+	width: 100%;	
+	top: 21px; 
+	left: -1px;
+	height: 231px;
+	/*visibility: hidden;*/
+}
+.pInfoCla{
+	width: 143px; 
+	height: 100%; 
+	position: absolute;
+	/*-webkit-transition-duration: 200ms;*/
+}
+.pNameCla{
+	position: absolute; 
+	top: 207px; 
+	height: 30px; 
+	width: 100%; 
+	text-align: center; 
+	/*color: #A6A29D;	*/
+	color: #FFFFFF;
+}
+.HDMarkCla{
+	background-image: url(images/search/hdMark.png); 
+	width: 100px;
+	height: 97px; 
+	position: absolute; 
+	top: -16px;
+	left: 60px;	
+	visibility: hidden;
+}
+.pImgCla{
+	width: 140px;
+	height: 197px;
+	border: 1px solid #FFF;
+
+}
+</style>
+
+<body style="overflow: hidden;">
+<div style="position:absolute; top: 0px; left: 0px; width: 1280px; height: 720px; background-image: url(images/search/BG.png)"></div>
+<div id='FRAME_FOCUS' style='position: absolute; display: none; z-index: 9999;left: 10px;top: 10px;width: 120px;height: 79px;background-image: url(images/search/key_focus.png);-webkit-transition: 200ms; transition: 200ms;'></div>
+<div style="position:absolute; width: 300px; height: 642px; left: 20px; top: 10px; "  >
+	<!-- 搜索 -->
+	<div id="sousuoBtn" style="position:absolute; width: 107px; height:62px; left: 25px;top: 10px;text-align:center; line-height: 52px; color:#F7BA02;font-size: 26px;">搜索</div>
+	<div style="position:absolute;width: 9px; height: 33px; left: 125px;top: 20px; background-image: url(images/search/nav_line.png)"></div>
+	
+	<div style="position:absolute;top:30px;display:block;" id="sousuo">
+		<div style="position:absolute;width: 494px; height: 74px; left: 16px;top: 82px; text-align:left; background-image: url(images/search/search_input.png)">
+			<div id="searchInput" style="position:absolute;width: 400px; height: 74px; left: 16px;line-height: 74px; font-size: 26px; color:#FFBE00;"></div>
+		</div>
+		<!-- 联想词 -->
+		<div id="lenoWord1" class="lwbgStyle lwbgStyle1" style="display:none;background-image: url(images/search/lenovoWords_box1.png);"></div>
+		<div id="lenoWord2" class="lwbgStyle lwbgStyle2" style="display:none;background-image: url(images/search/lenovoWords_box2.png);"></div>
+		<div id="lenoWord3" class="lwbgStyle lwbgStyle3" style="display:none;background-image: url(images/search/lenovoWords_box3.png);"></div>
+		<div id="lenoWord4" class="lwbgStyle lwbgStyle4" style="display:none;background-image: url(images/search/lenovoWords_box4.png);"></div>
+		<div id="lenoWord5" class="lwbgStyle lwbgStyle5" style="display:none;background-image: url(images/search/lenovoWords_box5.png);"></div>
+		<div id="lw0" style="top: 140px;" class="lwStyle"><div id="lwt0" style="position: absolute;left: 40px;"><!-- 万圣节的晚餐 --></div></div>
+		<div id="lw1" style="top: 189px;" class="lwStyle"><div id="lwt1" style="position: absolute;left: 40px;"><!-- 万圣节的晚餐 --></div></div>
+		<div id="lw2" style="top: 238px;" class="lwStyle"><div id="lwt2" style="position: absolute;left: 40px;"><!-- 万圣节的晚餐 --></div></div>
+		<div id="lw3" style="top: 287px;" class="lwStyle"><div id="lwt3" style="position: absolute;left: 40px;"><!-- 万圣节的晚餐 --></div></div>
+		<div id="lw4" style="top: 336px;" class="lwStyle"><div id="lwt4" style="position: absolute;left: 40px;"><!-- 万圣节的晚餐 --></div></div>
+		
+		<!-- 软键盘 -->
+		<div id="key" style="position: absolute; width: 423px; height: 197px; top: 425px; left: 55px;background-image: url(images/search/key_bg.png)">
+	 		<div id="key0" class="keyStyle keyStyle0">
+			  <div id="number0" class="numStyle">1</div>
+			</div>
+			<div id="key1" class="keyStyle keyStyle1">
+			  <div id="number1" class="numStyle">2</div>
+			  <div id="letter1" class="letStyle">abc</div>
+			</div>
+			<div id="key2" class="keyStyle keyStyle2">
+			  <div id="number2" class="numStyle">3</div>
+			  <div id="letter2" class="letStyle">def</div>
+			</div>
+			<div id="key3" class="keyStyle keyStyle3">
+			  <div id="number2" class="numStyle">4</div>
+			  <div id="letter2" class="letStyle">ghi</div>
+			</div>
+			<div id="key4" class="keyStyle keyStyle4">
+			  <div id="number4" class="numStyle">5</div>
+			  <div id="letter4" class="letStyle">jkl</div>
+			</div>
+			<div id="key5" class="keyStyle keyStyle5">
+			  <div id="number5" class="numStyle">6</div>
+			  <div id="letter5" class="letStyle">mno</div>
+			</div>
+			<div id="key6" class="keyStyle keyStyle6">
+			  <div id="number6" class="numStyle">7</div>
+			  <div id="letter6" class="letStyle">pqrs</div>
+			</div>
+			<div id="key7" class="keyStyle keyStyle7">
+			  <div id="number7" class="numStyle">8</div>
+			  <div id="letter7" class="letStyle">tuv</div>
+			</div>
+			<div id="key8" class="keyStyle keyStyle8">
+			</div>
+			<div id="key9" class="keyStyle keyStyle9">
+			  <div id="number9" class="numStyle">9</div>
+			  <div id="letter9" class="letStyle">wxyz</div>
+			</div>
+			<div id="key10" class="keyStyle keyStyle10">
+			  <div id="number10" class="numStyle">0</div>
+			</div>
+			<div id="key11" class="keyStyle keyStyle11">
+			</div>
+
+			<div id="selBox1" class="selBoxStyle selBoxStyle1">
+				  <div id="keyVal10" downMove="keyVal11" class="keyValStyle keyValStyle0">2</div>
+				  <div id="keyVal11" leftMove="keyVal12" rightMove="keyVal13" upMove="keyVal10" class="keyValStyle keyValStyle1">a</div>
+				  <div id="keyVal12" rightMove="keyVal11" class="keyValStyle keyValStyle2">b</div>
+				  <div id="keyVal13" leftMove="keyVal11" class="keyValStyle keyValStyle3">c</div>
+			</div>
+			<div id="selBox2" class="selBoxStyle selBoxStyle2">
+				  <div id="keyVal20" class="keyValStyle keyValStyle0">3</div>
+				  <div id="keyVal21" class="keyValStyle keyValStyle1">d</div>
+				  <div id="keyVal22" class="keyValStyle keyValStyle2">e</div>
+				  <div id="keyVal23" class="keyValStyle keyValStyle3">f</div>
+			</div>
+			<div id="selBox3" class="selBoxStyle selBoxStyle3">
+				  <div id="keyVal30" class="keyValStyle keyValStyle0">4</div>
+				  <div id="keyVal31" class="keyValStyle keyValStyle1">g</div>
+				  <div id="keyVal32" class="keyValStyle keyValStyle2">h</div>
+				  <div id="keyVal33" class="keyValStyle keyValStyle3">i</div>
+			</div>
+			<div id="selBox4" class="selBoxStyle selBoxStyle4">
+				  <div id="keyVal40" class="keyValStyle keyValStyle0">5</div>
+				  <div id="keyVal41" class="keyValStyle keyValStyle1">j</div>
+				  <div id="keyVal42" class="keyValStyle keyValStyle2">k</div>
+				  <div id="keyVal43" class="keyValStyle keyValStyle3">l</div>
+			</div>
+			<div id="selBox5" class="selBoxStyle selBoxStyle5">
+				  <div id="keyVal50" class="keyValStyle keyValStyle0">6</div>
+				  <div id="keyVal51" class="keyValStyle keyValStyle1">m</div>
+				  <div id="keyVal52" class="keyValStyle keyValStyle2">n</div>
+				  <div id="keyVal53" class="keyValStyle keyValStyle3">o</div>
+			</div>
+			<div id="selBox6" class="selBoxStyle selBoxStyle6">
+				  <div id="keyVal60" class="keyValStyle keyValStyle0">7</div>
+				  <div id="keyVal61" class="keyValStyle keyValStyle1">p</div>
+				  <div id="keyVal62" class="keyValStyle keyValStyle2">q</div>
+				  <div id="keyVal63" class="keyValStyle keyValStyle3">r</div>
+				  <div id="keyVal64" class="keyValStyle keyValStyle4">s</div>
+			</div>
+			<div id="selBox7" class="selBoxStyle selBoxStyle7">
+				  <div id="keyVal70" class="keyValStyle keyValStyle0">8</div>
+				  <div id="keyVal71" class="keyValStyle keyValStyle1">t</div>
+				  <div id="keyVal72" class="keyValStyle keyValStyle2">u</div>
+				  <div id="keyVal73" class="keyValStyle keyValStyle3">v</div>
+			</div>
+			<div id="selBox9" class="selBoxStyle selBoxStyle9">
+				  <div id="keyVal90" class="keyValStyle keyValStyle0">9</div>
+				  <div id="keyVal91" class="keyValStyle keyValStyle1">w</div>
+				  <div id="keyVal92" class="keyValStyle keyValStyle2">x</div>
+				  <div id="keyVal93" class="keyValStyle keyValStyle3">y</div>
+				  <div id="keyVal94" class="keyValStyle keyValStyle4">z</div>
+			</div>
+		</div>
+	</div>
+	
+	<!--检索 -->
+	<div style="position: absolute; top: 0px; left: 0px;" id="firstClass">
+		<div id="class0" class="claStyle claStyle0"><!-- 电影 --></div>
+		<div id="class1" class="claStyle claStyle1"><!-- 电视剧 --></div>
+		<div id="class2" class="claStyle claStyle2"><!-- 少儿 --></div>
+		<div id="class3" class="claStyle claStyle3"><!-- 记录片 --></div>
+		<div id="class4" class="claStyle claStyle4"><!-- 娱乐 --></div>
+		<div id="class5" class="claStyle claStyle5"><!-- 体育 --></div>
+		<div id="class6" class="claStyle claStyle5"><!-- 体育 --></div>
+		<div id="class7" class="claStyle claStyle5"><!-- 体育 --></div>
+		<div id="class8" class="claStyle claStyle5"><!-- 体育 --></div>
+		<div id="class9" class="claStyle claStyle5"><!-- 体育 --></div>
+		<div id="class10" class="claStyle claStyle5"><!-- 体育 --></div>
+		<div id="class11" class="claStyle claStyle5"><!-- 体育 --></div>
+	</div>
+	<div style="position:absolute;left:5px;top:90px;display:none;" id="jiansuo">
+		<!-- 类型 -->
+		<div style="position: absolute; top: 0px; left: 0px;" id="group0">
+		
+			<div id="type0" class="typeStyle typeStyle0">
+				<!--  <div id="tmarkImg00" class="markImgStyle"></div>-->
+				<div class="typeNameStyle"><!-- 恐怖--></div>
+			</div>
+			<div id="type1" class="typeStyle typeStyle1"><div class="typeNameStyle"><!--动作--></div></div>
+			<div id="type2" class="typeStyle typeStyle2"><div class="typeNameStyle"><!-- 喜剧--></div></div>
+			<div id="type3" class="typeStyle typeStyle3"><div class="typeNameStyle"><!-- 爱情--></div></div>
+			<div id="type4" class="typeStyle typeStyle4"><div class="typeNameStyle"><!-- 怀旧--></div></div>
+			<div id="type5" class="typeStyle typeStyle5"><div class="typeNameStyle"><!-- 悲剧--></div></div>
+			<div id="type6" class="typeStyle typeStyle6"><div class="typeNameStyle"><!-- 战争--></div></div>
+			<div id="type7" class="typeStyle typeStyle7"><div class="typeNameStyle"><!-- 青春--></div></div>
+		</div>
+		<!-- 地区 -->
+		<div style="position: absolute; top: 140px; left: 0px; id="group1">
+			<div id="area0" class="typeStyle typeStyle0"><div class="typeNameStyle"><!-- 中国--></div></div>
+			<div id="area1" class="typeStyle typeStyle1"><div class="typeNameStyle"><!-- 欧美--></div></div>
+			<div id="area2" class="typeStyle typeStyle2"><div class="typeNameStyle"><!-- 日韩--></div></div>
+			<div id="area3" class="typeStyle typeStyle3"><div class="typeNameStyle"><!-- 其他--></div></div>
+		</div>
+		<!-- 年代 -->
+		<div style="position: absolute; top: 230px; left: 0px; id="group2">
+			<div id="year0" class="typeStyle typeStyle0"><div class="typeNameStyle"><!-- 10年代--></div></div>	
+			<div id="year1" class="typeStyle typeStyle1"><div class="typeNameStyle"><!-- 90年代--></div></div>
+			<div id="year2" class="typeStyle typeStyle2"><div class="typeNameStyle"><!-- 80年代--></div></div>
+			<div id="year3" class="typeStyle typeStyle3"><div class="typeNameStyle"><!-- 70年代--></div></div>
+		</div>
+	</div>
+</div>
+
+<!-- 滑动条 -->
+<div style="width: 19px; position: absolute; left: 1223px; top: 92px;">
+	<img src="images/scrollBg0.png" width="19" height="9" /><br />
+    <img src="images/scrollBg1.png" width="19" height="336" />
+    <img src="images/scrollBg2.png" width="19" height="12" />
+</div>
+<div style="width: 19px; position: absolute; left: 1223px; top: 92px;" id="scroll">
+	<img src="images/scrollFocus0.png" width="19" height="9" /><br />
+    <img src="images/scrollFocus1.png" width="19" height="20" id="scrollBar" />
+    <img src="images/scrollFocus2.png" width="19" height="12" />
+</div>
+
+<!-- 搜索结果logo标头 -->
+<div style="position: absolute; top: 29px; left: 565px; width: auto; height: 40px; line-height:40px; font-weight:bold; font-size: 32px; color: #FFF;" id="title">全部</div>
+<div style="position: absolute; top: 39px; left: 642px; width: auto; height: 22px; line-height:22px; font-size: 22px; color: #FFF; ">
+	<div id="count" style="float:left;">0</div>
+    <div id="totalCount" style="float:left;">/0部</div>
+</div>
+<!-- 搜索结果 -->
+<div style="position:absolute; overflow: hidden;  width: 700px; height: 642px; left: 537px; top: 76px;"  >
+ 	<div style="background-image: url(images/list/listFocusBg.png); width: 208px; height: 309px;  -webkit-transition-duration: 200ms;  position: absolute; top: -18px; left: -14px; visibility: hidden;" id="listFocusBg"></div>
+	<div style="position: absolute; top: 0px; left: 0px; height: auto; width: 100%;" id="pInfos">
+        <div id="rows0" style="top: 21px;" class="rowsCla">
+            <div id="pInfoRow0Cell0" style="left: 20px;" class="pInfoCla">
+                <img src="" id="imgRow0Cell0" class="pImgCla" />
+                <div id="markRow0Cell0" class="HDMarkCla" ></div>
+                <div id="pNameRow0Cell0" class="pNameCla">&nbsp;</div>
+            </div>
+            <div id="pInfoRow0Cell1" style="left: 185px;" class="pInfoCla">
+                <img src="" id="imgRow0Cell1" class="pImgCla" />
+                <div id="markRow0Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell1" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow0Cell2" style="left: 350px;" class="pInfoCla">
+                <img src="" id="imgRow0Cell2" class="pImgCla" />
+                <div id="markRow0Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell2" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow0Cell3" style="left: 515px;" class="pInfoCla">
+                <img src="" id="imgRow0Cell3" class="pImgCla" />
+                <div id="markRow0Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell3" class="pNameCla"></div>
+            </div>
+        </div>
+        
+        <div id="rows1" style="top: 270px; " class="rowsCla">
+            <div id="pInfoRow1Cell0" style="left: 20px;" class="pInfoCla">
+                <img src="" id="imgRow1Cell0" class="pImgCla" />
+                <div id="markRow1Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell0" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell1" style="left: 185px;" class="pInfoCla">
+                <img src="" id="imgRow1Cell1" class="pImgCla" />
+                <div id="markRow1Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell1" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell2" style="left: 350px;" class="pInfoCla">
+                <img src="" id="imgRow1Cell2" class="pImgCla" />
+                <div id="markRow1Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell2" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell3" style="left: 515px;" class="pInfoCla">
+                <img src="" id="imgRow1Cell3" class="pImgCla" />
+                <div id="markRow1Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell3" class="pNameCla"></div>
+            </div>
+        </div>
+        
+        <div id="rows2" style="top: 519px;" class="rowsCla"> 
+            <div id="pInfoRow2Cell0" style="left: 20px;" class="pInfoCla">
+                <img src="" id="imgRow2Cell0" class="pImgCla" />
+                <div id="markRow2Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell0" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell1" style="left: 185px;" class="pInfoCla">
+                <img src="" id="imgRow2Cell1" class="pImgCla" />
+                <div id="markRow2Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell1" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell2" style="left: 350px;" class="pInfoCla">
+                <img src="" id="imgRow2Cell2" class="pImgCla" />
+                <div id="markRow2Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell2" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell3" style="left: 515px;" class="pInfoCla">
+                <img src="" id="imgRow2Cell3" class="pImgCla" />
+                <div id="markRow2Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell3" class="pNameCla"></div>
+            </div>
+        </div>
+        
+        <div id="rows3" style="top: 768px;" class="rowsCla">
+            <div id="pInfoRow3Cell0" style="left: 20px;" class="pInfoCla">
+                <img src="" id="imgRow3Cell0" class="pImgCla" />
+                <div id="markRow3Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell0" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell1" style="left: 185px;" class="pInfoCla">
+                <img src="" id="imgRow3Cell1" class="pImgCla" />
+                <div id="markRow3Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell1" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell2" style="left: 350px;" class="pInfoCla">
+                <img src="" id="imgRow3Cell2" class="pImgCla" />
+                <div id="markRow3Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell2" class="pNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell3" style="left: 515px;" class="pInfoCla">
+                <img src="" id="imgRow3Cell3" class="pImgCla" />
+                <div id="markRow3Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell3" class="pNameCla"></div>
+            </div>
+        </div>
+    </div>
+    <div style="border: 3px solid #ef7e04; width: 152px; height: 216px; top: 8px; left: 11px; position: absolute; -webkit-transition-duration: 200ms; visibility: hidden;" id="listFocus"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!-- 
+	这里的css、js脚本调用目录在epg工程下
+ -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<TITLE>EPG首页推荐</TITLE>
+<link type="text/css" rel="stylesheet" href="style/layout.css"/>
+<script language='javascript' src='js/importJs.js'></script>
+<script type="text/javascript" src="js/reflection.js"></script>
+</head>
+<BODY >
+<div id="content" class='contentCl' style="left:67px"><div style="top: 0px; left: 0px; width: 281px; height: 425px;" mkindex="1" id="div_1" class="" up="0" left="0" right="2" down="0"><img width="281" height="425" src="../backStage/upload/zj.jpg" imgad="zj.jpg" id="img_1" up="0" down="0" left="0" right="2" getfocusborder="true" losefocusborder="false" wh="281px*425px" class="reflect" onload="imgLoadFun(0)" recommendtitle="" titlebol="false" datajson="{'list':[{'id':0,'fileType':'img','subhead':'','isSubhead':false,'fileNames':'../../upload/','serviceType':'function','operateType':'dramaes','params':'','showType':'','showdate':'','startTime':'','lastTime':''}]}"></div><div style="top: 0px; left: 288px; width: 281px; height: 209px;" mkindex="2" id="div_2" up="0" left="1" right="3" down="6"><img width="281" height="209" src="../backStage/upload/ls.jpg" imgad="ls.jpg" id="img_2" up="0" down="6" left="1" right="3" getfocusborder="true" losefocusborder="false" wh="281px*209px" class="reflect" onload="imgLoadFun(1)" recommendtitle="" titlebol="false" datajson="{'list':[{'id':0,'fileType':'img','subhead':'','isSubhead':false,'fileNames':'../../upload/','serviceType':'function','operateType':'histroy','params':'','showType':'','showdate':'','startTime':'','lastTime':''}]}"></div><div style="top: 0px; left: 576px; width: 281px; height: 425px;" mkindex="3" id="div_3" class="" up="0" left="2" right="4" down="0"><img width="281" height="425" src="../backStage/upload/sc.jpg" imgad="sc.jpg" id="img_3" up="0" down="0" left="2" right="4" getfocusborder="true" losefocusborder="false" wh="281px*425px" class="reflect" onload="imgLoadFun(0)" recommendtitle="" titlebol="false" datajson="{'list':[{'id':0,'fileType':'img','subhead':'','isSubhead':false,'fileNames':'../../upload/','serviceType':'function','operateType':'collect','params':'','showType':'','showdate':'','startTime':'','lastTime':''}]}"></div><div style="top: 0px; left: 864px; width: 281px; height: 209px;" mkindex="4" id="div_4" up="0" left="3" right="0" down="8"><img width="281" height="209" src="../backStage/upload/sz.jpg" imgad="sz.jpg" id="img_4" up="0" down="8" left="3" right="0" getfocusborder="true" losefocusborder="false" wh="281px*209px" class="reflect" onload="imgLoadFun(1)" recommendtitle="" titlebol="false" datajson="{'list':[{'id':0,'fileType':'img','subhead':'','isSubhead':false,'fileNames':'../../upload/','serviceType':'function','operateType':'interact','params':'','showType':'','showdate':'','startTime':'','lastTime':''}]}"></div><div style="top: 216px; left: 288px; width: 281px; height: 209px;" mkindex="6" id="div_6" up="2" down="0" left="1" right="3"><img width="281" height="209" src="../backStage/upload/wodezhanghu.jpg" imgad="wodezhanghu.jpg" id="img_6" up="2" down="0" left="1" right="3" getfocusborder="true" losefocusborder="false" wh="281px*209px" class="reflect" onload="imgLoadFun(0)" recommendtitle="" titlebol="false" datajson="{'list':[{'id':0,'fileType':'img','subhead':'','isSubhead':false,'fileNames':'../../upload/','serviceType':'expand','operateType':'URL','params':'userManager_kunming.html','showType':'','showdate':'','startTime':'','lastTime':''}]}"></div><div style="top: 216px; left: 864px; width: 281px; height: 209px;" mkindex="8" id="div_8" up="4" down="0" left="3" right="0"><img width="281" height="209" src="../backStage/upload/bdyy.jpg" imgad="bdyy.jpg" id="img_8" up="4" down="0" left="3" right="0" getfocusborder="true" losefocusborder="false" wh="281px*209px" class="reflect" onload="imgLoadFun(0)" recommendtitle="" titlebol="false" datajson="{'list':[{'id':0,'fileType':'img','subhead':'','isSubhead':false,'fileNames':'../../upload/','serviceType':'function','operateType':'install','params':'','showType':'','showdate':'','startTime':'','lastTime':''}]}"></div></div>
+<script>
+if(parent.parent != self) {
+	parent.parent.jsExtendedInterface(window);
+}
+initPage(window, true);
+window.onload = intoPageInfo;
+</script>
+</BODY>
+</HTML>

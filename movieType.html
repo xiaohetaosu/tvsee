@@ -1,0 +1,415 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>节目类型</title>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+</head>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}
+var globalParams = {
+	ajaxObj: null,
+	winObj: null,//父窗口对象
+	cid: '',//一级频道ID
+	movieTypeData: [],//节目类型数据
+	focusData:[],//选中的焦点
+	colSize: 10,//每行显示列数
+	typePos: 0,//当前表格位置
+	rowPos: 0,//当前行位置
+	colPos: 0,//当前列位置
+	searchField:[
+		{type:'0',field:'movieclass',value:''},
+		{type:'1',field:'zone',value:''},
+		{type:'2',field:'years',value:''},
+		{type:'3',field:'movieclass',value:''},
+		{type:'4',field:'movieclass',value:''},
+		{type:'5',field:'movieclass',value:''}
+	]//查询字段配置,可增加 0按类型 1按地区 2按年代 value查询条件内容
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);	
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);	
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect(); 
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		goBack();
+	}
+	return _eventObj.args.type;
+}
+
+function initData(cid, winObj){
+	globalParams.winObj = winObj;
+	globalParams.cid = cid;
+	getMovieTypeData();
+}
+//清空参数
+function clearGlobalParams(){
+	globalParams.movieTypeData = [];
+	globalParams.focusData = [];
+	globalParams.ajaxObj = null;
+	globalParams.typePos = 0;
+	globalParams.rowPos = 0;
+	globalParams.colPos = 0;
+	globalParams.searchField = [
+		{type:'0',field:'movieclass',value:''},
+		{type:'1',field:'zone',value:''},
+		{type:'2',field:'years',value:''},
+		{type:'3',field:'movieclass',value:''},
+		{type:'4',field:'movieclass',value:''},
+		{type:'5',field:'movieclass',value:''}
+	];
+	$("focus").style.left = "40px"; 
+	$("focus").style.top = "60px";
+	$("focus").style.display = "none";
+}
+//初始化数据
+function getMovieTypeData(){
+	var value = tvsee.eventFrame.globalParams.globalCache.get("movieType_CACHE_" + globalParams.cid);
+	if(value == false){	
+		if(globalParams.ajaxObj != null){
+			globalParams.ajaxObj.requestAbort();
+		}
+		globalParams.ajaxObj = new ajaxClass();
+		globalParams.ajaxObj.frame = window;
+		globalParams.ajaxObj.url = getAjaxUrl("movieType", globalParams.cid);
+		globalParams.ajaxObj.successCallback = function(_xmlHttp, _params) {
+			eval("globalParams.movieTypeData = (" + _xmlHttp.responseText + ").movieType");
+			tvsee.eventFrame.globalParams.globalCache.put("movieType_CACHE_" + globalParams.cid, globalParams.movieTypeData);
+			showMovieType();
+			getFocus();
+		};
+		globalParams.ajaxObj.failureCallback = function(_xmlHttp, _params) {
+		};
+		globalParams.ajaxObj.requestData();
+	}else{
+		globalParams.movieTypeData = value;
+		showMovieType();
+		getFocus();
+	}
+}
+//显示节目类型
+function showMovieType(){
+	var groupObj,cellOb,typeObj,markObj;
+	var top = 0;
+	var pageTop = 95;
+	$("list").innerHTML = "";
+	for(var i = 0; i < globalParams.movieTypeData.length; i++){
+		var row = 0;
+		var col = 0;
+		//类型分组
+		groupObj = document.createElement("div");
+		groupObj.id = "group_" + i;
+		groupObj.className = "listCla";
+		//节目类型
+		var data = globalParams.movieTypeData[i].list;
+		if(data.length > 0){
+			if(data[0].movieType != "全部"){
+				var str = "{"
+				for (var property in data[0]) {
+					str += property + ":'" + data[0][property] + "',";
+				}
+				str = str.substring(0, str.length - 1) + "}";
+				data.unshift(eval("(" + str + ")" ));
+				data[0].movieType = '全部';
+			};
+		}
+		for(var j = 0; j < data.length; j++){
+			cellObj = document.createElement("div");
+			cellObj.id = "cell" + i + "_" + row + "_" + col;
+			cellObj.className = "cellCla row" + row + " col" + col;
+			
+			typeObj = document.createElement("div");
+			typeObj.id = "type_" + i + "_" + row + "_" + col;
+			typeObj.className = "typeCla noselTyle";
+			if(isSelectedType(i, row, col)){
+				typeObj.className = "typeCla selTyle";
+				typeObj.style.color = FOCUS_STYLE.COLOR;
+			}
+			typeObj.innerText = data[j].movieType;
+			cellObj.appendChild(typeObj);
+			
+			markObj = document.createElement("div");
+			markObj.id = "mark_" + i + "_" + row + "_" + col;
+			markObj.className="markCla noselMark";
+			if(isSelectedType(i, row, col)){
+				markObj.className="markCla selMark";
+			}
+			cellObj.appendChild(markObj);
+			groupObj.appendChild(cellObj);
+			if(col !=0 && col % globalParams.colSize == 9){
+				row++;	
+				col = 0;
+			}else{	
+				col++;
+			}
+		}
+		$("list").appendChild(groupObj);
+		if(i > 0){
+			top +=  (getTotalRow(globalParams.movieTypeData[i-1].list.length) * 55 + 15);
+		}
+		pageTop += getTotalRow(data.length)*55 +15;
+		groupObj.style.top = top + "px";
+	}
+	$("pageback").style.top = (720 - pageTop) + "px";
+}
+//左右键
+function moveLR(_num){
+	globalParams.colPos += _num;
+	if(globalParams.colPos < 0){
+		globalParams.colPos = 0;
+		return;
+	}
+	if(globalParams.colPos == globalParams.colSize){
+		globalParams.colPos -= 1;
+		return;
+	}
+	var obj = $("type_" + globalParams.typePos + "_" + globalParams.rowPos + "_" + globalParams.colPos);
+	if(obj == null){
+		globalParams.colPos -= _num;
+		return;
+	}
+	getFocus();
+}
+//上下键
+function moveUD(_num){
+	globalParams.rowPos += _num;
+	var movieTypeLen = globalParams.movieTypeData[globalParams.typePos].list.length;
+	var totalRow = getTotalRow(movieTypeLen);
+	if(globalParams.rowPos < 0){
+		globalParams.typePos += _num;
+		if(globalParams.typePos < 0){
+			globalParams.typePos = 0;
+			globalParams.rowPos = 0;
+			/*var widgetMovieType = tvsee.pageWidgets.getByName("widgetMovieType");
+			if(widgetMovieType != null){
+				widgetMovieType.minimize();
+			}*/
+			return;
+		}
+		if(globalParams.typePos == 0){
+			movieTypeLen = globalParams.movieTypeData[globalParams.typePos].list.length;
+		}else{
+			movieTypeLen = globalParams.movieTypeData[globalParams.typePos - 1].list.length;
+		}
+		totalRow = getTotalRow(movieTypeLen);
+		globalParams.rowPos = totalRow - 1;
+		var obj = $("type_" + globalParams.typePos + "_" + globalParams.rowPos + "_" + globalParams.colPos);
+		if(obj == null){
+			globalParams.colPos = movieTypeLen - (totalRow - 1) * globalParams.colSize - 1;
+		}
+	}else if(globalParams.rowPos < totalRow){
+		var obj = $("type_" + globalParams.typePos + "_" + globalParams.rowPos + "_" + globalParams.colPos);
+		if(obj == null){
+			globalParams.colPos = movieTypeLen - (totalRow - 1) * globalParams.colSize - 1;
+		}
+	}else{
+		globalParams.typePos += _num;
+		if(globalParams.typePos == globalParams.movieTypeData.length){
+			globalParams.typePos -= 1;
+			globalParams.rowPos = getTotalRow(globalParams.movieTypeData[globalParams.typePos].list.length)-1;
+			return;
+		}
+		globalParams.rowPos = 0;
+		var obj = $("type_" + globalParams.typePos + "_" + globalParams.rowPos + "_" + globalParams.colPos);
+		if(obj == null){
+			movieTypeLen = globalParams.movieTypeData[globalParams.typePos].list.length;
+			totalRow = getTotalRow(movieTypeLen);
+			globalParams.colPos = movieTypeLen - (totalRow - 1) * globalParams.colSize - 1;
+		}
+	}
+	getFocus();
+}
+//判断当前类型是否被选中
+function isSelectedType(typePos, rowPos , colPos){
+	var isSelected = false;
+	var data = globalParams.focusData;
+	for(var i = 0; i < data.length; i++){
+		if(data[i].typePos == typePos && data[i].rowPos == rowPos && data[i].colPos == colPos){
+			isSelected = true;
+			break;
+		}
+	}
+	return isSelected;
+}
+//设置选中的节目类型
+function setFocusData(){
+	var isbol = true;
+	var tmpFocusData = [];
+	var data = globalParams.focusData;
+	for(var i = 0; i < data.length; i++){
+		$("type_" + data[i].typePos + "_" + data[i].rowPos + "_" + data[i].colPos).className = "typeCla noselTyle";
+		$("type_" + data[i].typePos + "_" + data[i].rowPos + "_" + data[i].colPos).style.color = "#ffffff";
+		$("mark_" + data[i].typePos + "_" + data[i].rowPos + "_" + data[i].colPos).className = "markCla noselMark";
+		if(data[i].typePos == globalParams.typePos){
+				if(data[i].rowPos == globalParams.rowPos && data[i].colPos == globalParams.colPos){
+					isbol = false;
+				}
+		}else{
+			tmpFocusData.push(data[i]);
+		}
+	}
+	if(isbol){
+		tmpFocusData.push({'typePos':globalParams.typePos,'rowPos':globalParams.rowPos,'colPos':globalParams.colPos});
+	}
+	var typeNames = "";
+	for(var i = 0; i < tmpFocusData.length; i++){
+		if(typeNames != "")typeNames += "-";
+		typeNames += $("type_" + tmpFocusData[i].typePos + "_" + tmpFocusData[i].rowPos + "_" + tmpFocusData[i].colPos).innerHTML;
+		$("type_" + tmpFocusData[i].typePos + "_" + tmpFocusData[i].rowPos + "_" + tmpFocusData[i].colPos).className = "typeCla selTyle";
+		$("type_" + tmpFocusData[i].typePos + "_" + tmpFocusData[i].rowPos + "_" + tmpFocusData[i].colPos).style.color = FOCUS_STYLE.COLOR;
+		$("mark_" + tmpFocusData[i].typePos + "_" + tmpFocusData[i].rowPos + "_" + tmpFocusData[i].colPos).className = "markCla selMark";
+	}
+	if(typeNames == ""){
+		typeNames = "全部";
+	}
+//	globalParams.winObj.$("typeName").innerHTML = typeNames;
+	globalParams.focusData = tmpFocusData;
+}
+//确认键
+function doSelect(){
+	var searchContent = "";
+	setFocusData();
+	var type = globalParams.movieTypeData[globalParams.typePos].type;
+	for(var i=0;i<globalParams.searchField.length;i++){
+		if(globalParams.searchField[i].type == type){
+			var data = globalParams.movieTypeData[globalParams.typePos].list;
+			var index = globalParams.rowPos * globalParams.colSize + globalParams.colPos;
+			searchContent = data[index].movieType + "," + data[index].movieClass;
+			var years = TvseeDate.getDate("yyyy");
+			if(type == 2){//按年代字段查询，需要特殊处理
+				if(data[index].movieType == "今年"){
+					searchContent += years;
+				}else if(data[index].movieType == "去年"){
+					searchContent += parseInt(years)-1;
+				}else if(data[index].movieType == "前年"){
+					searchContent += parseInt(years)-2;
+				}else if(data[index].movieType == "其他"){
+					searchContent += parseInt(years)-3;
+				}
+			}
+			searchContent = globalParams.searchField[i].field + ":" + searchContent;
+			if(isSelectedType(globalParams.typePos, globalParams.rowPos, globalParams.colPos) && searchContent.indexOf("全部") == -1){
+				globalParams.searchField[i].value = searchContent;
+			}else{
+				globalParams.searchField[i].value = "";
+			}
+		}
+	}
+	searchContent = "";
+	for(var i = 0; i < globalParams.searchField.length; i++){
+		if(globalParams.searchField[i].value != ""){
+			if(searchContent != ""){
+				searchContent += ";";
+			}
+			searchContent += globalParams.searchField[i].value;
+		}
+	}
+	globalParams.winObj.globalParams.currPage = 1;
+	globalParams.winObj.globalParams.isPageAction = false;
+	globalParams.winObj.initProgram(1, {'cid':globalParams.cid, 'types':searchContent});
+	//var widgetMovieType = tvsee.pageWidgets.getByName("widgetMovieType");
+	//if(widgetMovieType != null){
+	//	widgetMovieType.minimize();
+	//}
+}
+function goBack(){
+	var widgetMovieType = tvsee.pageWidgets.getByName("widgetMovieType");
+	if(widgetMovieType != null){
+		widgetMovieType.minimize();
+	}
+}
+//焦点移动
+function getFocus(){
+	var obj = $("cell" + globalParams.typePos + "_" + globalParams.rowPos + "_" + globalParams.colPos);
+	$("focus").style.left = (40 + obj.offsetLeft) + "px"; 
+	$("focus").style.top = (60 + $("group_" + globalParams.typePos).offsetTop + obj.offsetTop) + "px";
+	$("focus").style.display = "block";
+	var data = globalParams.movieTypeData[globalParams.typePos].list[globalParams.rowPos * globalParams.colSize + globalParams.colPos];
+	$("typename").innerHTML = data.movieType;
+}
+//计算总行数
+function getTotalRow(count){
+	return Math.ceil(count/globalParams.colSize);
+}
+</script>
+<style type="text/css">
+.listCla{
+	position:absolute; 
+	width: 1280px; 
+	height:auto; 
+	left: 0px; 
+	top: 0px;
+}
+.cellCla{
+	position:absolute; 
+	width: 123px; 
+	height: 55px; 
+}
+.row0{top: 0px}
+.row1{top: 53px}
+.row2{top: 106px}
+.row3{top: 159px}
+.row4{top: 212px}
+.row5{top: 265px}
+.row6{top: 318px}
+.row7{top: 371px}
+.row8{top: 424px}
+.row9{top: 457px}
+.col0{left: 0px}
+.col1{left: 121px}
+.col2{left: 242px}
+.col3{left: 363px}
+.col4{left: 484px}
+.col5{left: 605px}
+.col6{left: 726px}
+.col7{left: 847px}
+.col8{left: 968px}
+.col9{left: 1089px}
+.typeCla {
+	position:absolute; 
+	width: 123px; 
+	height: 55px; 
+	font-size:20px; 
+	text-align: center; 
+	line-height:55px; 
+	color:#ffffff;
+}
+.selTyle{
+	background-image:url(images/list/typeSelected.png);
+}
+.noselTyle{
+	background-image:url(images/list/typeNoSelected.png);
+}  
+.markCla {
+	position:absolute; 
+	width: 48px; 
+	height: 49px;
+	top: -5px;
+	left: -5px;
+	z-index:2;
+	background-image:url(images/list/typeMark.png);
+}
+.selMark{display:block;}
+.noselMark{display:none;}
+</style>
+ <body>
+  <div id="pageback" style="width: 1280px; height: 720px; position: absolute; top: 394px; left: 0px; background-image: url(images/list/typeBg.png);">
+  	<div style="width: 1280px; height: auto; position: absolute; top: 30px; left: 45px; font-size:22px;">分类</div>
+  	<div id="list" style="position: absolute; left: 45px; top: 65px;"></div>
+  	<div id="focus" style="position: absolute; display:none; top: 60px; left: 40px; width: 135px; height: 67px;background-image: url(images/list/typeFocus.png); -webkit-transition: 200ms; transition: 200ms;">
+	  	<div id="typename" style=" position: absolute; top: 0px; left: 0px; width: 123px; height: 67px; font-size:20px; text-align:center; line-height: 67px;"></div>
+  	</div>
+  </div>
+ </body>
+</html>

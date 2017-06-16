@@ -1,0 +1,838 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>收藏列表</title>
+<style type="text/css">
+.rowsCla{
+	position: absolute; 
+	width: 1032px;	
+	top: 21px; 
+	left: 134px;
+	height: 231px;
+	/*visibility: hidden;*/
+}
+.pInfoCla{
+	width: 143px; 
+	height: 100%; 
+	position: absolute;
+	visibility: hidden;
+	/*-webkit-transition-duration: 200ms;*/
+}
+
+.HDMarkCla{
+	background-image: url(images/list/hdMark.png); 
+	width: 100px;
+	height: 97px; 
+	position: absolute; 
+	top: -16px;
+	left: 60px;	
+	visibility: hidden;
+}
+.pImgCla{
+	width: 140px;
+	height: 197px;
+	border: 1px solid #FFF;
+	position: absolute; 
+	top: 0px; 
+	left: 0px;
+}
+
+
+</style>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="data.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}else{
+	eval("tvsee={}");
+	tvsee = {debug:function(){}};
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);	
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);	
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		goBack();
+	}
+}
+function goBack(){
+	tvsee.eventFrame.globalParams.focusCache.remove("FAVORITE");
+	if(globalParams.fromPage == "HOME"){
+		gotoPageUrl("about:blank");
+		tvsee.pageWidgets.getByName("widgetMenu").showWin();
+	}else if(globalParams.fromPage == "LIST" || globalParams.fromPage == "RECLIST"){
+		gotoPageUrl("about:blank");
+		var widgetList = tvsee.pageWidgets.getByName("widgetVodList");
+		if(globalParams.fromPage == "RECLIST"){
+			widgetList = tvsee.pageWidgets.getByName("widgetRecVodList");
+		}
+		widgetList.show();	
+	}else if(globalParams.fromPage == "OTHER_APP"){
+		exitAppTip();	
+	}else if(globalParams.fromPage == "LAUNCHER"){
+		tvsee.pageWidgets.getByName("widgetLauncher").showWin();
+	}
+}
+function verticalTextMiddle(str){
+	var nStr='';
+	for(var i = 0;i< str.length; i++){
+		if(nStr != ""){
+			nStr += '<br/>' + str.charAt(i);
+		}else{
+			nStr += str.charAt(i);
+		}
+	}
+	return nStr;//.slice(1);
+}
+function moveUD(_num){
+	if(globalParams.areaPos == 0){
+		globalParams.menuDataPos += _num;
+		var backDataPos = globalParams.menuDataPos;
+		if(globalParams.menuDataPos >= globalParams.menuNameData.length){
+			globalParams.menuDataPos--;	
+			return;
+		}else if(globalParams.menuDataPos < 0){
+			globalParams.menuDataPos = 0;
+			return;
+		}
+		/*var count =  0;
+		//菜单跟着左边列表变动    _num  下面的判断  +=globalParams.listPos  
+		if(_num > 0){
+			//count = - globalParams.menuData[globalParams.menuDataPos - _num];
+			count = - Math.ceil(globalParams.listDataArr[globalParams.menuDataPos - _num].dataList.length / globalParams.listLineNumber) + globalParams.listPos;
+		}else{
+			//count = globalParams.menuData[globalParams.menuDataPos];
+			count = Math.ceil(globalParams.listDataArr[globalParams.menuDataPos].dataList.length / globalParams.listLineNumber) - globalParams.listPos;
+		}
+		$("menu" + (globalParams.menuDataPos - _num)).style.color = "#FFF";
+		$("menu" + globalParams.menuDataPos).style.color = "#ffc000";
+		var top =  parseInt($("pInfos").style.top, 10) + count * globalParams.listLineHigh;
+		$("menuFocus").style.top = (-top + globalParams.menuStartPlace) + "px";
+		$("menuFocus").innerHTML =  "<br/>" + verticalTextMiddle(globalParams.menuNameData[globalParams.menuDataPos]);
+		startMove($("pInfos"), {"top" : top}, function(){
+													   
+		});*/
+		globalParams.listDataPos = getCreateMenuCountSum(globalParams.menuDataPos);
+		$("menuFocus").style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";
+		//$("menuFocus").innerHTML =  "<br/>" + verticalTextMiddle(globalParams.menuNameData[globalParams.menuDataPos]);
+		setMenuFocusInnerHTML();
+		$("menu" + (globalParams.menuDataPos - _num)).style.color = "#FFF";
+		$("menu" + globalParams.menuDataPos).style.color = FOCUS_STYLE.COLOR;
+		startMove($("pInfos"), {"top" : - globalParams.listDataPos * globalParams.listLineHigh }, function(){});
+		
+		//菜单跟着左边列表变动 
+		$("menu" +  globalParams.menuDataPos).style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";	
+		globalParams.listPos = 0;
+		globalParams.scrollObj.scroll(globalParams.listDataPos);
+	}else if(globalParams.areaPos == 1){
+		var backupListY = globalParams.listY;
+		var backupMenuDataPos = globalParams.menuDataPos;
+		var backupListPos = globalParams.listPos;
+		globalParams.listDataPos += _num;
+		if(globalParams.listDataPos < 0){
+			globalParams.listDataPos = 0;
+			return;
+		}else if(globalParams.listDataPos >= globalParams.totalCount){
+			globalParams.listDataPos = globalParams.totalCount - 1;	
+			return;
+		}
+		var dataMenuListCount = Math.ceil(globalParams.listDataArr[globalParams.menuDataPos].dataList.length / globalParams.listLineNumber) - 1;
+		globalParams.listPos += _num;
+		if(globalParams.listPos < 0){
+			globalParams.menuDataPos--;
+			globalParams.listPos = 	Math.ceil(globalParams.listDataArr[globalParams.menuDataPos].dataList.length / globalParams.listLineNumber) - 1;
+		}else if(globalParams.listPos > dataMenuListCount){
+			globalParams.listPos = 	0;	
+			globalParams.menuDataPos++;
+		}
+		dataMenuListCount = Math.ceil(globalParams.listDataArr[globalParams.menuDataPos].dataList.length / globalParams.listLineNumber) - 1;
+		if(globalParams.listPos == dataMenuListCount){
+			var endRowDataCount = globalParams.listDataArr[globalParams.menuDataPos].dataList.length % globalParams.listLineNumber - 1;
+			if(globalParams.listY > endRowDataCount && endRowDataCount >= 0){
+				globalParams.listY = endRowDataCount;
+			}
+		}
+		if(globalParams.menuDataPos != backupMenuDataPos){
+			$("menu" + backupMenuDataPos).style.color = "#FFF";
+			$("menu" + globalParams.menuDataPos).style.color = FOCUS_STYLE.COLOR;
+			var top = 0;
+			if(_num > 0){
+				top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace);
+			}else{
+				top = ((globalParams.listDataPos - (Math.ceil(globalParams.listDataArr[globalParams.menuDataPos].dataList.length / globalParams.listLineNumber) - 1)) * globalParams.listLineHigh + globalParams.menuStartPlace);
+			}
+			$("menuFocus").style.top =  top + "px";	
+		}
+		var programName = globalParams.listDataArr[backupMenuDataPos].dataList[backupListPos * globalParams.listLineNumber + backupListY].programName;
+		beforeLoseFocus(programName, globalParams.listDataPos - _num, backupListY);
+		window.clearTimeout(globalParams.moveUDTimeout);
+		globalParams.moveUDTimeout = setTimeout(function(){  //先改成这样(领导希望有这效果)
+			test();											 
+		},100);
+	}
+}
+
+function test(){
+	window.clearTimeout(globalParams.showTextListTimeout);
+	//globalParams.isStartMoveFlag = true;
+	//$("pInfos").style.top =  - globalParams.listDataPos * globalParams.listLineHigh + "px";
+	startMove($("pInfos"), {"top" : - globalParams.listDataPos * globalParams.listLineHigh}, function(){
+		//菜单跟着左边列表变动
+		$("menu" + globalParams.menuDataPos).style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";
+		$("menuFocus").style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";	
+		globalParams.isStartMoveFlag = false;
+		listFocusStyle();
+	});
+	
+	//globalParams.isStartMoveFlag = false;
+	//globalParams.moveUDTimeout = setTimeout(function(){
+		//listFocusStyle();
+	//}, 1000);
+	selectedListFocusStyle();
+	showPageInfo();
+	globalParams.scrollObj.scroll(globalParams.listDataPos);	
+}
+
+function doSelect(){
+	if(globalParams.areaPos == 1){
+		tvsee.eventFrame.globalParams.focusCache.put("FAVORITE",globalParams);
+		var porgramObj = globalParams.listDataArr[globalParams.menuDataPos].dataList[globalParams.listPos * globalParams.listLineNumber + globalParams.listY];
+		var pid = porgramObj.pid;	
+		var movietype = porgramObj.movieType;
+		//window.location.href = "vodDetail.html?pid=" + pid + "&fromPage=FAVORITE&windowSize=fullScreen";
+		if(getMovieTypeDetail(movietype) == "vodVarietyDetail"){//综艺或者新闻
+			gotoPageUrl("vodVarietyDetail.html?pid=" + pid + "&fromPage=FAVORITE&windowSize=fullScreen");
+		}else if(getMovieTypeDetail(movietype) == "vodVarietyDetailNew"){
+			gotoPageUrl("vodVarietyDetailNew.html?pid=" + pid + "&fromPage=FAVORITE&windowSize=fullScreen");
+		}else{ /*if(pid >= VIP_JYJC_PID){//VIP专区
+			gotoPageUrl("vipVodDetail.html?pid=" + pid + "&fromPage=FAVORITE&windowSize=fullScreen");
+		}
+		else{*/
+			gotoPageUrl("vodDetail.html?pid=" + pid + "&fromPage=FAVORITE&windowSize=fullScreen");
+		}
+	}
+}
+var globalParams = {
+	listLineNumber: 6,
+	menuData: [],
+	menuNameData:[],
+	listDataArr: [],
+	scrollObj: null,
+	menuStartPlace: 30,
+	createHTMLmenuDefault: 3,
+	createHTMLRow: 4,
+	defaltRow: 4,
+	listLineHigh: 252,
+	listStartHigh: 21,
+	loadDataRow: 0,
+	totalCount: 0,
+	menuDataPos: 0,
+	areaPos: 0,
+	listY: 0,
+	listPos: 0,
+	listDataPos: 0,
+	favoriteData:[],
+	ajaxListObj: null,
+	totalListCount: 0,
+	fromPage: "HOME"
+}
+function init(){
+	$("count").style.color = FOCUS_STYLE.COLOR;
+	$("listFocus").style.border = FOCUS_STYLE.BORDER;
+	var dataLen = globalParams.favoriteData.length;
+	var obj = tvsee.eventFrame.globalParams.focusCache.get("FAVORITE");
+	if(obj){
+		if(dataLen == obj.totalListCount){
+			globalParams = obj;
+			globalParams.menuNameData = [];
+			globalParams.listDataArr = [];
+			globalParams.createHTMLRow = 4;
+			globalParams.createHTMLmenuDefault = 3;
+			globalParams.loadDataRow = 0;
+		}else{
+			tvsee.eventFrame.globalParams.focusCache.remove("FAVORITE");	
+			obj = false;
+		}
+	}else{
+	}
+	hashtable.put("ratingsSource", 10);
+	hashtable.put("pageName", 9);
+	tvsee.eventFrame.saveLogUserActioncontent();
+	if(typeof(fromPage) != "undefined"){
+		globalParams.fromPage = fromPage;	
+	}
+	globalParams.scrollObj = new scrollBarClass("scroll", "scrollBar", window);
+	for(var i = 0; i < dataLen; i++){
+		if(i == 0){
+			var type = globalParams.favoriteData[i].movieType;
+			globalParams.menuNameData.push(globalParams.favoriteData[i].movieType);
+			var data = [];
+			//data.push(favoriteData.PFList[i]);
+			data.push(globalParams.favoriteData[i]);
+			globalParams.listDataArr.push({movieType: globalParams.favoriteData[i].movieType, dataList: data});
+		}else{
+			var isFlag = false;
+			for(var j = 0; j < globalParams.menuNameData.length; j++){
+				if(globalParams.favoriteData[i].movieType == globalParams.menuNameData[j]){
+					globalParams.listDataArr[j].dataList.push(globalParams.favoriteData[i]);	
+					isFlag = true;
+					break;
+				}
+			}
+			if(isFlag == false){
+				globalParams.menuNameData.push(globalParams.favoriteData[i].movieType);	
+				var data = [];
+				data.push(globalParams.favoriteData[i]);
+				globalParams.listDataArr.push({movieType: globalParams.favoriteData[i].movieType, dataList: data});	
+			}
+		}
+	}
+	var menuNameCount = globalParams.menuNameData.length;
+	if(menuNameCount > globalParams.createHTMLmenuDefault){
+		createMenuHTML(menuNameCount - globalParams.createHTMLmenuDefault);
+	}
+	if(globalParams.createHTMLRow < getCreateMenuCountSum(menuNameCount)){
+		createPInfoHTML(getCreateMenuCountSum(menuNameCount) - globalParams.createHTMLRow);
+	}
+	if(globalParams.menuNameData.length > 0){
+		initMenuData();
+		initListData();
+		globalParams.totalCount = getCreateMenuCountSum(menuNameCount);  
+		globalParams.scrollObj.init(globalParams.totalCount, 1, 574, 113, "h");
+		globalParams.scrollObj.scroll(0);
+		if(obj){
+			if(dataLen >= obj.totalListCount){
+				focusBackDeal();
+			}
+		}else{
+			getMenuFocus();		
+		}
+	}
+	showPageInfo();
+	setTimeout(function(){
+		$("listFocus").style.webkitTransitionDuration = "200ms";
+		$("listFocusBg").style.webkitTransitionDuration = "200ms";
+	},100);
+}
+function setMenuFocusInnerHTML(){
+	var menuName = globalParams.menuNameData[globalParams.menuDataPos];
+	var brNum = "";
+	if(menuName.length <= 3){
+		brNum = "</br><br/>"
+	}else{
+		brNum = "</br>";	
+	}
+	$("menuFocus").innerHTML =  brNum + verticalTextMiddle(globalParams.menuNameData[globalParams.menuDataPos]);
+}
+//焦点返回处理
+function focusBackDeal(){
+	if(tvsee.eventFrame.globalParams.focusCache.get("FAVORITE")){
+		if(globalParams.areaPos == 1){
+			$("pInfos").style.top = - globalParams.listDataPos * globalParams.listLineHigh+"px";
+			//菜单跟着左边列表变动
+			$("menu" + globalParams.menuDataPos).style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";
+			$("menuFocus").style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";	
+			$("menu" + globalParams.menuDataPos).style.color = FOCUS_STYLE.COLOR;
+			setMenuFocusInnerHTML();
+			$("menuFocus").style.visibility = "hidden";
+			$("listFocus").style.visibility = "visible";
+			$("listFocus").style.left = "142px";
+			$("listFocusBg").style.visibility = "visible";
+			$("listFocusBg").style.left = "121px";	
+			showPageInfo();
+			
+			listFocusStyle(1);
+			selectedListFocusStyle();
+			showPageInfo();
+			globalParams.scrollObj.scroll(globalParams.listDataPos);
+		}
+	}else{
+		getMenuFocus();	
+	}
+}
+function initData(){
+	window.focus();
+	var value = tvsee.eventFrame.globalParams.globalCache.get("favorite_CACHE");	
+	if(value == false){
+		globalParams.ajaxListObj = new ajaxClass();
+		globalParams.ajaxListObj.frame = window;
+		globalParams.ajaxListObj.url = getAjaxUrl("newUserQueryFavorite");
+		globalParams.ajaxListObj.successCallback = function(_xmlHttp, _params) {
+			eval("globalParams.favoriteData = (" + _xmlHttp.responseText + ").PFList");
+			tvsee.eventFrame.globalParams.globalCache.put("favorite_CACHE", globalParams.favoriteData);
+			init();
+		};
+		globalParams.ajaxListObj.failureCallback = function(_xmlHttp, _params) {
+			//$("type_0").innerText = "加载数据失败！";
+		};
+		globalParams.ajaxListObj.requestData();	
+	}else{
+		globalParams.favoriteData = value;
+		init();
+	}
+}
+function getMenuFocus(){
+	$("menuFocus").style.visibility = "visible";	
+	$("menu" + globalParams.menuDataPos).style.color = FOCUS_STYLE.COLOR;
+	//$("menuFocus").innerHTML =  verticalTextMiddle(globalParams.menuNameData[globalParams.menuDataPos]);
+	setMenuFocusInnerHTML();
+}
+
+function initMenuData(){
+	var menuName = "",brNum = "";
+	for(var i = 0; i < globalParams.menuNameData.length; i++){
+		$("menu" + i).style.top = (getCreateMenuCountSum(i) * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";
+		$("menu" + i).style.visibility = "visible";
+		menuName = globalParams.menuNameData[i];
+		if(menuName.length <= 3){
+			brNum = "</br></br>";
+		}else{
+			brNum = "</br>";	
+		}
+		$("menu" + i).innerHTML = brNum  + verticalTextMiddle(globalParams.menuNameData[i]);
+	}	
+}
+
+function loseMenuFocus(){
+	$("menuFocus").style.visibility = "hidden";			
+}
+function getListFocus(){
+	$("menuFocus").style.visibility = "hidden";
+	$("listFocus").style.visibility = "visible";
+	$("listFocus").style.left = "142px";
+	$("listFocusBg").style.visibility = "visible";
+	$("listFocusBg").style.left = "121px";	
+	showProgramNameText();
+	showPageInfo();
+}
+function listLoseFocusStyle(){
+	var programName = globalParams.listDataArr[globalParams.menuDataPos].dataList[globalParams.listPos * globalParams.listLineNumber + globalParams.listY].programName;
+	beforeLoseFocus(programName, globalParams.listDataPos, globalParams.listY);
+	loseListFocus();
+}
+
+function beforeLoseFocus(_programName, _row, _cell){
+	$("pInfoRow" + _row + "Cell" + _cell).style.webkitTransitionDuration = "0ms";
+	$("pInfoRow" + _row + "Cell" + _cell).style.webkitTransform = "scale(1)";
+	if(globalParams.marqueeObj != null){
+		globalParams.marqueeObj.removeScroll();
+		globalParams.marqueeObj = null;
+	}
+	if(getCharByte(_programName) > favoritePageStrLen.programNameLen){
+		_programName = subStr(_programName, favoritePageStrLen.programNameLen, "...");	
+		$("pNameRow" + _row + "Cell" + _cell).innerText = _programName;
+	}
+}
+function loseListFocus(){
+	$("menuFocus").style.visibility = "visible";
+	$("listFocus").style.visibility = "hidden";
+	$("listFocusBg").style.visibility = "hidden";	
+	getMenuFocus();
+}
+function listFocusStyle(_type){
+	//if(_type != "undefined"){
+		//setTimeout(function(){
+			//$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransitionDuration = "200ms";
+			$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransform = "scale(1.15)";
+		//},100);
+	//}else{
+		//$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransitionDuration = "200ms";
+		//$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransform = "scale(1.15)";	
+	//}
+	//$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.visibility = "visible";
+}
+function selectedListFocusStyle(){
+	window.clearTimeout(globalParams.showTextListTimeout);
+	$("listFocus").style.left = (142 + globalParams.listY * 170) + "px";
+	$("listFocusBg").style.left = (121 + globalParams.listY * 170) + "px";	
+	globalParams.showTextListTimeout = setTimeout(function(){
+		showProgramNameText();
+	}, 200);
+}
+
+function showProgramNameText(){
+	var programName = globalParams.listDataArr[globalParams.menuDataPos].dataList[globalParams.listPos * globalParams.listLineNumber + globalParams.listY].programName;
+	if(getCharByte(programName) > favoritePageStrLen.programNameLen){
+		globalParams.marqueeObj = new marqueeClass("pNameRow" + globalParams.listDataPos + "Cell" + globalParams.listY, programName);
+		globalParams.marqueeObj.scroll();
+	}
+}
+function showPageInfo(){
+	var sum = 0;
+	for(var i = 0 ; i < globalParams.menuDataPos; i++){
+		sum += globalParams.listDataArr[i].dataList.length;
+	}
+	var total = 0;
+	for(var i = 0 ; i < globalParams.menuNameData.length; i++){
+		total += globalParams.listDataArr[i].dataList.length;
+	}
+	globalParams.totalListCount = total;
+	if(globalParams.areaPos == 1){
+		$("count").innerText = (sum + globalParams.listPos * globalParams.listLineNumber + globalParams.listY + 1);
+	}else{
+		$("count").innerText = 0;
+	}
+	$("totalCount").innerText = "/" + total + "部"
+}
+
+function moveLR(_num){
+	if(globalParams.areaPos == 0 && _num > 0){
+		globalParams.areaPos = 1;	
+		loseMenuFocus();
+		getListFocus();
+		listFocusStyle();
+	}else if(globalParams.areaPos == 1){
+		if(_num < 0 && globalParams.listY == 0){
+			globalParams.areaPos = 0;	
+			listLoseFocusStyle();
+		}else{
+			globalParams.listY += _num;
+			var dataCount = globalParams.listDataArr[globalParams.menuDataPos].dataList.length;
+			if(globalParams.listY == globalParams.listLineNumber && _num > 0){
+				globalParams.listY--;
+				return;
+			}
+			if(globalParams.listPos * globalParams.listLineNumber + globalParams.listY >= dataCount){
+				globalParams.listY--;
+				return;	
+			}
+			var programName = globalParams.listDataArr[globalParams.menuDataPos].dataList[globalParams.listPos * globalParams.listLineNumber + globalParams.listY - _num].programName;
+			beforeLoseFocus(programName,  globalParams.listDataPos, globalParams.listY - _num);
+			listFocusStyle();
+			selectedListFocusStyle();
+		}
+		showPageInfo();
+	}	
+}
+
+
+
+function initListData(){
+	for(var i = 0; i < globalParams.menuNameData.length; i++){
+		showListText(Math.ceil(globalParams.listDataArr[i].dataList.length / globalParams.listLineNumber), globalParams.listDataArr[i].dataList);	
+	}
+	for(var i = globalParams.loadDataRow; i < globalParams.defaltRow; i++){
+		for(var k = 0; k < globalParams.listLineNumber; k++){
+			$("pInfoRow" + i + "Cell" + k).style.visibility = "hidden";	
+		}
+	}
+}
+
+function showListText(_size, _data){
+	for(var i = 0; i < _size; i++){
+		for(var k = 0; k < globalParams.listLineNumber; k++){
+			if(typeof(_data[k + globalParams.listLineNumber * i]) != "undefined"){
+				$("imgRow" + globalParams.loadDataRow + "Cell" + k).src = PICURL + _data[k + globalParams.listLineNumber * i].picUrl;	
+				$("imgRow" + globalParams.loadDataRow + "Cell" + k).style.visibility = "hidden";
+				$("imgRow" + globalParams.loadDataRow + "Cell" + k).onload = function(){
+					this.removeAttribute("style");
+					fImageSizeToDiv(this);		
+				}
+				var  programName =  _data[k + globalParams.listLineNumber * i].programName;
+				if(getCharByte(programName, favoritePageStrLen.programNameLen)  == true){
+						programName = subStr(programName, favoritePageStrLen.programNameLen, "...");	
+				}
+				$("pNameRow" + globalParams.loadDataRow + "Cell" + k).innerText = programName;
+				if(_data[k + globalParams.listLineNumber * i].definition == SPEC_ID.DEFINITION){
+					$("markRow" + globalParams.loadDataRow + "Cell" + k).style.visibility = "visible";	
+				}
+				$("pInfoRow" + globalParams.loadDataRow + "Cell" + k).style.visibility = "visible";
+			}else{
+				$("pInfoRow" + globalParams.loadDataRow + "Cell" + k).style.visibility = "hidden";
+			}
+		}
+		globalParams.loadDataRow++;
+	}	
+	
+}
+
+
+function createMenuHTML(count){
+	var pInfosObj = $("pInfos");
+	for(var i = 0; i < count; i++){
+		var rowDivObj = document.createElement("div");
+		rowDivObj.id = "menu" + (globalParams.createHTMLmenuDefault + i);	
+		rowDivObj.className = "favoriteMenuCla";
+		pInfosObj.appendChild(rowDivObj);
+	}
+	globalParams.createHTMLmenuDefault++;
+}
+
+function getCreateMenuCountSum(count){
+	var sum = 0;
+	for(var i = 0; i < count; i++){
+		sum += Math.ceil(globalParams.listDataArr[i].dataList.length / globalParams.listLineNumber);
+	}
+	return sum;
+}
+
+function createPInfoHTML(count){
+	var pInfosObj = $("pInfos");
+	var leftArr = [20, 190, 360, 530, 700, 870];
+	for(var i = 0; i < count; i++){
+		var rowDivObj = document.createElement("div");
+		rowDivObj.id = "rows" + globalParams.createHTMLRow;
+		rowDivObj.style.top = (globalParams.createHTMLRow * 252 + globalParams.listStartHigh) +"px";
+		rowDivObj.className = "rowsCla";
+		for(var j = 0; j < globalParams.listLineNumber; j++){
+			var pInfoRowObj = document.createElement("div");
+			pInfoRowObj.id = "pInfoRow" + globalParams.createHTMLRow + "Cell" + j;
+			pInfoRowObj.style.left = leftArr[j] + "px";
+			pInfoRowObj.className = "pInfoCla";
+			
+			var imgDivObj = document.createElement("div");
+			imgDivObj.className = "pImgCla";
+			pInfoRowObj.appendChild(imgDivObj);
+			
+			var imageObj = new Image();
+			//imageObj.className = "pImgCla";
+			imageObj.id = "imgRow" + globalParams.createHTMLRow + "Cell" + j;
+			imgDivObj.appendChild(imageObj);
+			var HDMarkObj = document.createElement("div");
+			HDMarkObj.className = "HDMarkCla";
+			HDMarkObj.id = "markRow" + globalParams.createHTMLRow + "Cell" + j;
+			pInfoRowObj.appendChild(HDMarkObj);
+			var pNameObj = document.createElement("div");
+			pNameObj.id = "pNameRow" + globalParams.createHTMLRow + "Cell" + j;
+			pNameObj.className = "favoritePNameCla";
+			imageObj.src = "images/global_tm.gif";	
+			//pInfoRowObj.style.visibility = "hidden";
+			pInfoRowObj.appendChild(pNameObj);
+			rowDivObj.appendChild(pInfoRowObj);
+		}
+		pInfosObj.appendChild(rowDivObj);
+		globalParams.createHTMLRow++;
+	}
+}
+window.onload = initData;
+</script>
+</head>
+
+<body>
+<div style="position: absolute; top: 0px; left: 0px; width: 1280px; height: 720px; background-image:url(images/record/bg.png);"></div>
+<div style="position: absolute; top: 0px; left: 0px; width: 1280px; height: 136px; background-image:url(images/record/topBg.png);"></div>
+
+<div style="position:absolute; overflow: hidden;  width: 1167px; height: 642px; left: 0px; top: 108px; "  >
+	<!-- -webkit-transition-duration: 200ms; -->
+ 	<div style="background-image: url(images/list/listFocusBg.png); width: 208px; height: 309px;  position: absolute; top: -18px; left: 121px; visibility: hidden;" id="listFocusBg"></div>
+	<div style="position: absolute; top: 0px; left: 0px; height: auto; width: 100%;" id="pInfos">
+    	<div id="menu0" class="favoriteMenuCla" style="top: 30px;"></div>
+        <div id="menu1" class="favoriteMenuCla" style="top: 284px;"></div>
+        <div id="menu2" class="favoriteMenuCla" style="top: 538px;"></div>
+      <!--  <div id="menuFocus" style="position: absolute; width: 46px; left: 79px; height: 193px; top: 30px; border: 2px solid #ffc000; z-index: 1; visibility: hidden;"></div>-->
+      	<div id="menuFocus" class="menuFocusCla"></div>
+        <div id="rows0" style="top: 21px;" class="rowsCla">
+            <div id="pInfoRow0Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow0Cell0" />
+                </div>
+                <div id="markRow0Cell0" class="HDMarkCla" ></div>
+                <div id="pNameRow0Cell0" class="favoritePNameCla">&nbsp;</div>
+            </div>
+            <div id="pInfoRow0Cell1" style="left: 190px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow0Cell1" />
+                </div>
+                <div id="markRow0Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell1" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow0Cell2" style="left: 360px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow0Cell2" />
+                </div>
+                <div id="markRow0Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell2" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow0Cell3" style="left: 530px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow0Cell3" />
+                </div>
+                <div id="markRow0Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell3" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow0Cell4" style="left: 700px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow0Cell4" />
+                </div>
+                <div id="markRow0Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell4" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow0Cell5" style="left: 870px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow0Cell5" />
+                </div>
+                <div id="markRow0Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell5" class="favoritePNameCla"></div>
+            </div>
+        </div>
+        
+        <div id="rows1" style="top: 273px; " class="rowsCla">
+            <div id="pInfoRow1Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla">
+              		 <img src="" id="imgRow1Cell0" />
+                </div>
+                <div id="markRow1Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell0" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell1" style="left: 190px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow1Cell1" />
+                </div>
+                <div id="markRow1Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell1" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell2" style="left: 360px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow1Cell2" />
+                </div>
+                <div id="markRow1Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell2" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell3" style="left: 530px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow1Cell3" />
+                </div>
+                <div id="markRow1Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell3" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell4" style="left: 700px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow1Cell4" />
+                </div>
+                <div id="markRow1Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell4" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell5" style="left: 870px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow1Cell5" />
+                </div>
+                <div id="markRow1Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell5" class="favoritePNameCla"></div>
+            </div>
+        </div>
+        
+        <div id="rows2" style="top: 525px;" class="rowsCla">
+            <div id="pInfoRow2Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla">
+              	  <img src="" id="imgRow2Cell0" />
+                </div>
+                <div id="markRow2Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell0" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell1" style="left: 190px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow2Cell1" />
+                </div>
+                <div id="markRow2Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell1" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell2" style="left: 360px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow2Cell2" />
+                </div>
+                <div id="markRow2Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell2" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell3" style="left: 530px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow2Cell3" />
+                </div>
+                <div id="markRow2Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell3" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell4" style="left: 700px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow2Cell4" />
+                </div>
+                <div id="markRow2Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell4" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell5" style="left: 870px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow2Cell5" />
+                </div>
+                <div id="markRow2Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell5" class="favoritePNameCla"></div>
+            </div>
+        </div>
+        
+        <div id="rows3" style="top: 777px;" class="rowsCla">
+            <div id="pInfoRow3Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow3Cell0" />
+                </div>
+                <div id="markRow3Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell0" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell1" style="left: 190px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow3Cell1" />
+                </div>
+                <div id="markRow3Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell1" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell2" style="left: 360px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		<img src="" id="imgRow3Cell2" />
+                </div>
+                <div id="markRow3Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell2" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell3" style="left: 530px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow3Cell3" />
+                </div>
+                <div id="markRow3Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell3" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell4" style="left: 700px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow3Cell4" />
+                </div>
+                <div id="markRow3Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell4" class="favoritePNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell5" style="left: 870px;" class="pInfoCla">
+            	<div class="pImgCla">	
+             	    <img src="" id="imgRow3Cell5" />
+                </div>
+                <div id="markRow3Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell5" class="favoritePNameCla"></div>
+            </div>
+        </div>
+    </div>
+    <!---webkit-transition-duration: 200ms; -->
+    <div style="width: 160px; height: 224px; top: 3px; left: 142px; position: absolute; visibility: hidden;" id="listFocus"></div>
+</div>
+
+<div class="favTitleCla" id="title"></div>
+<div class="favCountCla">
+	<div id="count" style="float:left;">0</div>
+    <div id="totalCount" style="float:left;">/0部</div>
+</div>
+
+<div style="width: 19px; position: absolute; left: 1165px; top: 113px;">
+	<img src="images/scrollBg0.png" width="19" height="9" /><br />
+    <img src="images/scrollBg1.png" width="19" height="574" />
+    <img src="images/scrollBg2.png" width="19" height="12" />
+</div>
+
+<div style="width: 19px; position: absolute; left: 1165px; top: 113px;" id="scroll">
+	<img src="images/scrollFocus0.png" width="19" height="9" /><br />
+    <img src="images/scrollFocus1.png" width="19" height="20" id="scrollBar" />
+    <img src="images/scrollFocus2.png" width="19" height="12" />
+</div>
+</body>
+</html>

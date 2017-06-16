@@ -1,0 +1,1695 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>用户管理</title>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}else{
+	eval("tvsee={}");
+	tvsee = {debug:function(){}};
+}
+var globalParams = {
+	areaPos: 0, // 0: 用户手机注册  1 : 我的账户  2: 修改账户信息  3: 修改密码  4: 充值卡充值  5:消费记录  6:其他注册
+	phoneRegObj: null,
+	phoneCodeAjaxObj: null,
+	phoneRegAjaxObj: null,
+	TIME_OUT: 3000,
+	userInfoObj: null, //用户注册信息
+	userRegData: {"result":{"name":"111","password":null,"customerId":2,
+"balance":"22222422","acctId":3,"mobile":"11111111111","subscriberId":25, flag: 0}},
+	userUpdateObj: null, //用户信息修改
+	userPassUpdateObj: null, //修改密码对象
+	cardsRechargeObj: null, //消费记录对象
+	consumeRecordObj: null, //充值卡充值
+	otherRegObj: null, //其他注册
+	widgetKeyboardObj: null,
+	otherRegAjaxObj: null, //其他注册ajax对象
+	checkUserNameAjaxObj: null ,//其他注册检测用户名
+	updatePhoneAjaxObj: null ,//修改用户信息
+	updatePassAjaxObj: null, //修改密码
+	cardRechargeAjaxObj: null, //充值卡充值ajax
+	rOrderHistoryAjaxObj: null, //订单记录查询
+	phoneSendMsgTip: "如未收到验证码请检测手机号码是否正确，并六十秒后再试..."
+}
+function init(){
+	globalParams.widgetKeyboardObj = tvsee.pageWidgets.getByName("widgetKeyboard");
+	var data = tvsee.eventFrame.globalParams.globalCache.get("queryCustomer_CACHE");
+	if(data == false){
+		$("titleTip").innerText = "当前功能暂不能使用，请稍后再试...";
+		return;
+	}
+	globalParams.userRegData = data;
+	if(data.result.flag == 0){ //用户已注册
+		globalParams.areaPos = 1;
+		$("phoneRegPage").style.display = "none";
+		$("userInfoPage").style.display = "block";
+		globalParams.userInfoObj = new userInfoClass();
+		globalParams.userInfoObj.showData();
+		globalParams.userInfoObj.getFocus();
+	}else if(data.result.flag == 9){ //系统异常
+		$("titleTip").innerText = "服务器异常，请稍后再试...";
+		return;
+	}else if(data.result.flag == 1000){
+		
+	}else if(data.result.flag == 1001){ //用户未注册
+		globalParams.phoneRegObj = new phoneRegClass();
+		globalParams.otherRegObj = new otherRegClass();
+	}
+	globalParams.userPassUpdateObj = new userPassUpdateClass();
+	globalParams.userUpdateObj = new userUpdateClass();
+	globalParams.userUpdateObj.showData();
+	globalParams.cardsRechargeObj = new cardsRechargeClass();	
+	globalParams.cardsRechargeObj.showData();
+	globalParams.consumeRecordObj = new consumeRecordClass();
+	globalParams.consumeRecordObj.showData();
+	setTitle();
+	titleStatus();
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		goBack();
+	}else if(_eventObj.code == "KEY_NUMERIC"){
+		enterLetter(_eventObj.args.value);	
+	}
+	return _eventObj.args.type;
+}
+//输入字母
+function enterLetter(_str){
+	if(globalParams.areaPos == 0){
+		globalParams.phoneRegObj.enterLetter(_str);	
+	}else if(globalParams.areaPos == 1){
+		globalParams.userInfoObj.enterLetter(_str);	
+	}else if(globalParams.areaPos == 2){
+		globalParams.userUpdateObj.enterLetter(_str);
+	}else if(globalParams.areaPos == 3){
+		globalParams.userPassUpdateObj.enterLetter(_str);	
+	}else if(globalParams.areaPos == 4){
+		globalParams.cardsRechargeObj.enterLetter(_str);	
+	}else if(globalParams.areaPos == 5){
+		globalParams.consumeRecordObj.enterLetter(_str);
+	}else if(globalParams.areaPos == 6){
+		globalParams.otherRegObj.enterLetter(_str);	
+	}
+}
+function moveUD(_num){
+	if(globalParams.areaPos == 0){
+		globalParams.phoneRegObj.moveUD(_num);	
+	}else if(globalParams.areaPos == 1){
+		globalParams.userInfoObj.moveUD(_num);	
+	}else if(globalParams.areaPos == 2){
+		globalParams.userUpdateObj.moveUD(_num);
+	}else if(globalParams.areaPos == 3){
+		globalParams.userPassUpdateObj.moveUD(_num);	
+	}else if(globalParams.areaPos == 4){
+		globalParams.cardsRechargeObj.moveUD(_num);	
+	}else if(globalParams.areaPos == 5){
+		globalParams.consumeRecordObj.moveUD(_num);
+	}else if(globalParams.areaPos == 6){
+		globalParams.otherRegObj.moveUD(_num);	
+	}
+}
+function moveLR(_num){
+	if(globalParams.areaPos == 0){
+		globalParams.phoneRegObj.moveLR(_num);	
+	}else if(globalParams.areaPos == 1){
+		globalParams.userInfoObj.moveLR(_num);
+	}else if(globalParams.areaPos == 2){
+		globalParams.userUpdateObj.moveLR(_num);	
+	}else if(globalParams.areaPos == 3){
+		globalParams.userPassUpdateObj.moveLR(_num);	
+	}else if(globalParams.areaPos == 4){
+		globalParams.cardsRechargeObj.moveLR(_num);	
+	}else if(globalParams.areaPos == 5){
+		globalParams.consumeRecordObj.moveLR(_num);	
+	}else if(globalParams.areaPos == 6){
+		globalParams.otherRegObj.moveLR(_num);	
+	}
+}
+function doSelect(){
+	if(globalParams.areaPos == 0){
+		globalParams.phoneRegObj.doSelect();
+	}else if(globalParams.areaPos == 1){
+		globalParams.userInfoObj.doSelect();	
+	}else if(globalParams.areaPos == 2){
+		globalParams.userUpdateObj.doSelect();	
+	}else if(globalParams.areaPos == 3){
+		globalParams.userPassUpdateObj.doSelect();	
+	}else if(globalParams.areaPos == 4){
+		globalParams.cardsRechargeObj.doSelect();	
+	}else if(globalParams.areaPos ==  5){
+		globalParams.consumeRecordObj.doSelect();	
+	}else if(globalParams.areaPos == 6){
+		globalParams.otherRegObj.doSelect();	
+	}
+	titleStatus();
+	setTitle();
+}
+function goBack(){
+	if(globalParams.areaPos == 0){
+		globalParams.phoneRegObj.goBack();
+	}else if(globalParams.areaPos == 1){
+		globalParams.userInfoObj.goBack();	
+	}else if(globalParams.areaPos == 2){
+		globalParams.userUpdateObj.goBack();	
+	}else if(globalParams.areaPos == 3){
+		globalParams.userPassUpdateObj.goBack();	
+	}else if(globalParams.areaPos == 4){
+		globalParams.cardsRechargeObj.goBack();	
+	}else if(globalParams.areaPos ==  5){
+		globalParams.consumeRecordObj.goBack();	
+	}else if(globalParams.areaPos == 6){
+		globalParams.otherRegObj.goBack();	
+	}
+	titleStatus();
+	setTitle();
+}
+function showWidgetKeyboard(){
+	globalParams.widgetKeyboardObj.showWin(window);
+}
+//手机注册类
+function phoneRegClass(){
+	this.areaPos = 1; //1:在输入框  2:在按钮  0:在其他注册
+	this.inputX = 0;
+	this.btnX = 0;
+	this.btns = [["phone_reg_btn0.png", "phone_reg_btn1.png"], ["recharge_btn0.png", "recharge_btn1.png"],["recharge_btn0.png", "recharge_btn1.png"]];
+	this.tipTimeout = -1;
+	this.phoneMsgTime = -1;
+	this.moveUD = function(_num){
+		this.areaPos += _num
+		if(this.areaPos < 0){
+			this.areaPos = 0;
+			return;	
+		}else if(this.areaPos > 2){
+			this.areaPos = 2;
+			return;
+		}
+		this.loseFocus(this.areaPos - _num, this.inputX, this.btnX);
+		this.getFocus();
+	}
+	this.loseFocus = function(_areaPos, _inputX, _btnX){
+		if(_areaPos == 0){
+			$("titleBtn").style.backgroundImage = "url(images/user/other_reg_btn0.png)";
+		}else if(_areaPos == 1){
+			if(_inputX == 0){
+				$("userName_1").style.display = "none";
+			}else if(_inputX == 1){
+				$("phoneSendCode").style.backgroundImage = "url(images/user/send_reg_code_0.png)";
+			}else if(_inputX == 2){
+				$("regCode_1").style.display = "none";	
+			}
+		}else if(_areaPos == 2){
+			$("btn" + _btnX).style.backgroundImage = "url(images/user/" + this.btns[_btnX][0] + ")";
+		}	
+	}
+	this.getFocus = function(){
+		if(this.areaPos == 0){
+			$("titleBtn").style.backgroundImage = "url(images/user/other_reg_btn1.png)";
+		}else if(this.areaPos == 1){
+			if(this.inputX == 0){
+				$("userName_1").style.display = "block";
+			}else if(this.inputX == 1){
+				$("phoneSendCode").style.backgroundImage = "url(images/user/send_reg_code_1.png)";
+			}else if(this.inputX == 2){
+				$("regCode_1").style.display = "block";	
+			}
+		}else if(this.areaPos == 2){
+			$("btn" + this.btnX).style.backgroundImage = "url(images/user/" + this.btns[this.btnX][1] + ")";
+		}
+	}
+	this.moveLR = function(_num){
+		if(this.areaPos == 0){
+			return;	
+		}else if(this.areaPos == 1){
+			this.inputX += _num;
+			if(this.inputX < 0){
+				this.inputX = 0;
+				return;
+			}else if(this.inputX > 2){
+				this.inputX = 2;
+				return;
+			}
+			this.loseFocus(this.areaPos, this.inputX - _num, -1);
+			this.getFocus();
+		}else if(this.areaPos == 2){
+			this.btnX += _num;
+			if(this.btnX < 0){
+				this.btnX = 0;
+				return;
+			}else if(this.btnX > 2){
+				this.btnX = 2;
+				return;
+			}
+			this.loseFocus(this.areaPos, -1, this.btnX - _num);
+			this.getFocus();
+		}
+	}
+	this.doSelect = function(){
+		if(this.areaPos == 0){
+			$("otherUserReg").style.display = "block";
+			$("phoneRegPage").style.display = "none";
+			globalParams.areaPos = 6;
+		}else if(this.areaPos == 1){
+			if(this.inputX == 0){
+				showWidgetKeyboard();
+			}else if(this.inputX == 1){
+				var sysTime = new Date().getTime();
+				if((sysTime - this.phoneMsgTime >= 60000)  || this.phoneMsgTime == -1){
+					sendPhoneMsg("userName_0", "phoneRegTip");
+				}else{
+					this.showTip("您发送短信太频繁，请稍后再发..");	
+				}
+			}else if(this.inputX == 2){
+				showWidgetKeyboard();
+			}
+		}else if(this.areaPos == 2){
+			if(this.btnX == 0){
+				sendRegInfo();
+			}else if(this.btnX == 1){
+				globalParams.phoneRegObj.showTip("请先注册,方可充值..");
+			}else if(this.btnX == 2){
+				globalParams.areaPos = 5;
+				$("phoneRegPage").style.display = "none";
+				$("expensesRecord").style.display = "block";	
+				sendOrderHistory();
+			}
+		}
+	}
+	this.enterLetter = function(_str){
+		if(this.areaPos == 1){
+			if(this.inputX == 0){
+				var phoneNum = $("userName_0").innerText;
+				if(_str == "Del"){
+					if(phoneNum.length == 0 || phoneNum == "请输入您的手机号"){
+						return;	
+					}	
+					$("userName_0").innerText = phoneNum.substring(0, phoneNum.length - 1);
+				}else if(_str == "Empty"){
+					 $("userName_0").innerText = "请输入您的手机号";
+				}else{
+					if(phoneNum == "请输入您的手机号"){
+						$("userName_0").innerText = "";
+						phoneNum = "";
+					}
+					if(phoneNum.length == 11){
+						globalParams.phoneRegObj.showTip("您输入的号码已超出长度..");
+						return;
+					}
+					$("userName_0").innerText = phoneNum + _str;
+				}
+			}else if(this.inputX == 2){
+				var regCode = $("regCode_0").innerText;
+				if(_str == "Del"){
+					if(phoneNum.length == 0 || regCode == "输入验证码"){
+						return;	
+					}	
+					$("regCode_0").innerText = phoneNum.substring(0, phoneNum.length - 1);
+					if(phoneNum.length == 1){
+						 $("regCode_0").innerText = "输入验证码";
+					}
+				}else if(_str == "Empty"){
+					 $("regCode_0").innerText = "输入验证码";
+				}else{
+					if(regCode == "输入验证码"){
+						$("regCode_0").innerText = "";
+						regCode = "";
+					}
+					if(regCode.length == 6){
+						globalParams.phoneRegObj.showTip("您输入的验证码已超出长度..");
+						return;
+					}
+					$("regCode_0").innerText = regCode + _str;
+				}
+			}
+		}
+	}
+	this.goBack = function(){
+		goToHome();
+	}
+	this.showTip = function(_text){
+		if(_text == globalParams.phoneSendMsgTip){
+			this.phoneMsgTime = new Date().getTime();	
+		}
+		$("phoneRegTip").innerText = _text;
+		window.clearTimeout(this.tipTimeout);
+		var self = this;
+		this.tipTimeout = setTimeout(function(){
+			self.hideTip();				
+		},globalParams.TIME_OUT);
+	}
+	this.hideTip = function(){
+		$("phoneRegTip").innerText = "";	
+	}
+}
+
+function goToHome(){
+	gotoPageUrl("about:blank");
+	tvsee.pageWidgets.getByName("widgetMenu").showWin();
+}
+
+function sendPhoneMsg(_userNameId, _tipId){
+	var phoneCode = $(_userNameId).innerText;
+	if(phoneCode.length != 11 || phoneCode == "请输入您的手机号"){
+		if(globalParams.areaPos == 0){
+			globalParams.phoneRegObj.showTip("输入手机号长度不符");
+		}else{
+			globalParams.userUpdateObj.showTip("输入手机号长度不符");
+		}
+		return;	
+	}
+	if(globalParams.phoneCodeAjaxObj != null){
+		globalParams.phoneCodeAjaxObj.requestAbort();	
+	}
+	globalParams.phoneCodeAjaxObj = new ajaxClass();
+	globalParams.phoneCodeAjaxObj.frame = window;
+	var type = 3;
+	if(globalParams.areaPos == 0){
+		type = 1;	
+	}
+	globalParams.phoneCodeAjaxObj.url = getAjaxUrl("regPhoneCode", phoneCode, type);
+	globalParams.phoneCodeAjaxObj.successCallback = function(_xmlHttp, _params) {
+		var text = _xmlHttp.responseText;
+		if(text == "true"){ //号码发生成功
+			if(globalParams.areaPos == 0){
+				globalParams.phoneRegObj.showTip(globalParams.phoneSendMsgTip);
+			}else{
+				globalParams.userUpdateObj.showTip(globalParams.phoneSendMsgTip);	
+			}
+		}else{
+			if(globalParams.areaPos == 0){
+				globalParams.phoneRegObj.showTip("发送验证码失败，请稍后再试....");	
+			}else{
+				globalParams.userUpdateObj.showTip("发送验证码失败，请稍后再试....");
+			}
+		}
+	};
+	globalParams.phoneCodeAjaxObj.failureCallback = function(_xmlHttp, _params) {
+		if(globalParams.areaPos == 0){
+			globalParams.phoneRegObj.showTip("发送验证码失败，请稍后再试...");
+		}else{
+			globalParams.userUpdateObj.showTip("验证码发送失败，请稍后再试...");		
+		}
+	};
+	globalParams.phoneCodeAjaxObj.requestData();
+}
+
+
+function sendRegInfo(_type){
+	var phoneCode = $("userName_0").innerText;
+	if(phoneCode.length != 11 || phoneCode == "请输入您的手机号"){
+		globalParams.phoneRegObj.showTip("输入手机号长度不符");
+		return;	
+	}
+	var regCode = $("regCode_0").innerText;
+	if(regCode == "" || regCode == "输入验证码"){
+		globalParams.phoneRegObj.showTip("验证码不能为空");
+		return;
+	}
+	if(globalParams.phoneRegAjaxObj != null){
+		globalParams.phoneRegAjaxObj.requestAbort();	
+	}
+	globalParams.phoneRegObj.showTip("正在注册，请稍候..");
+	globalParams.phoneRegAjaxObj = new ajaxClass();
+	globalParams.phoneRegAjaxObj.frame = window;
+	globalParams.phoneRegAjaxObj.url = getAjaxUrl("phoneReg", phoneCode, regCode, _type);
+	globalParams.phoneRegAjaxObj.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		if(data.flag == 1){ //注册失败
+			$("phoneRegTip").innerText = "";
+			globalParams.areaPos = 1;
+			$("phoneRegPage").style.display = "none";
+			$("userInfoPage").style.display = "block";
+			globalParams.userInfoObj = new userInfoClass();
+			globalParams.userRegData = {"result":{"name": phoneCode,"password":  123456,"customerId":2,
+	"balance": 0,"acctId":3,"mobile": phoneCode,"subscriberId":0, flag: 0}};
+		   globalParams.userInfoObj.showData();
+		   globalParams.userInfoObj.getFocus();
+			saveCustomerInfo();
+		}else{
+			var tip;
+			if(data.flag == 1001){
+				tip = "手机号码验证失败";
+			}else if(data.flag == 1202){
+				tip = "短信验证码失效";	
+			}else if(data.flag == 1201){
+				tip = "手机号已被激活";	
+			}else{
+				tip = "服务器异常，请稍后再试";	
+			}
+			tip = tip + "，状态码为:" + data.flag;
+			globalParams.phoneRegObj.showTip(tip);
+		}
+	};
+	globalParams.phoneRegAjaxObj.failureCallback = function(_xmlHttp, _params) {
+		globalParams.phoneRegObj.showTip("注册失败，请稍后再试...");
+	};
+	globalParams.phoneRegAjaxObj.requestData();
+}
+
+//账户信息类
+function userInfoClass(){
+	this.btns = [["user_info_btn_0.png", "user_info_btn_1.png"], ["user_info_btn_0.png", "user_info_btn_1.png"],["user_info_btn_0.png", "user_info_btn_1.png"], ["user_info_btn_0.png", "user_info_btn_1.png"]];
+	this.btnX = 0;
+	this.moveUD = function(_num){
+		
+	}
+	this.moveLR = function(_num){
+		this.loseFocus();
+		this.btnX += _num;
+		if(this.btnX < 0){
+			this.btnX = this.btns.length - 1;	
+		}else if(this.btnX >= this.btns.length){
+			this.btnX = 0;	
+		}
+		this.getFocus();
+	}
+	this.loseFocus = function(){
+		$("userInfoBtn" + this.btnX).style.backgroundImage = "url(images/user/" + this.btns[this.btnX][0] + ")";
+	}
+	this.getFocus = function(){
+		$("userInfoBtn" + this.btnX).style.backgroundImage = "url(images/user/" + this.btns[this.btnX][1] + ")";
+	}
+	this.doSelect = function(){
+		if(this.btnX == 0){
+			$("userInfoPage").style.display = "none";
+			$("updatePhoneInfo").style.display = "block";
+			globalParams.areaPos = 2;
+		}else if(this.btnX == 1){
+			$("updatePassInfo").style.display = "block";
+			globalParams.areaPos = 3;
+		}else if(this.btnX == 2){
+			$("userInfoPage").style.display = "none";
+			$("cardRechargePage").style.display = "block";
+			globalParams.areaPos = 4;
+		}else if(this.btnX == 3){
+			$("userInfoPage").style.display = "none";
+			$("expensesRecord").style.display = "block";
+			globalParams.areaPos = 5;
+			sendOrderHistory();
+		}
+	}
+	this.showData = function(){
+		$("userInfoUserName").innerText = globalParams.userRegData.result.name;
+		$("userInfoPhoneCode").innerText = globalParams.userRegData.result.mobile;
+		$("userInfoMoney").innerHTML = "<span style='font-size: 32px; color: #00ED39;'>" + getBalance() + "</span>" + "<span style='font-size: 26px; color: #00ED39;'>元</span>";
+		
+	}
+	this.enterLetter = function(_str){
+		
+	}
+	this.goBack = function(){
+		goToHome();	
+	}
+}
+//信息修改类
+function userUpdateClass(){
+	this.inputX = 0;
+	this.areaPos = 0;
+	this.btnX = 0;
+	this.phoneMsgTime = -1;
+	this.btns = [["confirm_btn_0.png", "confirm_btn_1.png"], ["confirm_btn_0.png", "confirm_btn_1.png"]];
+	this.moveUD = function(_num){
+		this.areaPos += _num;
+		if(this.areaPos < 0){
+			this.areaPos = 0;
+			return;	
+		}else if(this.areaPos > 1){
+			this.areaPos = 1;
+			return;
+		}
+		this.loseFocus(this.areaPos - _num, this.inputX, this.btnX);
+		this.getFocus();
+	}
+	this.showData = function(){
+		//updatePhoneUserName updatePhonePhoneNum0 updatePhonePhoneNum1 updatePhoneSendMsg updatePhoneRegCode0 updatePhoneRegCode1 updatePhoneBtn0 updatePhoneBtn1
+		$("updatePhoneUserName").innerText = globalParams.userRegData.result.name;
+		//$("updatePhonePhoneNum0").innerText = globalParams.userRegData.result.mobile;
+	}
+	this.loseFocus = function(_areaPos, _inputX, _btnX){
+		if(_areaPos == 0){
+			if(_inputX == 0){
+				$("updatePhonePhoneNum1").style.display = "none";
+			}else if(_inputX == 1){
+				$("updatePhoneSendMsg").style.backgroundImage = "url(images/user/send_reg_code_0.png)";
+			}else if(_inputX == 2){
+				$("updatePhoneRegCode1").style.display = "none";	
+			}
+		}else if(_areaPos == 1){
+			$("updatePhoneBtn" + _btnX).style.backgroundImage = "url(images/user/" + this.btns[_btnX][0] + ")";
+		}	
+	}
+	this.getFocus = function(){
+		if(this.areaPos == 0){
+			if(this.inputX == 0){
+				$("updatePhonePhoneNum1").style.display = "block";
+			}else if(this.inputX == 1){
+				$("updatePhoneSendMsg").style.backgroundImage = "url(images/user/send_reg_code_1.png)";
+			}else if(this.inputX == 2){
+				$("updatePhoneRegCode1").style.display = "block";	
+			}
+		}else if(this.areaPos == 1){
+			$("updatePhoneBtn" + this.btnX).style.backgroundImage = "url(images/user/" + this.btns[this.btnX][1] + ")";
+		}
+	}
+	this.moveLR = function(_num){
+		if(this.areaPos == 0){
+			this.inputX += _num;
+			if(this.inputX < 0){
+				this.inputX = 0;
+				return;
+			}else if(this.inputX > 2){
+				this.inputX = 2;
+				return;
+			}
+			this.loseFocus(this.areaPos, this.inputX - _num, -1);
+			this.getFocus();
+		}else if(this.areaPos == 1){
+			this.btnX += _num;
+			if(this.btnX < 0){
+				this.btnX = 0;
+				return;
+			}else if(this.btnX > 1){
+				this.btnX = 1;
+				return;
+			}
+			this.loseFocus(this.areaPos, -1, this.btnX - _num);
+			this.getFocus();
+		}
+	}
+	this.doSelect = function(){
+		if(this.areaPos == 0){
+			if(this.inputX == 0 || this.inputX == 2){
+				showWidgetKeyboard();
+			}else if(this.inputX == 1){
+				var sysTime = new Date().getTime();
+				if((sysTime - this.phoneMsgTime >= 60000)  || this.phoneMsgTime == -1){
+					sendPhoneMsg("updatePhonePhoneNum0", "updatePhoneTip");	
+				}else{
+					this.showTip("您发送短信太频繁，请稍后再发..");	
+				}
+			}
+		}else if(this.areaPos == 1){
+			if(this.btnX == 0){
+				sendUpdateInfo();
+			}else if(this.btnX == 1){
+				this.goBack();
+			}	
+		}
+	}
+	this.enterLetter = function(_str){
+		if(this.areaPos == 0){
+			if(this.inputX == 0){
+				//updatePhonePhoneNum0 updatePhoneRegCode0
+				var phoneNum = $("updatePhonePhoneNum0").innerText;
+				if(_str == "Del"){
+					if(phoneNum.length == 0){
+						return;	
+					}	
+					$("updatePhonePhoneNum0").innerText = phoneNum.substring(0, phoneNum.length - 1);
+				}else if(_str == "Empty"){
+					 $("updatePhonePhoneNum0").innerText = "";
+				}else{
+					if(phoneNum.length == 11){
+						globalParams.userUpdateObj.showTip("您输入的号码已超出长度..");
+						return;
+					}
+					$("updatePhonePhoneNum0").innerText = phoneNum + _str;
+				}
+			}else if(this.inputX == 2){
+				var regCode = $("updatePhoneRegCode0").innerText;
+				if(_str == "Del"){
+					if(regCode.length == 0 || regCode == "输入验证码"){
+						return;	
+					}	
+					$("updatePhoneRegCode0").innerText = regCode.substring(0, regCode.length - 1);
+					if(regCode.length == 1){
+						 $("updatePhoneRegCode0").innerText = "输入验证码";
+					}
+				}else if(_str == "Empty"){
+					 $("updatePhoneRegCode0").innerText = "输入验证码";
+				}else{
+					if(regCode == "输入验证码"){
+						$("updatePhoneRegCode0").innerText = "";
+						regCode = "";
+					}
+					if(regCode.length == 6){
+						globalParams.userUpdateObj.showTip("您输入的验证码已超出长度..");
+						return;
+					}
+					$("updatePhoneRegCode0").innerText = regCode + _str;
+				}
+			}
+		}
+	}
+	this.goBack = function(){
+		$("updatePhoneTip").innerText = ""
+		$("updatePhonePhoneNum0").innerText = "";
+		$("updatePhoneRegCode0").innerText = "";
+		$("userInfoPage").style.display = "block";
+		$("updatePhoneInfo").style.display = "none";
+		globalParams.areaPos = 1;
+		if(globalParams.updatePhoneAjaxObj != null){
+			globalParams.updatePhoneAjaxObj.requestAbort();	
+		}
+	}
+	this.showTip = function(_text){
+		if(_text == globalParams.phoneSendMsgTip){
+			this.phoneMsgTime = new Date().getTime();	
+		}
+		$("updatePhoneTip").innerText = _text;
+		window.clearTimeout(this.tipTimeout);
+		var self = this;
+		this.tipTimeout = setTimeout(function(){
+			self.hideTip();				
+		},globalParams.TIME_OUT);
+	}
+	this.hideTip = function(){
+		$("updatePhoneTip").innerText = "";	
+	}
+}
+
+function sendUpdateInfo(){
+	var phoneCode  =  $("updatePhonePhoneNum0").innerText;
+	if(phoneCode.length != 11){
+		globalParams.userUpdateObj.showTip("输入手机号长度不符");
+		return;	
+	}
+	var regCode = $("updatePhoneRegCode0").innerText;
+	if(regCode == "" || regCode == "输入验证码"){
+		globalParams.userUpdateObj.showTip("验证码不能为空");	
+		return;
+	}
+	if(globalParams.updatePhoneAjaxObj != null){
+		globalParams.updatePhoneAjaxObj.requestAbort();	
+	}
+	globalParams.updatePhoneAjaxObj = new ajaxClass();
+	globalParams.updatePhoneAjaxObj.frame = window;
+	globalParams.updatePhoneAjaxObj.url = getAjaxUrl("updateUserInfo", $("updatePhoneUserName").innerText, phoneCode, regCode);
+	globalParams.updatePhoneAjaxObj.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		if(data.flag == 1){ //注册失败
+			globalParams.userUpdateObj.showTip("恭喜您修改成功..");		
+			globalParams.userUpdateObj.goBack();
+			globalParams.userRegData = {"result":{"name": phoneCode,"password":  123456,"customerId":2,
+	"balance": 0,"acctId":3,"mobile": phoneCode,"subscriberId":0, flag: 0}},
+			saveCustomerInfo();
+		}else{
+			var tip;
+			switch(parseInt(data.flag, 10)){
+				case 1001:
+					tip = "手机号验证失败";
+				break;
+				case 1202:
+					tip = "验证码失败";
+				break;
+				case 9:
+				default:
+					tip = "服务器异常";
+				break;
+			}	
+			tip += "，状态码为:" + data.flag;
+			globalParams.userUpdateObj.showTip(tip);		
+		}
+	};
+	globalParams.updatePhoneAjaxObj.failureCallback = function(_xmlHttp, _params) {
+			globalParams.userUpdateObj.showTip("链接服务器失败，请稍后再试..");
+	};
+	globalParams.updatePhoneAjaxObj.requestData();	
+}
+//密码修改
+function userPassUpdateClass(){
+	this.areaPos = 0;
+	this.btnX = 0;
+	this.tipTimeout = -1;
+	this.btns = [["confirm_btn_0.png", "confirm_btn_1.png"], ["confirm_btn_0.png", "confirm_btn_1.png"]];
+	this.moveUD = function(_num){
+		this.areaPos += _num;
+		if(this.areaPos < 0){
+			this.areaPos = 0;
+			return;
+		}else if(this.areaPos > 3){
+			this.areaPos = 3;
+			return;
+		}
+		this.loseFocus(this.areaPos - _num, this.btnX);
+		this.getFocus();
+	}
+	this.moveLR = function(_num){
+		if(this.areaPos == 3){
+			this.loseFocus(this.areaPos, this.btnX);
+			this.btnX += _num;
+			if(this.btnX < 0){
+				this.btnX = 1;	
+			}else if(this.btnX > 1){
+				this.btnX = 0;	
+			}
+			this.getFocus();
+		}
+	}
+	this.loseFocus = function(_areaPos, _btnX){
+		if(_areaPos == 0){
+			$("updateOldPass1").style.display = "none";
+		}else if(_areaPos == 1){
+			$("updateNewPass1").style.display = "none";
+		}else if(_areaPos == 2){
+			$("updateTwoNewPass1").style.display = "none";
+		}else if(_areaPos == 3){
+			$("updatePassBtn" + _btnX).style.backgroundImage = "url(images/user/" + this.btns[_btnX][0] + ")";
+		}	
+	}
+	this.getFocus = function(){
+		if(this.areaPos == 0){
+			$("updateOldPass1").style.display = "block";
+		}else if(this.areaPos == 1){
+			$("updateNewPass1").style.display = "block";
+		}else if(this.areaPos == 2){
+			$("updateTwoNewPass1").style.display = "block";
+		}else if(this.areaPos == 3){
+			$("updatePassBtn" + this.btnX).style.backgroundImage = "url(images/user/" + this.btns[this.btnX][1] + ")";
+		}
+	}
+	this.doSelect = function(){
+		if(this.areaPos == 0 || this.areaPos == 1 || this.areaPos == 2){
+			showWidgetKeyboard();
+		}else if(this.areaPos == 3){
+			if(this.btnX == 0){
+				//updatePassTip updateNewPass0 updateTwoNewPass0 updateOldPass0
+				var oldPass = $("updateOldPass0").innerText;
+				var newPass = $("updateNewPass0").innerText;
+				var newTwoPass = $("updateTwoNewPass0").innerText;
+				var tip = ""
+				if(oldPass == ""){
+					tip = "旧密码不能为空";
+				}/*else if(oldPass != globalParams.userRegData.result.password){
+					tip = "旧密码输入不正确";
+				}*/else if(newPass == ""){
+					tip = "新密码不能为空";
+				}else if(newTwoPass == ""){
+					tip = "确认密码不能为空";
+				}else if(newPass != newTwoPass){
+					tip = "两次密码输入不一致";	
+				}else{
+					sendUpdatePass(oldPass, newPass);
+				}
+				this.showTip(tip);
+			}else if(this.btnX == 1){
+				this.goBack();
+			}	
+		}
+	}
+	this.enterLetter = function(_str){
+		if(this.areaPos == 0){
+			//updateOldPass1 updateNewPass1 updateTwoNewPass1
+			var updateOldPass = $("updateOldPass0").innerText;
+			if(_str == "Del"){
+				if(updateOldPass.length == 0){
+					return;	
+				}	
+				$("updateOldPass0").innerText = updateOldPass.substring(0, updateOldPass.length - 1);
+			}else if(_str == "Empty"){
+				 $("updateOldPass0").innerText = "";
+			}else{
+				if(updateOldPass.length == 16){
+					this.showTip("密码超出了长度.."); 
+					return;	
+				}
+				$("updateOldPass0").innerText = updateOldPass + _str;
+			}
+		}else if(this.areaPos == 1){
+			var updateNewPass = $("updateNewPass0").innerText;
+			if(_str == "Del"){
+				if(updateNewPass.length == 0){
+					return;	
+				}	
+				$("updateNewPass0").innerText = updateNewPass.substring(0, updateNewPass.length - 1);
+			}else if(_str == "Empty"){
+				 $("updateNewPass0").innerText = "";
+			}else{
+				if(updateNewPass.length == 16){
+					this.showTip("密码超出了长度.."); 
+					return;	
+				}
+				$("updateNewPass0").innerText = updateNewPass + _str;
+			}
+		}else if(this.areaPos == 2){
+			var updateTwoNewPass = $("updateTwoNewPass0").innerText;
+			if(_str == "Del"){
+				if(updateTwoNewPass.length == 0){
+					return;	
+				}	
+				$("updateTwoNewPass0").innerText = updateTwoNewPass.substring(0, updateTwoNewPass.length - 1);
+			}else if(_str == "Empty"){
+				 $("updateTwoNewPass0").innerText = "";
+			}else{
+				if(updateTwoNewPass.length == 16){
+					this.showTip("密码超出了长度.."); 
+					return;	
+				}
+				$("updateTwoNewPass0").innerText = updateTwoNewPass + _str;
+			}
+		}
+	}
+	this.goBack = function(){
+		globalParams.areaPos = 1;
+		$("updateOldPass0").innerText = "";
+		$("updateNewPass0").innerText = "";
+		$("updateTwoNewPass0").innerText = "";
+		$("updatePassTip").innerText = "";
+		$("userInfoPage").style.display = "block";
+		$("updatePassInfo").style.display = "none";	
+		if(globalParams.updatePassAjaxObj != null){
+			globalParams.updatePassAjaxObj.requestAbort();	
+		}
+	}
+	this.showTip = function(_text){
+		$("updatePassTip").innerText = _text;
+		window.clearTimeout(this.tipTimeout);
+		var self = this;
+		this.tipTimeout = setTimeout(function(){
+			self.hideTip();				
+		},globalParams.TIME_OUT);
+	}
+	this.hideTip = function(){
+		$("updatePassTip").innerText = "";	
+	}
+}
+
+function sendUpdatePass(_oldPass, _newPass){
+	if(globalParams.updatePassAjaxObj != null){
+		globalParams.updatePassAjaxObj.requestAbort();	
+	}
+	globalParams.updatePassAjaxObj = new ajaxClass();
+	globalParams.updatePassAjaxObj.frame = window;
+	globalParams.updatePassAjaxObj.url = getAjaxUrl("updateUserPass", _oldPass, _newPass);
+	globalParams.updatePassAjaxObj.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		if(data.flag == 0){ 
+			globalParams.userRegData.result.password = _newPass;
+			saveCustomerInfo();
+			globalParams.userPassUpdateObj.goBack();
+		}else if(data.flag == 1003){
+			globalParams.userPassUpdateObj.showTip("修改失败,旧密码输入不正确");	
+		}else { //if(data.flag == 9 || data.flag == 1000 || data.flag == 1001)
+			globalParams.userPassUpdateObj.showTip("修改失败,请稍后再试,状态码为:" + data.flag);
+		}
+	};
+	globalParams.updatePassAjaxObj.failureCallback = function(_xmlHttp, _params) {
+		globalParams.userPassUpdateObj.showTip("请求失败,请稍后再试..");
+	};
+	globalParams.updatePassAjaxObj.requestData();	
+}
+
+//充值卡充值
+function cardsRechargeClass(){
+	this.areaPos = 0;
+	this.btnX = 0;
+	this.btns = [["confirm_btn_0.png", "confirm_btn_1.png"], ["confirm_btn_0.png", "confirm_btn_1.png"]];
+	this.showData = function(){
+		$("cardRechargeUserName").innerText = globalParams.userRegData.result.name;
+		$("cardRechargeMoney").innerHTML =  "<span style='font-size: 32px; color: #00ED39;'>" +  getBalance() + "</span>" + "<span style='font-size: 26px; color: #00ED39;'>元</span>";
+	}
+	this.getFocus = function(){
+		if(this.areaPos == 0){
+			$("cardRechargePass1").style.display = "block";
+		}else if(this.areaPos == 1){
+			$("cardRechargeBtn" + this.btnX).style.backgroundImage = "url(images/user/" + this.btns[this.btnX][1] + ")";
+		}
+	}
+	this.loseFocus = function(_areaPos, _btnX){
+		if(_areaPos == 0){
+			$("cardRechargePass1").style.display = "none";
+		}else if(_areaPos == 1){
+			$("cardRechargeBtn" + _btnX).style.backgroundImage = "url(images/user/" + this.btns[_btnX][0] + ")";
+		}		
+	}
+	this.moveUD = function(_num){
+		this.areaPos += _num;
+		if(this.areaPos < 0){
+			this.areaPos = 0;
+			return;
+		}else if(this.areaPos > 1){
+			this.areaPos = 1;
+			return;
+		}
+		this.loseFocus(this.areaPos - _num, this.btnX);
+		this.getFocus();
+	}
+	this.moveLR = function(_num){
+		if(this.areaPos == 1){
+			this.loseFocus(this.areaPos, this.btnX);
+			this.btnX += _num;
+			if(this.btnX < 0){
+				this.btnX = 1;	
+			}else if(this.btnX > 1){
+				this.btnX = 0;	
+			}
+			this.getFocus();
+		}
+	}
+	this.doSelect = function(){
+		if(this.areaPos == 0){
+			showWidgetKeyboard();
+		}else if(this.areaPos == 1){
+			if(this.btnX == 0){
+				var cardPass = $("cardRechargePass0").innerText;
+				if(cardPass == ""){
+					this.showTip("充值卡密码不能为空."); 
+				}else{
+					sendCardRecharge(cardPass);		
+				}
+			}else if(this.btnX == 1){
+				this.goBack();
+			}	
+		}
+	}
+	this.enterLetter = function(_str){
+		if(this.areaPos == 0){
+			var cardPass = $("cardRechargePass0").innerText;
+			if(_str == "Del"){
+				if(cardPass.length == 0){
+					return;	
+				}	
+				$("cardRechargePass0").innerText = cardPass.substring(0, cardPass.length - 1);
+			}else if(_str == "Empty"){
+				 $("cardRechargePass0").innerText = "";
+			}else{
+				if(cardPass.length == 32){
+					this.showTip("充值卡超出了长度"); 
+					return;	
+				}
+				$("cardRechargePass0").innerText = cardPass + _str;
+			}
+		}
+	}
+	this.goBack = function(){
+		globalParams.areaPos = 1;
+		$("userInfoPage").style.display = "block";
+		$("cardRechargePage").style.display = "none";
+		$("cardRechargePass0").innerText = "";
+		$("cardRechargeTip").innerText = "";
+	}
+	this.showTip = function(_text){
+		$("cardRechargeTip").innerText = _text;
+		window.clearTimeout(this.tipTimeout);
+		var self = this;
+		this.tipTimeout = setTimeout(function(){
+			self.hideTip();				
+		},globalParams.TIME_OUT);
+	}
+	this.hideTip = function(){
+		$("cardRechargeTip").innerText = "";	
+	}
+}
+
+function sendCardRecharge(_cardRechargePass){
+	if(globalParams.cardRechargeAjaxObj != null){
+		globalParams.cardRechargeAjaxObj.requestAbort();	
+	}
+	globalParams.cardRechargeAjaxObj = new ajaxClass();
+	globalParams.cardRechargeAjaxObj.frame = window;
+	globalParams.cardRechargeAjaxObj.url = getAjaxUrl("cardsRecharge", _cardRechargePass);
+	globalParams.cardRechargeAjaxObj.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		if(data.flag == 0){ 
+			globalParams.cardsRechargeObj.showTip("充值成功");
+			globalParams.userRegData.result.balance = globalParams.userRegData.result.balance + data.card_value;
+			saveCustomerInfo();
+			globalParams.cardsRechargeObj.showData();
+			globalParams.userInfoObj.showData();
+			globalParams.consumeRecordObj.showData();
+		}else if(data.flag == 9){
+			globalParams.cardsRechargeObj.showTip("充值失败,请稍后再试,状态码为:" + data.flag);
+		}else if(data.flag == 1000){
+			globalParams.cardsRechargeObj.showTip("充值失败,必填参数为空,状态码为:" + data.flag);
+		}else if(data.flag == 1001){
+			globalParams.cardsRechargeObj.showTip("充值失败,用户不存在,状态码为:" + data.flag);
+		}else if(data.flag == 1002){
+			globalParams.cardsRechargeObj.showTip("充值失败,充值卡不对或密码无效,状态码为:" + data.flag);
+		}
+	};
+	globalParams.cardRechargeAjaxObj.failureCallback = function(_xmlHttp, _params) {
+		globalParams.cardsRechargeObj.showTip("请求失败,请稍后再试..");
+	};
+	globalParams.cardRechargeAjaxObj.requestData();	
+}
+//消费记录
+function consumeRecordClass(){
+	//exRecStbId exRecUserName exRecMoney userRecordDiv0 recordRow0Cell0 recordRow0Cell1 recordRow0Cell2
+	this.showData = function(_data){
+		$("exRecStbId").innerText = getStbId();
+		if(globalParams.userRegData.result.flag == 0){
+			$("exRecUserName").innerText = globalParams.userRegData.result.name;
+			$("exRecMoney").innerHTML = "<span style='font-size: 32px; color: #00ED39;'>" +  getBalance() + "</span>" + "<span style='font-size: 26px; color: #00ED39;'>元</span>";
+		}
+		this.clearData();
+		if(typeof(_data) == "undefined"){
+			return;	
+		}
+		var dataSize = _data.length;
+		//消费类型 数额 日期
+		var size = dataSize;
+		if(size > 4){
+			size = 4;	
+		}
+		for(var i = 1;i < size + 1; i++){
+			$("recordRow"+i+"Cell0").innerText = getServiceName(_data[i - 1].serviceId);
+			$("recordRow"+i+"Cell1").innerText = (_data[i - 1].total / 100) + "元";;
+			$("recordRow"+i+"Cell2").innerText = getPayDate(_data[i].effectiveDate);
+		}	
+	}
+	this.clearData = function(){
+		for(var i = 1;i < 5; i++){
+			$("recordRow"+i+"Cell0").innerText = "";
+			$("recordRow"+i+"Cell1").innerText = "";
+			$("recordRow"+i+"Cell2").innerText = "";
+		}	
+	}
+	this.moveUD = function(_num){
+		
+	}
+	this.moveLR = function(_num){
+		
+	}
+	this.doSelect = function(){
+		
+	}
+	this.enterLetter = function(_str){
+		
+	}
+	this.goBack = function(){
+		if(globalParams.userRegData.result.flag == 1001){
+			$("phoneRegPage").style.display = "block";
+			$("expensesRecord").style.display = "none";	
+			globalParams.areaPos = 0;
+		}else{
+			$("userInfoPage").style.display = "block";
+			$("expensesRecord").style.display = "none";	
+			globalParams.areaPos = 1;
+		}
+		if(globalParams.rOrderHistoryAjaxObj != null){
+			globalParams.rOrderHistoryAjaxObj.requestAbort();	
+		}
+	}
+}
+
+function getServiceName(_serviceId){
+	var size = SPEC_PAY_SERVICE_LIST.length;
+	var serviceName = "";
+	for(var i = 0; i < size; i++){
+		if(SPEC_PAY_SERVICE_LIST[i].serviceId == _serviceId){
+			serviceName = SPEC_PAY_SERVICE_LIST[i].serviceName;
+			break;
+		}	
+	}
+	return serviceName;
+}
+function getPayDate(_time){
+	var date = new Date(_time);
+	return date.getFullYear() + "年" + (date.getMonth() + 1) + "月" + date.getDate() + "日" + " " + date.getHours() + ":" + date.getMinutes();
+}
+
+//其他注册
+function otherRegClass(){
+	this.areaPos = 0;
+	this.btnX = 0;
+	this.btns = [["confirm_btn_0.png", "confirm_btn_1.png"], ["confirm_btn_0.png", "confirm_btn_1.png"]];
+	this.tipTimeout = -1;
+	//otherRegUserName0 otherRegUserName1 otherRegUserPass0 otherRegUserPass1 otherRegUserPass1 otherRegUserTwoPass1 otherRegBtn0 otherRegBtn1
+	this.loseFocus = function(_areaPos, _btnX){
+		if(_areaPos == 0){
+			$("otherRegUserName1").style.display = "none";
+			checkUserSend($("otherRegUserName0").innerText);
+		}else if(_areaPos == 1){
+			$("otherRegUserPass1").style.display = "none";
+		}else if(_areaPos == 2){
+			$("otherRegUserTwoPass1").style.display = "none";
+		}else if(_areaPos == 3){
+			$("otherRegBtn" + _btnX).style.backgroundImage = "url(images/user/" + this.btns[_btnX][0] + ")";
+		}
+	}
+	this.getFocus = function(){
+		if(this.areaPos == 0){
+			$("otherRegUserName1").style.display = "block";
+		}else if(this.areaPos == 1){
+			$("otherRegUserPass1").style.display = "block";
+		}else if(this.areaPos == 2){
+			$("otherRegUserTwoPass1").style.display = "block";
+		}else if(this.areaPos == 3){
+			$("otherRegBtn" + this.btnX).style.backgroundImage = "url(images/user/" + this.btns[this.btnX][1] + ")";
+		}
+	}
+	this.moveUD = function(_num){
+		this.areaPos += _num;
+		if(this.areaPos < 0){
+			this.areaPos = 0;
+			return;
+		}else if(this.areaPos > 3){
+			this.areaPos = 3;
+			return;
+		}
+		this.loseFocus(this.areaPos - _num, this.btnX);
+		this.getFocus();
+	}
+	this.moveLR = function(_num){
+		if(this.areaPos == 3){
+			this.loseFocus(this.areaPos, this.btnX);
+			this.btnX += _num;
+			if(this.btnX < 0){
+				this.btnX = 1;	
+			}else if(this.btnX > 1){
+				this.btnX = 0;	
+			}
+			this.getFocus();
+		}
+	}
+	this.doSelect = function(){
+		if(this.areaPos == 0 || this.areaPos == 1 || this.areaPos == 2){
+			showWidgetKeyboard();	
+		}else if(this.areaPos == 3){
+			if(this.btnX == 1){
+				this.goBack();
+			}else{
+				var userName = $("otherRegUserName0").innerText;
+				if(userName.length == 0){
+					globalParams.otherRegObj.showTip("用户名不能为空");
+					 return;
+				}
+				var password0 = $("otherRegUserPass0").innerText;
+				var password1 = $("otherRegUserTwoPass0").innerText;
+				if(password0.length == 0){
+					globalParams.otherRegObj.showTip("密码不能为空");
+					return;	
+				}else if(password1.length == 1){
+					globalParams.otherRegObj.showTip("确认密码不能为空");
+					return;	
+				}else{
+					if(password0 != password1){
+						globalParams.otherRegObj.showTip("两次密码输入不一至，请检测..");
+						return;	
+					}
+					otherRegSend(userName, password0);				
+				}
+			}
+		}
+	}
+	this.enterLetter = function(_str){
+		if(this.areaPos == 0){
+			var otherRegUserName0 = $("otherRegUserName0").innerText;
+			if(_str == "Del"){
+				if(otherRegUserName0.length == 0){
+					return;	
+				}	
+				$("otherRegUserName0").innerText = otherRegUserName0.substring(0, otherRegUserName0.length - 1);
+			}else if(_str == "Empty"){
+				 $("otherRegUserName0").innerText = "";
+			}else{
+				if(otherRegUserName0.length == 20){
+					globalParams.otherRegObj.showTip("用户名超出了长度.."); 
+					return;	
+				}
+				$("otherRegUserName0").innerText = otherRegUserName0 + _str;
+			}
+		}else if(this.areaPos == 1){
+			var otherRegUserPass0 = $("otherRegUserPass0").innerText;
+			if(_str == "Del"){
+				if(otherRegUserPass0.length == 0){
+					return;	
+				}	
+				$("otherRegUserPass0").innerText = otherRegUserPass0.substring(0, otherRegUserPass0.length - 1);
+			}else if(_str == "Empty"){
+				 $("otherRegUserPass0").innerText = "";
+			}else{
+				if(otherRegUserPass0.length == 20){
+					globalParams.otherRegObj.showTip("密码超出了长度.."); 
+					return;	
+				}
+				$("otherRegUserPass0").innerText = otherRegUserPass0 + _str;
+			}
+		}else if(this.areaPos == 2){
+			var otherRegUserTwoPass0 = $("otherRegUserTwoPass0").innerText;
+			if(_str == "Del"){
+				if(otherRegUserTwoPass0.length == 0){
+					return;	
+				}	
+				$("otherRegUserTwoPass0").innerText = otherRegUserTwoPass0.substring(0, otherRegUserTwoPass0.length - 1);
+			}else if(_str == "Empty"){
+				 $("otherRegUserTwoPass0").innerText = "";
+			}else{
+				if(otherRegUserTwoPass0.length == 20){
+					globalParams.otherRegObj.showTip("密码超出了长度.."); 
+					return;	
+				}
+				$("otherRegUserTwoPass0").innerText = otherRegUserTwoPass0 + _str;
+			}
+		}
+	}
+	this.goBack = function(){
+		$("phoneRegPage").style.display = "block";
+		$("otherUserReg").style.display = "none";	
+		globalParams.areaPos = 0;
+		$("otherRegTip").innerText = "";
+		$("otherRegUserTwoPass0").innerText = "";
+		$("otherRegUserPass0").innerText = "";
+		$("otherRegUserName0").innerText = "";
+		if(globalParams.checkUserNameAjaxObj != null){
+			globalParams.checkUserNameAjaxObj.requestAbort();
+		}
+		if(globalParams.otherRegAjaxObj != null){
+			globalParams.otherRegAjaxObj.requestAbort();	
+		}
+	}
+	this.showTip = function(_text){
+		$("otherRegTip").innerText = _text;
+		window.clearTimeout(this.tipTimeout);
+		var self = this;
+		this.tipTimeout = setTimeout(function(){
+			self.hideTip();				
+		},globalParams.TIME_OUT);
+	}
+	this.hideTip = function(){
+		$("otherRegTip").innerText = "";	
+	}
+}
+
+function otherRegSend(_userName, _passWord){
+	if(globalParams.otherRegAjaxObj != null){
+		globalParams.otherRegAjaxObj.requestAbort();	
+	}
+	globalParams.otherRegAjaxObj = new ajaxClass();
+	globalParams.otherRegAjaxObj.frame = window;
+	globalParams.otherRegAjaxObj.url = getAjaxUrl("otherReg", _userName, _passWord);
+	globalParams.otherRegAjaxObj.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");	
+		if(data.flag == 1){ //号码发生成功
+			globalParams.otherRegObj.showTip("注册成功..");
+			globalParams.areaPos = 1;
+			globalParams.userRegData = {"result":{"name": _userName,"password":  _passWord,"customerId":2,
+"balance":"0","acctId":3,"mobile":"","subscriberId":0, flag: 0}},
+			saveCustomerInfo();
+			$("otherUserReg").style.display = "none";
+			$("userInfoPage").style.display = "block";
+			globalParams.userInfoObj = new userInfoClass();
+			globalParams.userInfoObj.showData();
+			globalParams.userInfoObj.getFocus();
+		}else {
+			var tip;
+			if(data.flag == 1201){
+				tip = "用户名已被占用，请重新选择个独一无二的，我是独行侠";
+			}else{
+				tip = "服务器异常"	
+			}
+			tip += "，状态码为:" + data.flag;
+			globalParams.otherRegObj.showTip(tip);	
+		}
+	};
+	globalParams.otherRegAjaxObj.failureCallback = function(_xmlHttp, _params) {
+		globalParams.otherRegObj.showTip("注册失败，请稍后再试....");
+	};
+	globalParams.otherRegAjaxObj.requestData();	
+}
+
+function checkUserSend(_userName){
+	if(_userName == ""){
+		return;	
+	}
+	if(globalParams.checkUserNameAjaxObj != null){
+		globalParams.checkUserNameAjaxObj.requestAbort();	
+	}
+	globalParams.checkUserNameAjaxObj = new ajaxClass();
+	globalParams.checkUserNameAjaxObj.frame = window;
+	globalParams.checkUserNameAjaxObj.url = getAjaxUrl("checkNameCanUse", _userName);
+	globalParams.checkUserNameAjaxObj.successCallback = function(_xmlHttp, _params) {
+		var text =  _xmlHttp.responseText;
+		if(text == "true"){ //号码发生成功
+			globalParams.otherRegObj.showTip("用户名可用..");
+		}else{
+			globalParams.otherRegObj.showTip("用户名已被注册，请重新输入...");	
+		}
+	};
+	globalParams.checkUserNameAjaxObj.failureCallback = function(_xmlHttp, _params) {
+	};
+	globalParams.checkUserNameAjaxObj.requestData();	
+}
+
+function sendOrderHistory(){
+	$("userRecordTip").innerText = "正在加载数据....";
+	if(globalParams.rOrderHistoryAjaxObj != null){
+		globalParams.rOrderHistoryAjaxObj.requestAbort();	
+	}
+	globalParams.rOrderHistoryAjaxObj = new ajaxClass();
+	globalParams.rOrderHistoryAjaxObj.frame = window;
+	globalParams.rOrderHistoryAjaxObj.url = getAjaxUrl("memberPayHistoryInfo");
+	globalParams.rOrderHistoryAjaxObj.successCallback = function(_xmlHttp, _params){
+		eval("var data = (" + _xmlHttp.responseText + ").result");	
+		$("userRecordTip").innerText = "";
+		if(typeof(data) == "object"){
+			globalParams.consumeRecordObj.showData(data);
+		}else{
+			$("userRecordTip").innerText = "您未订购业务.状态码为:" + data;	
+		}
+	}
+	globalParams.rOrderHistoryAjaxObj.failureCallback = function(_xmlHttp, _params){
+		$("userRecordTip").innerText = "加载数据失败....";
+	}
+	globalParams.rOrderHistoryAjaxObj.requestData();
+}
+
+function titleStatus(){
+	if(globalParams.areaPos != 0){
+		$("titleTip").style.display = "none";
+		$("titleBtn").style.display = "none";
+	}else{
+		$("titleTip").style.display = "block";
+		$("titleBtn").style.display = "block";	
+	}
+}
+function setTitle(){//0: 用户手机注册  1 : 我的账户  2: 修改账户信息  3: 修改密码  4: 充值卡充值  5:消费记录  6:其他注册
+	if(globalParams.areaPos == 0){
+		$("title").innerText = "注册";
+	}else if(globalParams.areaPos == 1){
+		$("title").innerText = "我的账户";
+	}else if(globalParams.areaPos == 2){
+		$("title").innerText = "我的账户";
+	}else if(globalParams.areaPos == 3){
+		$("title").innerText = "我的账户";
+	}else if(globalParams.areaPos == 4){
+		$("title").innerText = "充值卡充值";	
+	}else if(globalParams.areaPos == 5){
+		$("title").innerText = "消费记录";
+	}else if(globalParams.areaPos == 6){
+		$("title").innerText = "其他注册";	
+	}	
+}
+window.onload = init;
+
+function saveCustomerInfo(){
+	tvsee.eventFrame.globalParams.globalCache.put("queryCustomer_CACHE", globalParams.userRegData);	
+}
+function getBalance(){
+	return globalParams.userRegData.result.balance / 100;
+}
+</script>
+<style type="text/css">
+.phoneRegInputNoSel{
+	position:absolute; 
+	font-size: 26px; 
+	height: 38px;  
+	top: 5px;
+	line-height: 38px;
+	text-align:center;
+}
+.phoneRegInputSel{
+	position:absolute; 
+	height: 48px;
+}
+.phoneRegBtn{
+	position:absolute; 
+	height: 68px; 
+	top: -4px; 
+	line-height: 68px;
+	text-align:center; 
+}
+.userInfoEditText{
+	position:absolute;
+	height: 50px; 
+	line-height: 50px; 
+	left: 115px;
+}
+.userInfoInputText{
+	position: absolute; 
+	height: 50px; 
+	line-height: 50px; 
+	left: 245px;
+	width: 400px;
+}
+.userInfoDiv{
+	width: 1280px;
+	height: 50px; 
+	position:absolute;  
+	font-size: 26px;
+}
+.userInfoBtn{
+	position:absolute;
+	width: 187px; 
+	height: 68px; 
+	top: 5px; 
+	background-image:url(images/user/user_info_btn_0.png); 
+	line-height: 68px; 
+}
+.updatePhoneInput{
+	position:absolute; 
+	height: 38px; 
+	line-height: 38px; 
+	top: 6px; 
+	left: 240px; 
+	width: 325px; 
+	text-align:center; 
+	background-image:url(images/user/phone_nosel.png);
+}
+.updatePhoneBtn{
+	position:absolute;
+	width: 157px;
+	height: 68px;  
+	line-height: 68px;
+	background-image:url(images/user/confirm_btn_0.png);	
+}
+.updatePassInputLose{
+	position:absolute; 
+	width: 224px; 
+	height: 38px; 
+	line-height: 38px; 
+	top: 6px; 
+	left: 270px; 
+	background-image:url(images/user/pass_nosel.png);
+}
+.updatePsssInputFocus{
+	position:absolute;
+	width: 234px; 
+	height: 48px; 
+	top: 1px; 
+	left: 265px; 
+	background-image:url(images/user/pass_sel.png);
+}
+</style>
+</head>
+
+<body>
+<div style="position: absolute; width: 1280px; height: 720px; top: 0px; left: 0px; background-image: url(images/user/bg.jpg);" id="defautBg"></div>
+
+<div id="titles" style="position:absolute; width: 1280px; height: 55px; top: 40px; left: 0px; color: #FFF;">
+	<div id="title" style="position:absolute; font-size: 30px; left: 68px; text-align:right;  top: 10px;">注册</div>
+    <div id="titleTip" style="position: absolute; font-size: 20px; left: 240px; width: 320px; top: 23px;">用户注册个人资料,奖励<span style="color:#3F6">5个胡桃盒</span></div>
+    <div id="titleBtn" style="position:absolute;left: 1049px; width: 157px; height: 58px; font-size: 30px; top: -2px; text-align:center; line-height:58px; background-image:url(images/user/other_reg_btn0.png);">其他注册</div>
+</div>
+
+<!--手机注册-->
+<div id="phoneRegPage" style="position:absolute; top: 95px; width: 1280px; height: 625px; left: 0px; color: #FFF;">
+	<div style="width: 1280px; height: 50px; position:absolute; top: 108px;">
+    	<div style="position:absolute; font-size: 26px; top: 10px; left: 115px;">手机号:</div>
+        <div style=" width: 325px; left: 245px; background-image:url(images/user/phone_nosel.png); color: #000;" class="phoneRegInputNoSel" id="userName_0">请输入您的手机号</div>
+        <div style="left: 240px;  width: 335px; background-image:url(images/user/phone_sel.png);" class="phoneRegInputSel" id="userName_1"></div>
+        <div style="position:absolute; font-size: 26px; top: -4px; left: 655px; height: 58px; width: 170px; line-height: 58px; text-align:center; background-image:url(images/user/send_reg_code_0.png);" id="phoneSendCode">发送验证码</div>
+        <div style="left: 855px; width: 158px; background-image:url(images/user/reg_code_nosel.png); color:#000;" class="phoneRegInputNoSel" id="regCode_0">输入验证码</div>
+        <div style="left: 850px; width: 168px; background-image:url(images/user/reg_code_sel.png); display: none;" class="phoneRegInputSel" id="regCode_1"></div>
+    </div>
+    <div id="phoneRegTip" style="position:absolute;  color: red; font-size: 26px; width: 1280px; text-align: center; top: 200px;"></div>
+    <div style="width: 1280px; height: 60px; position:absolute; top: 283px; color: #FFF; font-size: 28px; ">
+    	<div style="width: 157px; left: 250px; background-image:url(images/user/phone_reg_btn0.png);" id="btn0" class="phoneRegBtn">确认</div>
+        <div style="width: 187px; left: 538px; background-image:url(images/user/recharge_btn0.png);" id="btn1" class="phoneRegBtn">充值卡充值</div>
+        <div style="width: 187px; left: 797px; background-image:url(images/user/recharge_btn0.png);" id="btn2" class="phoneRegBtn">消费记录</div>
+    </div>
+</div>
+
+<!--注册后手机信息-->
+<div id="userInfoPage" style="position:absolute; top: 95px; width: 1280px; height: 625px; left: 0px; color: #FFF; display: none;">
+    <div style="top: 45px;" class="userInfoDiv">
+    	<div class="userInfoEditText">用户名:</div>
+        <div  id="userInfoUserName" class="userInfoInputText"></div>
+    </div>
+    <div style="top: 113px;" class="userInfoDiv">
+    	<div class="userInfoEditText">手机号:</div>
+        <div class="userInfoInputText" id="userInfoPhoneCode"></div>
+    </div>
+    
+    <div style="top: 181px;" class="userInfoDiv">
+    	<div class="userInfoEditText">账户余额:</div>
+        <div class="userInfoInputText" id="userInfoMoney"></div>
+    </div>
+    <div style=" width: 1280px; height: 70px; position:absolute; top: 279px; font-size: 28px; text-align:center;">
+    	<div style="left: 135px;" class="userInfoBtn" id="userInfoBtn0">信息修改</div>
+        <div style="left: 373px;" class="userInfoBtn" id="userInfoBtn1">修改密码</div>
+        <div style="left: 613px;" class="userInfoBtn" id="userInfoBtn2">充值卡充值</div>
+        <div style="left: 853px;" class="userInfoBtn" id="userInfoBtn3">消费记录</div>
+    </div>
+</div>
+
+<!--手机信息修改-->
+<div id="updatePhoneInfo" style="position:absolute; top: 95px; width: 1280px; height: 625px; left: 0px; color: #FFF; display: none;">
+	<div style="width: 1280px; height: 50px; position:absolute; top: 68px; font-size: 26px;">
+    	<div style="position:absolute; height: 50px; line-height: 50px; left: 115px;">用户名:</div>
+        <div class="updatePhoneInput" style="color:#000;" id="updatePhoneUserName"></div>
+    </div>
+    <div style=" width: 1280px; height: 50px; position:absolute; top: 153px; font-size: 26px;">
+    	<div style="position:absolute; height: 50px; line-height: 50px; left: 119px; ">手机号:</div>
+        <div class="updatePhoneInput" style="color:#000;" id="updatePhonePhoneNum0"></div>
+        <div style="position:absolute; height: 48px; left: 235px; top: 1px; width: 335px; background-image:url(images/user/phone_sel.png); text-align:center;" id="updatePhonePhoneNum1"></div>
+        <div style="position:absolute; height: 58px; top: -4px; line-height: 58px; left: 653px; width: 170px; text-align:center; background-image:url(images/user/send_reg_code_0.png);" id="updatePhoneSendMsg">发送验证码</div>
+        <div style="position:absolute; height: 38px; top: 6px; line-height: 38px; left: 853px;  width: 158px; text-align:center; background-image:url(images/user/reg_code_nosel.png); color: #000;" id="updatePhoneRegCode0"></div>
+        <div style="position:absolute; height: 48px;  line-height: 48px; left: 848px; width: 168px; text-align:center; background-image:url(images/user/reg_code_sel.png); display: none;" id="updatePhoneRegCode1"></div>
+    </div>
+    
+    <div style="position:absolute; width: 1280px; height: 48px; line-height: 48px; text-align: center; color: red; top: 220px; font-size: 26px;" id="updatePhoneTip"></div>
+    <div style="width: 1280px; height: 70px; position:absolute; top: 279px; font-size: 28px; text-align:center;">
+    	<div style="left: 245px;" class="updatePhoneBtn" id="updatePhoneBtn0">确认</div>
+        <div style="left: 496px;" class="updatePhoneBtn" id="updatePhoneBtn1">返回</div>
+    </div>
+</div>
+
+<!--用户密码修改-->
+<div id="updatePassInfo" style="position:absolute; width: 707px; height: 466px; left:286px; top: 127px; color: #FFF; font-size: 26px; background-image:url(images/user/passBg.png); display:none;">
+	<div style="position:absolute; width: 707px; height: 40px; line-height: 40px; text-align: center; top: 70px;">修改密码</div>
+    <div style="position:absolute; top: 115px; width: 707px; height: 50px;">
+    	<div style="position:absolute; width:100px; height: 50px; line-height: 50px; left: 135px;">旧密码:</div>
+        <div id="updateOldPass0" style="color:#000;" class="updatePassInputLose"></div>
+        <div id="updateOldPass1" class="updatePsssInputFocus"></div>
+    </div>
+    <div style="position:absolute; top: 175px; width: 707px; height: 50px;">
+    	<div style="position:absolute; width: 100px; height: 50px; line-height: 50px; left: 135px;">新密码:</div>
+        <div id="updateNewPass0" style="color:#000;"  class="updatePassInputLose"></div>
+        <div id="updateNewPass1" style="display:none;" class="updatePsssInputFocus"></div>
+    </div>
+     <div style="position:absolute; top: 235px; width: 707px; height: 50px;">
+    	<div style="position:absolute; width:118px; height: 50px; line-height: 50px; left: 135px;">确认密码:</div>
+        <div id="updateTwoNewPass0" style="color:#000;"  class="updatePassInputLose"></div>
+        <div id="updateTwoNewPass1" style="display:none;" class="updatePsssInputFocus"></div>
+    </div>
+    <div style="position:absolute; top: 290px; width: 707px; height: 65px; text-align:center;">
+    	<div style="left: 170px;" class="updatePhoneBtn"  id="updatePassBtn0">确认</div>
+        <div style="left: 394px;" class="updatePhoneBtn"  id="updatePassBtn1">返回</div>
+    </div>
+    
+    <div id="updatePassTip" style="position:absolute; top: 355px; width: 707px; height: 30px; line-height: 30px; font-size: 26px; color: red; text-align:center;"></div>
+</div>
+
+<!--充值卡充值-->
+<div id="cardRechargePage" style="position:absolute; top: 95px; width: 1280px; height: 625px; left: 0px; color: #FFF; display:none; ">
+	<div style="width: 1280px; height: 50px; position:absolute; top: 45px; font-size: 26px;">
+    	<div style="position:absolute; height: 50px; line-height: 50px; left: 115px;">用户名:</div>
+        <div style="position:absolute; height: 50px; line-height: 50px; left: 245px;width: 400px;" id="cardRechargeUserName"></div>
+    </div>
+    
+    <div style="width: 1280px; height: 50px; position:absolute; top: 113px; font-size: 26px;">
+    	<div style="position:absolute; height: 50px; line-height: 50px; left: 115px; ">账户余额:</div>
+        <div style="position:absolute; height: 50px; line-height: 50px; left: 245px; width: 400px;" id="cardRechargeMoney"></div>
+    </div>
+    
+     <div style="width: 1280px; height: 50px; position:absolute; top: 181px; font-size: 26px;">
+    	<div style="position:absolute; height: 50px; line-height: 50px; left: 115px; ">充值密码:</div>
+        <div style="position:absolute; height: 38px; line-height: 38px; left: 245px;  width: 410px; background-image:url(images/user/card_recharge_nosel.png); top: 6px; color:#000; font-size: 25px; text-align:center;" id="cardRechargePass0"></div>
+        <div style="position:absolute; height: 48px;  left: 240px; width: 420px; background-image:url(images/user/card_recharge_sel.png); top: 1px;" id="cardRechargePass1"></div>
+    </div>
+    
+     <div style="width: 1280px; height: 70px; position:absolute; top: 279px; font-size: 28px; text-align:center;">
+    	<div style="left: 245px;"  class="updatePhoneBtn" id="cardRechargeBtn0">确认</div>
+        <div style="left: 520px;" class="updatePhoneBtn" id="cardRechargeBtn1">返回</div>
+    </div>
+    
+    <div style="position: absolute; width: 1280px; height: 26px; line-height: 26px; text-align: center; color: red; font-size: 26px; top: 239px;" id="cardRechargeTip"></div>
+</div>
+
+<!--消费记录-->
+<div id="expensesRecord" style="position:absolute; top: 95px; width: 1280px; height: 625px; left: 0px; color: #FFF; display:none;">
+	<div style="width: 1280px; height: 50px; position:absolute; top: 45px; font-size: 26px;">
+    	<div style="position:absolute; height: 50px; line-height: 50px; left: 115px;">盒子编号:</div>
+        <div style="position:absolute; height: 50px; line-height: 50px; left: 245px;  width: 400px;" id="exRecStbId"></div>
+    </div>
+    
+     <div style="width: 1280px; height: 50px; position:absolute; top: 106px; font-size: 26px;">
+    	<div style="position:absolute; height: 50px; line-height: 50px; left: 115px; ">用户名:</div>
+        <div style="position:absolute; height: 50px; line-height: 50px; left: 245px; width: 300px;" id="exRecUserName"></div>
+        <div style="position:absolute; height: 50px; line-height: 50px; left: 590px; ">帐号余额:</div>
+        <div style="position:absolute; height: 50px; line-height: 50px; left: 730px; " id="exRecMoney"></div>
+    </div>
+    
+    <!--显示相关记录
+    <table id="userRecord" width="1028" style="position:absolute; left: 126px; top: 180px; text-align:center;" border="0" cellspacing="0" cellpadding="0">
+    	<tr height="73" style="background-image:url(images/user/tab_up.png);"  >
+        	<td width="290">消费类型</td>
+            <td width="290">数额</td>
+            <td width="448">日期</td>
+        </tr>
+    </table>
+    -->
+    <div id="userRecordDiv0" style="width:1028px; position:absolute; left: 126px; top: 180px; text-align:center; height: 73px; background-image:url(images/user/tab_up.png); font-size: 26px;">
+    	<div style="position: absolute; width: 294px; height: 73px; line-height: 73px; " id="recordRow0Cell0">消费类型</div>
+        <div style="position: absolute; width: 229px; height: 73px; line-height: 73px; left: 294px;" id="recordRow0Cell1">数额</div>
+        <div style="position: absolute; width: 505px; height: 73px; line-height: 73px; left: 523px;" id="recordRow0Cell2">日期</div>
+    </div>
+    <div id="userRecordDiv1" style="width:1028px; position:absolute; left: 126px; top: 253px; text-align:center; height: 69px; background-image:url(images/user/tab_center.png); font-size: 26px;">
+    	<div style="position: absolute; width: 294px; height: 69px; line-height: 69px; " id="recordRow1Cell0"></div>
+        <div style="position: absolute; width: 229px; height: 69px; line-height: 69px; left: 294px;" id="recordRow1Cell1"></div>
+        <div style="position: absolute; width: 505px; height: 69px; line-height: 69px; left: 523px;" id="recordRow1Cell2"></div>
+    </div>
+      <div id="userRecordDiv2" style="width:1028px; position:absolute; left: 126px; top: 322px; text-align:center; height: 72px; background-image:url(images/user/tab_down.png); font-size: 26px;">
+    	<div style="position: absolute; width: 294px; height: 72px; line-height: 72px; " id="recordRow2Cell0"></div>
+        <div style="position: absolute; width: 229px; height: 72px; line-height: 72px; left: 294px;" id="recordRow2Cell1"></div>
+        <div style="position: absolute; width: 505px; height: 72px; line-height: 72px; left: 523px;" id="recordRow2Cell2"></div>
+    </div>
+     <div id="userRecordDiv3" style="width:1028px; position:absolute; left: 126px; top: 390px; text-align:center; height: 69px; background-image:url(images/user/tab_center.png); font-size: 26px;">
+    	<div style="position: absolute; width: 294px; height: 69px; line-height: 69px; " id="recordRow3Cell0"></div>
+        <div style="position: absolute; width: 229px; height: 69px; line-height: 69px; left: 294px;" id="recordRow3Cell1"></div>
+        <div style="position: absolute; width: 505px; height: 69px; line-height: 69px; left: 523px;" id="recordRow3Cell2"></div>
+    </div>
+      <div id="userRecordDiv4" style="width:1028px; position:absolute; left: 126px; top: 459px; text-align:center; height: 72px; background-image:url(images/user/tab_down.png); font-size: 26px;">
+    	<div style="position: absolute; width: 294px; height: 72px; line-height: 72px; " id="recordRow4Cell0"></div>
+        <div style="position: absolute; width: 229px; height: 72px; line-height: 72px; left: 294px;" id="recordRow4Cell1"></div>
+        <div style="position: absolute; width: 505px; height: 72px; line-height: 72px; left: 523px;" id="recordRow4Cell2"></div>
+    </div>
+    
+    <div id="userRecordTip" style="position:absolute; width:1028px; left: 126px; top: 550px; text-align:center; height: 26px; font-size: 26px; color:red;"></div>
+</div>
+
+<!--其他注册-->
+<div id="otherUserReg" style="position:absolute; top: 95px; width: 1280px; height: 625px; left: 0px; color: #FFF; display: none;">
+	<div style=" width: 1280px; height: 50px; position:absolute; top: 45px; font-size: 26px;">
+    	<div style="position:absolute; height: 50px; line-height: 50px; left: 115px;">用户名:</div>
+        <div style="position:absolute; height:38px; line-height: 38px; left: 245px; width: 325px; top: 6px; background-image:url(images/user/phone_nosel.png); color:#000;" id="otherRegUserName0"></div>
+        <div style="position:absolute; height:48px; left: 240px; width: 335px; top: 1px; background-image:url(images/user/phone_sel.png);" id="otherRegUserName1"></div>
+    </div>
+    
+    <div style="width: 1280px; height: 50px; position:absolute; top: 125px; font-size: 26px;">
+    	<div style="position:absolute; height: 50px; line-height: 50px; left: 115px;">密码:</div>
+        <div style="position:absolute; height: 38px; line-height: 38px; top: 6px; left: 255px; width: 410px; background-image:url(images/user/card_recharge_nosel.png);color:#000;" id="otherRegUserPass0"></div>
+        <div style="position:absolute; height: 48px; top: 1px; left: 250px; width: 420px; background-image:url(images/user/card_recharge_sel.png); display:none;" id="otherRegUserPass1"></div>
+    </div>
+    
+    <div style="width: 1280px; height: 50px; position:absolute; top: 205px; font-size: 26px;">
+    	<div style="position:absolute; height: 50px; line-height: 50px; left: 115px;">确认密码:</div>
+        <div style="position:absolute; height: 38px; line-height: 38px; top: 6px; left: 255px;  width: 410px; background-image:url(images/user/card_recharge_nosel.png);color:#000;" id="otherRegUserTwoPass0"></div>
+          <div style="position:absolute; height: 48px; top: 1px; left: 250px;width: 420px; background-image:url(images/user/card_recharge_sel.png); display:none;" id="otherRegUserTwoPass1"></div>
+    </div>
+    
+     <div style="width: 1280px; height: 70px; position:absolute; top: 279px; font-size: 28px; text-align:center;">
+    	<div style="left: 245px;" class="updatePhoneBtn"  id="otherRegBtn0">确认</div>
+        <div style="left: 495px;" class="updatePhoneBtn" id="otherRegBtn1">返回</div>
+    </div>
+    
+    <div id="otherRegTip" style="position: absolute;width: 1280px; height: 70px; font-size: 28px; color: red; line-height: 70px; text-align:center; top: 350px;"></div>
+</div>
+</body>
+</html>

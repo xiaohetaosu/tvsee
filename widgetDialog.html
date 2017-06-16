@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>widget dialog</title>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}
+var globalParams = {
+	btnArr: null,
+	callbackFunc: null,
+	callbackParams: null,
+	noExit: null,
+	autoClose: null,
+	areaPos: 0
+}
+function initData(_content, _btnArr, _callbackFunc, _callbackParams, _noExit, _autoClose){
+	globalParams.btnArr = _btnArr;
+	globalParams.callbackFunc = typeof(_callbackFunc) == "function" ? _callbackFunc : null;
+	globalParams.callbackParams = typeof(_callbackParams) != "undefined" ? _callbackParams : null;
+	globalParams.noExit = typeof(_noExit) != "undefined" ? _noExit : false;
+	globalParams.autoClose = typeof(_autoClose) != "undefined" ? _autoClose : false;	
+	$("tipText").innerText = _content[0];
+	if(_btnArr[0].length == 1){
+		$("btns").style.visibility = "hidden";	
+		$("btn2_0").style.visibility = "visible";
+	}else{
+		$("btns").style.visibility = "visible";	
+		$("btn2_0").style.visibility = "hidden";
+		if(_btnArr[1] == 0){
+			showBtn0();
+			globalParams.areaPos = 0;
+		}else if(_btnArr[1] == 1){
+			showBtn1();
+			globalParams.areaPos = 1;
+		}
+	}
+	
+}
+
+function showBtn0(){
+	$("btn0_0").style.visibility = "visible";
+	$("btn0_1").style.visibility = "hidden";
+	$("btn1_1").style.visibility = "visible";
+	$("btn1_0").style.visibility = "hidden";
+}
+function showBtn1(){
+	$("btn0_1").style.visibility = "visible";
+	$("btn0_0").style.visibility = "hidden";
+	$("btn1_0").style.visibility = "visible";
+	$("btn1_1").style.visibility = "hidden";
+}
+
+function eventHandler(_event){
+	/*if(_event.code == "KEY_DOWN"){
+			
+	}else if(_event.code == "KEY_UP"){
+		
+	}else */
+	if(_event.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_event.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_event.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_event.code == "KEY_BACK"){
+		exit();
+	}
+	return _event.args.type;
+}
+
+function doSelect(){
+	exit();
+	if(globalParams.callbackFunc != null){
+		globalParams.callbackFunc(globalParams.areaPos, globalParams.callbackParams);
+	}
+}
+
+function moveLR(_num){
+	if(globalParams.btnArr.length == 1){
+		return;	
+	}
+	globalParams.areaPos += _num;
+	if(globalParams.areaPos < 0){
+		globalParams.areaPos = 1;	
+	}else if(globalParams.areaPos > 1){
+		globalParams.areaPos = 0;	
+	}
+	if(globalParams.areaPos == 0){
+		showBtn0();
+	}else if(globalParams.areaPos == 1){
+		showBtn1();	
+	}
+	
+}
+function exit(){
+	tvsee.pageWidgets.getByName("widgetDialog").minimize();	
+}
+
+</script>
+<style type="text/css">
+.btnCla{
+	position: absolute; 
+	width: 130px; 
+	height: 71px;	
+	top: 230px; 
+	line-height: 71px; 
+	text-align: center; 
+	vertical-align: middle;
+	font-size: 28px; 
+}
+</style>
+</head>
+
+<body style="background-color:transparent; width:1280px; height:720px; margin:0px; overflow: hidden;">
+<div  style="position:absolute; left:353px; top:187px; width:574px; height:346px; background-image:url(images/authOrDed/bg.png); color: #fff; ">
+	<div id="tipText" style="position: absolute; width: 480px; height: 80px; z-index: 91; left: 47px; top: 83px; vertical-align: middle; text-align: center;font-size:28px; "></div>
+	<div id="btns" style="visibility: hidden;">
+        <div id="btn0_0" style="background-image:url(images/authOrDed/button_ok_sel.png); left: 127px;" class="btnCla">确定</div>
+        <div id="btn0_1" style="background-image:url(images/authOrDed/button_ok.png); left: 127px;" class="btnCla">确定</div>
+        <div id="btn1_0" style="background-image:url(images/authOrDed/button_cancle_sel.png); left: 317px;" class="btnCla">取消</div>
+        <div id="btn1_1" style="background-image:url(images/authOrDed/button_cancle.png); left: 317px;" class="btnCla">取消</div>
+    </div>
+    <div id="btn2_0" style="background-image:url(images/authOrDed/button_ok_sel.png); left:222px;" class="btnCla"></div>
+</div>
+</body>
+</html>

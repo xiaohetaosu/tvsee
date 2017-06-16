@@ -1,0 +1,75 @@
+var listMenuData = {
+	catalog: null,
+	catalogs: null,
+	menus: [{
+		id: '',
+		title: '电影',
+		subTitle: '',
+		img: 'images/list_menu/movie.jpg',
+		actionType: "menu",
+		actionValue: 1
+	}, {
+		id: '',
+		title: '电视剧',
+		subTitle: '',
+		img: 'images/list_menu/tv.jpg',
+		actionType: "menu",
+		actionValue: 100014
+	}, {
+		id: '',
+		title: '综艺',
+		subTitle: '',
+		img: 'images/list_menu/entertainment.jpg',
+		actionType: "menu",
+		actionValue: 6
+	}, {
+		id: '',
+		title: '动漫',
+		subTitle: '',
+		img: 'images/list_menu/dongman.jpg',
+		actionType: "menu",
+		actionValue: 4
+	}, {
+		id: '',
+		title: '天天美剧',
+		subTitle: '',
+		img: 'images/list_menu/tiantian.jpg',
+		actionType: "menu",
+		actionValue: 100033
+	},{
+		id: '',
+		title: '纪录片',
+		subTitle: '',
+		img: 'images/list_menu/documentary.jpg',
+		actionType: "menu",
+		actionValue: 3
+	}, {
+		id: '',
+		title: '少儿',
+		subTitle: '',
+		img: 'images/list_menu/children.jpg',
+		actionType: "menu",
+		actionValue: 15
+	}, {
+		id: '',
+		title: '银河VIP',
+		subTitle: '',
+		img: 'images/list_menu/gitvVip.jpg',
+		actionType: "menu",
+		actionValue: 100005
+	}, /*{id:'',title:'欧洲杯',subTitle:'',img:'images/list_menu/ouzhoubei.jpg',actionType:"menu",actionValue:100002},*/ {
+		id: '',
+		title: '精选纪录',
+		subTitle: '',
+		img: 'images/list_menu/jyjc.jpg',
+		actionType: "menu",
+		actionValue: 100004
+	},{
+		id: '',
+		title: '天天童伴',
+		subTitle: '',
+		img: 'images/list_menu/tttb.jpg',
+		actionType: "menu",
+		actionValue: 100035
+	}/*,{id:'',title:'银河VIP',subTitle:'',img:'images/list_menu/jyjc.jpg',actionType:"menu",actionValue:100004},{id:'',title:'电视剧',subTitle:'',img:'images/list_menu/jyjc.jpg',actionType:"menu",actionValue:100004} 100001*/ ]
+}; /**/

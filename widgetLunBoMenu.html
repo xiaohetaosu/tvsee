@@ -1,0 +1,590 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>无标题文档</title>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="common/showList2d.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);	
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		exit();
+	}
+	return _eventObj.args.type;
+}
+var globalParams = {
+	menuShowListObj: null,
+	channelShowListObj: null,
+	lunBoData: null,
+	cid: null,
+	menuDataPos: 0,
+	channelDataPos: 0,
+	areaPos: 0,
+	fontColor: "#00F746",
+	marqueeObj: null,
+	winObj: null
+}
+
+function initData(_cid, _winObj){
+	globalParams.winObj = _winObj;
+	initShowListPos();
+	if(typeof(tvsee) == "undefined"){
+		globalParams.lunBoData = lunboChannelData;
+	}else{
+		globalParams.lunBoData = tvsee.eventFrame.globalParams.globalCache.get("luoBoChannelList_CACHE");
+	}
+	if(globalParams.lunBoData == false){
+		return;	
+	}
+	globalParams.cid = _cid;
+	globalParams.menuDataPos = getMenuDataPos();
+	globalParams.channelDataPos = getChannelDataPos(); 
+	createShowList();
+	initFocus();
+}
+/*window.onload = function(){
+	initData(9022);	
+	
+}*/
+function getMenuDataPos(){
+	var lunBoDataLen = globalParams.lunBoData.length;
+	var dataPos = 0;
+	for(var i = 0; i < lunBoDataLen; i++){
+		if(globalParams.lunBoData[i].cid == globalParams.cid){
+			dataPos = i;
+			break;
+		}	
+	}
+	return dataPos;
+}
+function getChannelDataPos(){
+	var linearProgramList = globalParams.lunBoData[globalParams.menuDataPos].linearProgramList;
+	var nowTime = TvseeDate.getTime();
+	var proSize = linearProgramList.length;
+	var dataPos = -1;
+	for(var i = 0; i < proSize; i++){
+		if(new Date(linearProgramList[i].beginTime).getTime() <  nowTime && new Date(linearProgramList[i].endTime).getTime() > nowTime){
+			dataPos = i;
+			break;
+		}
+	}
+	return dataPos;
+}
+
+function initShowListPos(){
+	for(var i = 0; i < 9; i++){
+		$("channelDiv" + i).style.webkitTransitionDuration = 0;
+		$("channelMenu" + i).innerHTML = "";
+		$("channelMenu" + i).style.color = "#FFFFFF";
+		$("channelDiv" + i).style.top = (i * 70) + "px";	
+		$("channelMenuArrow" + i).style.visibility = "hidden";
+		
+		$("channelListDiv" + i).style.webkitTransitionDuration = 0;
+		$("channelName" + i).innerHTML = "";
+		$("channelName" + i).style.color = "#FFFFFF";
+		$("channelListDiv" + i).style.top = (i * 85) + "px";	
+		$("channelImg" + i).style.backgroundImage = "url(images/global_tm.gif)";
+	}
+}
+
+function clearChannelList(){
+	for(var i = 0; i < 9; i++){
+		$("channelListDiv" + i).style.webkitTransitionDuration = 0;
+		$("channelName" + i).innerHTML = "";
+		$("channelName" + i).style.color = "#FFFFFF";
+		$("channelListDiv" + i).style.top = (i * 85) + "px";	
+		$("channelImg" + i).style.backgroundImage = "url(images/global_tm.gif)";
+	}
+}
+
+function createShowList(){
+	globalParams.menuShowListObj = new showList2D({
+		dataLength: globalParams.lunBoData.length,
+		listSize: 8,
+		focusDiv: "channelMenuFocus",
+		listHigh: 70,
+		startPlace: 100,
+		dataPos: globalParams.menuDataPos,
+		showFlag: 1,
+		duration: "0ms",
+		frame: window,
+		foausPos: 0,
+		arrayList: ["channelDiv0", "channelDiv1", "channelDiv2", "channelDiv3", "channelDiv4", "channelDiv5", "channelDiv6", "channelDiv7", "channelDiv8"],
+		posInfo: {
+			firstPos: {
+				top: "0px",
+				left: "0px"
+			},
+			lastPos: {
+				top: "490px",
+				left: "0px"
+			},
+			firstStatus: {
+				top: "-70px",
+				left: "0px"
+			},
+			endStatus: {
+				top: "560px",
+				left: "0px"
+			}
+		},
+		haveData: function(_listInfo) {
+			var data = globalParams.lunBoData[_listInfo.dataPos];
+			$("channelMenu" + _listInfo.idPos).innerHTML = "&nbsp;" + subStr(data.cname, 8, ".");
+		},
+		noData: function(_listInfo) {
+			$("channelMenu" + _listInfo.idPos).innerHTML  = "";
+		}
+	});
+	globalParams.menuShowListObj.startShow();
+	showChannelList2d(globalParams.channelDataPos);
+}
+
+function showChannelList2d(_dataPos){
+	clearChannelList();
+	var channelSize = globalParams.lunBoData[globalParams.menuShowListObj.dataPos].linearProgramList.length;
+	for(var i = 0; i < channelSize; i++){
+		globalParams.lunBoData[globalParams.menuShowListObj.dataPos].linearProgramList[i].status = setLunBoMovieStatus(globalParams.lunBoData[globalParams.menuShowListObj.dataPos].linearProgramList[i]);
+	}
+	globalParams.channelShowListObj = new showList2D({
+		dataLength: globalParams.lunBoData[globalParams.menuShowListObj.dataPos].linearProgramList.length,
+		listSize: 8,
+		focusDiv: "channelListFocus",
+		listHigh: 85,
+		startPlace: 0,
+		dataPos: _dataPos == -1 ? 0 : _dataPos,
+		showFlag: 1,
+		duration: "0ms",
+		frame: window,
+		foausPos: 0,
+		arrayList: ["channelListDiv0", "channelListDiv1", "channelListDiv2", "channelListDiv3", "channelListDiv4", "channelListDiv5", "channelListDiv6", "channelListDiv7", "channelListDiv8"],
+		posInfo: {
+			firstPos: {
+				top: "0px",
+				left: "0px"
+			},
+			lastPos: {
+				top: "595px",
+				left: "0px"
+			},
+			firstStatus: {
+				top: "-85px",
+				left: "0px"
+			},
+			endStatus: {
+				top: "680px",
+				left: "0px"
+			}
+		},
+		haveData: function(_listInfo) {
+			var data = globalParams.lunBoData[globalParams.menuShowListObj.dataPos].linearProgramList[_listInfo.dataPos];
+			//channelImg0 channelName0
+			$("channelName" + _listInfo.idPos).style.color = "#FFFFFF";
+			var date = new Date(data.beginTime);
+			var hours = date.getHours();
+			if(hours < 10){
+				hours = "0" + hours;	
+			}
+			var minutes = date.getMinutes()
+			if(minutes < 10){
+				minutes = "0" + minutes;	
+			}
+			var movieName = hours + ":" + minutes + "&nbsp;" + subStr(data.moviename, 16, ".");
+			var backImg = "url(images/global_tm.gif)";
+			if(data.status == 0){ //回看
+				backImg = "watch_tv_0.png";
+			}else if(data.status == 1){ //直播
+				backImg = "cur_live_1.png";
+				movieName = "正在播放:" + subStr(data.moviename, 14, ".");
+				$("channelName" + _listInfo.idPos).style.color = globalParams.fontColor;
+			}else if(data.status == 2){ //未上线
+				backImg = "no_look.png";
+			}
+			$("channelName" + _listInfo.idPos).innerHTML = movieName;
+			/*if(globalParams.menuDataPos == globalParams.menuShowListObj.dataPos){
+				if(globalParams.channelDataPos == _listInfo.dataPos){
+					if(data.status == 0){
+						backImg = "watch_tv_1.png";
+					}else if(data.status == 1){
+						backImg = "cur_live_1.png";
+					}else if(data.status == 2){
+						backImg = "no_look.png";
+					}
+					//$("channelName" + _listInfo.idPos).style.color = globalParams.fontColor;
+				}
+			}*/
+			$("channelImg" + _listInfo.idPos).style.backgroundImage = "url(images/lunbo/" + backImg + ")";
+		},
+		noData: function(_listInfo) {
+			$("channelName" + _listInfo.idPos).innerHTML  = "";
+			$("channelImg" + _listInfo.idPos).style.backgroundImage = "url(images/global_tm.gif)";
+		}
+	});
+	globalParams.channelShowListObj.startShow();
+}
+
+function setLunBoMovieStatus(movie){
+	var nowTimes = TvseeDate.getTime();
+	var startTimes = new Date(movie.beginTime).getTime();
+	var endTimes = new Date(movie.endTime).getTime();
+	if(nowTimes >= startTimes && nowTimes < endTimes){
+		return 1;//直播
+	}else if(startTimes > nowTimes){
+		return 2;//未上线
+	}else{
+		return 0;//回看
+	}
+}
+
+function doSelect(){
+	if(globalParams.areaPos == 0){
+		
+	}else if(globalParams.areaPos == 1){
+		var data = globalParams.lunBoData[globalParams.menuShowListObj.dataPos].linearProgramList[globalParams.channelShowListObj.dataPos];
+		var status= setLunBoMovieStatus(data);
+		var lunBoUrl =  data.guid;
+		globalParams.menuDataPos = globalParams.menuShowListObj.dataPos;
+		globalParams.winObj.cid = globalParams.lunBoData[globalParams.menuShowListObj.dataPos].cid;
+		if(status == 0 || status == 2){//回看
+			globalParams.winObj.type = 4;
+			//globalParams.channelDataPos = globalParams.channelShowListObj.dataPos;
+			//showChannelList2d(globalParams.channelDataPos);
+			globalParams.winObj.globalParams.isDisLoading = false;
+			globalParams.winObj.$("ending").style.display = "none";
+			globalParams.winObj.mediaPlay(lunBoUrl, 0, 0, true);
+			globalParams.winObj.showPilotTipBar();
+			//globalParams.winObj.globalParams.playStatus = "play";
+		}else if(status == 1){//直播
+			globalParams.winObj.type = 3;
+			var seekTime = TvseeDate.getTime() - new Date(data.beginTime).getTime();
+			//showChannelList2d(globalParams.channelDataPos);
+			if(seekTime < 0){
+				seekTime = 0;	
+			}
+			globalParams.winObj.winPlay(REDIRECT_LUNBO_URL + lunBoUrl, true ,seekTime);
+		}
+	}	
+}
+
+function mediaPlayerListeren(_state, _param){
+	if(globalParams.winObj.type == 4 && _state == 1){
+		exit();	
+	}else if((globalParams.winObj.type == 3 || globalParams.winObj.type == 4) && (_state == 400 || _state == 401 || _state == 408)){
+		exit();
+	}
+	globalParams.winObj.mediaPlayerListeren(_state, _param);
+}
+
+function moveUD(_num){
+	if(globalParams.areaPos == 0){
+		loseChannelMenuFocus();
+		globalParams.menuShowListObj.changeList(_num);
+		showChannelMenuFocus();
+		globalParams.menuDataPos = globalParams.menuShowListObj.dataPos;
+		globalParams.channelDataPos = getChannelDataPos(); 
+		showChannelList2d(globalParams.channelDataPos);
+	}else if(globalParams.areaPos == 1){
+		globalParams.channelShowListObj.changeList(_num);
+		showChannelListFocusName();
+	}
+}
+
+function moveLR(_num){
+	if(globalParams.areaPos == 0 && _num > 0 && globalParams.lunBoData[globalParams.menuShowListObj.dataPos].linearProgramList.length > 0){
+		loseFocus();
+		globalParams.areaPos = 1;
+		getFocus();
+	}else if(globalParams.areaPos == 1 && _num < 0){
+		loseFocus();
+		globalParams.areaPos = 0;
+		getFocus();
+	}
+}
+
+function initFocus(){
+	if(globalParams.channelDataPos !=- 1){
+		//channelMenu0 channelMenuArrow0
+		globalParams.areaPos = 1;
+		$("channelListFocus").style.visibility = "visible"; 	
+		$("channelMenuFocus").style.visibility = "hidden";
+		var idPos = globalParams.menuShowListObj.getFocusPos().idPos;
+		$("channelMenu" + idPos).style.color = globalParams.fontColor;
+		$("channelMenuArrow" + idPos).style.visibility = "visible";
+	}else{
+		globalParams.areaPos = 0;
+		$("channelListFocus").style.visibility = "hidden"; 	
+		$("channelMenuFocus").style.visibility = "visible";
+	}	
+	getFocus();
+}
+function getFocus(){
+	if(globalParams.areaPos == 0){
+		$("channelMenuFocus").style.visibility = "visible";
+		showChannelMenuFocus();
+		var idPos = globalParams.menuShowListObj.getFocusPos().idPos;
+		$("channelMenuArrow" + idPos).style.visibility = "hidden";
+		$("channelMenu" +  idPos).style.color = "#FFFFFF";
+	}else if(globalParams.areaPos == 1){
+		$("channelListFocus").style.visibility = "visible";
+		showChannelListFocusName();
+	}
+}
+
+function loseChannelMenuFocus(){
+	var idPos = globalParams.menuShowListObj.getFocusPos().idPos;
+	if(globalParams.menuDataPos != globalParams.menuShowListObj.dataPos){
+		$("channelMenu" +  idPos).style.color = "#FFFFFF";
+	}
+}
+
+function showChannelMenuFocus(){
+	var cname = globalParams.lunBoData[globalParams.menuShowListObj.dataPos].cname;
+	if(globalParams.marqueeObj != null){
+		globalParams.marqueeObj.removeScroll();
+	}
+	if(getCharByte(cname) > 8){
+		globalParams.marqueeObj = new marqueeClass("channelMenuFocus", cname);
+		globalParams.marqueeObj.scroll();
+	}else{
+		$("channelMenuFocus").innerText = cname;	
+	}	
+	var idPos = globalParams.menuShowListObj.getFocusPos().idPos;
+	//if(globalParams.menuDataPos == globalParams.menuShowListObj.dataPos){
+		//$("channelMenu" +  idPos).style.color = globalParams.fontColor;
+	//}
+}
+
+function showChannelListFocusName(){
+	var linearProgramListObj = globalParams.lunBoData[globalParams.menuShowListObj.dataPos].linearProgramList[globalParams.channelShowListObj.dataPos];
+	var backImg = "";
+	if(linearProgramListObj.status == 0){
+		backImg = "watch_tv_0.png";
+	}else if(linearProgramListObj.status == 1){
+		backImg = "cur_live_0.png";
+	}else if(linearProgramListObj.status == 2){
+		backImg = "no_look.png";
+	}
+	/*if(globalParams.menuDataPos == globalParams.menuShowListObj.dataPos){
+		if(globalParams.channelDataPos == globalParams.channelShowListObj.dataPos){
+			if(linearProgramListObj.status == 0){
+				backImg = "watch_tv_1.png";
+			}else if(linearProgramListObj.status == 1){
+				backImg = "cur_live_1.png";
+			}else if(linearProgramListObj.status == 2){
+				backImg = "no_look.png";
+			}
+		}	
+	}*/
+	$("channelListFocusImg").style.backgroundImage = "url(images/lunbo/" + backImg + ")";
+	var date = new Date(linearProgramListObj.beginTime);
+	var hours = date.getHours();
+	if(hours < 10){
+		hours = "0" + hours;	
+	}
+	var minutes = date.getMinutes()
+	if(minutes < 10){
+		minutes = "0" + minutes;	
+	}
+	var moviename = hours + ":" + minutes + "  " + linearProgramListObj.moviename;
+	if(globalParams.marqueeObj != null){
+		globalParams.marqueeObj.removeScroll();
+	}
+	var size = 16;
+	if(linearProgramListObj.status == 1){
+		size = 14;
+		moviename = "正在播放:" + linearProgramListObj.moviename;	
+	}
+	if(getCharByte(linearProgramListObj.moviename) > size){
+		globalParams.marqueeObj = new marqueeClass("channelListFocusName", moviename);
+		globalParams.marqueeObj.scroll();
+	}else{
+		$("channelListFocusName").innerHTML = moviename;	
+	}
+}
+function loseFocus(){
+	if(globalParams.areaPos == 0){
+		var cname = globalParams.lunBoData[globalParams.menuDataPos].cname;
+		if(globalParams.marqueeObj != null){
+			globalParams.marqueeObj.removeScroll();
+		}	
+		$("channelMenuFocus").style.visibility = "hidden";
+		var idPos = globalParams.menuShowListObj.getFocusPos().idPos;
+		$("channelMenuArrow" + idPos).style.visibility = "visible";
+		$("channelMenu" +  idPos).style.color = globalParams.fontColor;
+	}else if(globalParams.areaPos == 1){
+		if(globalParams.marqueeObj != null){
+			globalParams.marqueeObj.removeScroll();
+		}
+		$("channelListFocus").style.visibility = "hidden";
+	}	
+}
+
+function exit(){
+	tvsee.pageWidgets.getByName("widgetLunBoMenu").hide();
+}
+</script>
+<style type="text/css">
+.channelMenuCla{
+	 position:absolute;
+	 width:176px;
+	 height:55px;
+	 line-height:55px;
+	 font-size:28px; 
+	 text-align:left;
+}
+.channelMenuNameCla{
+	width:145px;
+	height: 55px;
+	line-height:55px;
+	text-align: right;
+	font-size:28px;
+}
+.channelMenuArrowCla{
+	position:absolute;
+	left:152px;
+	width:14px;
+	top:15px;
+	height:24px;
+	background-image:url(images/lunbo/left_arrow.png);
+}
+.channelListDivCla{
+	position:absolute;
+	width: 388px;
+	height:50px;
+	
+}
+.channelImgCla{
+	position:absolute;
+	background-image:url(images/lunbo/watch_tv_0.png);
+	width: 49px;
+	height: 48px;
+	top:1px;
+}
+.channelNameCla{
+	position:absolute;
+	left: 50px;
+	height: 50px;
+	font-size: 28px;
+	width: 333px;
+	line-height: 50px;
+	color: #FFF;
+}
+
+</style>
+</head>
+
+<body>
+<!--<div style="position:absolute; top: 0px; left: 0px; width: 1280px; height: 720px; background-image:url(images/lunbo/1.jpg);"></div>-->
+<div style="position:absolute; top: 0px; left: 10px; width: 566px; height: 720px; background-image:url(images/lunbo/bg.png);"></div>
+<div style="position:absolute; width: 173px; height: 720px; top: 0px; left: 10px;">
+	<div style="width: 108px; height: 38px; background-image:url(images/lunbo/title.png); text-align:center; top: 35px; position:absolute; left: 20px;"></div>
+    <div style="width:134px; height:6px; background-image:url(images/lunbo/title_line.png); top: 95px; position: absolute; left:19px;"></div>
+    <div style="width: 100%; height: 560px; overflow: hidden; position: absolute; top: 105px;">
+    	<div id="channelDiv0" style="top: 0px;" class="channelMenuCla">
+        	<div id="channelMenu0" class="channelMenuNameCla"></div>
+            <div id="channelMenuArrow0" class="channelMenuArrowCla"></div>
+        </div>
+        <div id="channelDiv1" style="top :70px;" class="channelMenuCla">
+        	<div id="channelMenu1" class="channelMenuNameCla"></div>
+            <div id="channelMenuArrow1" class="channelMenuArrowCla"></div>
+        </div>
+        <div id="channelDiv2" style="top :140px;" class="channelMenuCla">
+        	<div id="channelMenu2" class="channelMenuNameCla"></div>
+            <div id="channelMenuArrow2" class="channelMenuArrowCla"></div>
+        </div>
+        <div id="channelDiv3" style="top :210px;" class="channelMenuCla">
+        	<div id="channelMenu3" class="channelMenuNameCla"></div>
+            <div id="channelMenuArrow3" class="channelMenuArrowCla"></div>
+        </div>
+        <div id="channelDiv4" style="top :280px;" class="channelMenuCla">
+        	<div id="channelMenu4" class="channelMenuNameCla"></div>
+            <div id="channelMenuArrow4" class="channelMenuArrowCla"></div>
+        </div>
+        <div id="channelDiv5" style="top :350px;" class="channelMenuCla">
+        	<div id="channelMenu5" class="channelMenuNameCla"></div>
+            <div id="channelMenuArrow5" class="channelMenuArrowCla"></div>
+        </div>
+        <div id="channelDiv6" style="top :420px;" class="channelMenuCla">
+        	<div id="channelMenu6" class="channelMenuNameCla"></div>
+            <div id="channelMenuArrow6" class="channelMenuArrowCla"></div>
+        </div>
+        <div id="channelDiv7" style="top :490px;" class="channelMenuCla">
+        	<div id="channelMenu7" class="channelMenuNameCla"></div>
+            <div id="channelMenuArrow7" class="channelMenuArrowCla"></div>
+        </div>
+        <div id="channelDiv8" style="top :560px;" class="channelMenuCla">
+        	<div id="channelMenu8" class="channelMenuNameCla"></div>
+            <div id="channelMenuArrow8" class="channelMenuArrowCla"></div>
+        </div>
+   </div>
+</div>
+
+<div style="position:absolute; left: 184px; background-image:url(images/lunbo/line.png); width:2px; height:720px; "></div>
+<div style="position:absolute; width: 388px; height: 720px; top: 0px; ; left: 186px;  ">
+	<div style="width: 388px; height: 660px; overflow: hidden; position: absolute; top: 10px; ">
+		<div id="channelListDiv0" style="top: 0px;" class="channelListDivCla">
+        	<div id="channelImg0" class="channelImgCla"></div>
+            <div id="channelName0" class="channelNameCla"></div>
+        </div>
+        <div id="channelListDiv1" style="top: 85px;" class="channelListDivCla">
+        	<div id="channelImg1" class="channelImgCla"></div>
+            <div id="channelName1" class="channelNameCla"></div>
+        </div>
+        <div id="channelListDiv2" style="top: 170px;" class="channelListDivCla">
+        	<div id="channelImg2" class="channelImgCla"></div>
+            <div id="channelName2" class="channelNameCla"></div>
+        </div>
+         <div id="channelListDiv3" style="top: 255px;" class="channelListDivCla">
+        	<div id="channelImg3" class="channelImgCla"></div>
+            <div id="channelName3" class="channelNameCla"></div>
+        </div>
+        <div id="channelListDiv4" style="top: 340px;" class="channelListDivCla">
+        	<div id="channelImg4" class="channelImgCla"></div>
+            <div id="channelName4" class="channelNameCla"></div>
+        </div>
+         <div id="channelListDiv5" style="top: 425px;" class="channelListDivCla">
+        	<div id="channelImg5" class="channelImgCla"></div>
+            <div id="channelName5" class="channelNameCla"></div>
+        </div>
+         <div id="channelListDiv6" style="top: 510px;" class="channelListDivCla">
+        	<div id="channelImg6" class="channelImgCla"></div>
+            <div id="channelName6" class="channelNameCla"></div>
+        </div>
+        
+         <div id="channelListDiv7" style="top: 595px;" class="channelListDivCla">
+        	<div id="channelImg7" class="channelImgCla"></div>
+            <div id="channelName7" class="channelNameCla"></div>
+        </div>
+        
+        <div id="channelListDiv8" style="top: 680px;" class="channelListDivCla">
+        	<div id="channelImg8" class="channelImgCla"></div>
+            <div id="channelName8" class="channelNameCla"></div>
+        </div>
+    </div>
+</div>
+
+<div style="position:absolute; width: 133px; height:80px; background-image:url(images/lunbo/channel_menu_focus.png); left: 10px; top: 100px; visibility:hidden; line-height:80px; font-size: 28px; text-align:right; padding-right: 43px;" id="channelMenuFocus">
+	
+</div>
+<div style="position:absolute; width: 390px; height: 80px; background-image:url(images/lunbo/channel_menu_focus.png); left: 186px; top: 0px; visibility:hidden;" id="channelListFocus">
+	<div style="position:absolute; top:16px; left:2px; background-image:url(images/global_tm.gif); width: 49px; height:48px; " id="channelListFocusImg"></div>
+    <div style="position:absolute; top: 15px; left: 50px; font-size: 28px; line-height: 50px; height: 50px; width: 333px;" id="channelListFocusName"></div>
+</div>
+</body>
+</html>

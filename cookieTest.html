@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>无标题文档</title>
+<script type="text/javascript">
+/*function setCookie(name, value) {  
+    var exp = new Date();  
+    exp.setTime(exp.getTime() + 20 * 1000);//过期时间 2分钟  
+    document.cookie = name + "=" + escape(value) + ";expires=" + exp.toGMTString();  
+}  
+
+function getCookie(name) {  
+    var arg = name + "=";  
+    var alen = arg.length;  
+    var clen = document.cookie.length;  
+    var i = 0;  
+    while (i < clen) {  
+        var j = i + alen;  
+        if (document.cookie.substring(i, j) == arg) return getCookieVal(j);  
+        i = document.cookie.indexOf(" ", i) + 1;  
+        if (i == 0) break;  
+    }  
+    return null;  
+} */
+
+function setCookie(name,value){//两个参数，一个是cookie的名子，一个是值
+    var exp  = new Date();    //new Date("December 31, 9998");
+    exp.setTime(exp.getTime() + 10*1000);
+    document.cookie = name + "="+ escape (value) + ";expires=" + exp.toGMTString();
+}
+function getCookie(name)//取cookies函数        
+{
+    var arr = document.cookie.match(new RegExp("(^| )"+name+"=([^;]*)(;|$)"));
+     if(arr != null) return unescape(arr[2]); return null;
+
+}
+function delCookie(name)//删除cookie
+{
+    var exp = new Date();
+    exp.setTime(exp.getTime() - 1);
+    var cval=getCookie(name);
+    if(cval!=null) document.cookie= name + "="+cval+";expires="+exp.toGMTString();
+}
+
+window.onload = function(){
+	setCookie("tvsee2", "希恩");
+	alert(getCookie("tvsee2"));
+	setTimeout(function(){
+		alert(getCookie("tvsee2"));					
+	},20 * 1000)
+}
+</script>
+</head>
+
+<body>
+</body>
+</html>

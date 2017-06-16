@@ -1,0 +1,170 @@
+@charset "utf-8";
+
+/*#pageBg{
+	position:absolute;
+	left:0px;
+	top:0px;
+	width:1280px;
+	height:720px;
+	background-image:url(images/watchtv/channelListBg.png);
+}*/
+
+#menuList{
+	position:absolute;
+	left:0px;
+	top:104px;
+}
+.watchTvBgCla{
+	position:absolute;
+	left:0px;
+	top:0px;
+	width:1280px;
+	height:720px;
+}
+
+
+.wtmenu{
+	position:absolute;
+	left:0px;
+	width:208px;
+	height:59px;
+	text-align:center;
+}
+.defCla{
+	display:none;
+}
+.mnameCla{
+	position:absolute;
+	left:5px;
+	width:208px;
+	height:59px;
+	line-height:59px;
+	z-index:9999;
+}
+#chFocusBg{
+	position:absolute;
+	left:0px;
+	top:7px;
+	width:210px;
+	height:247px;
+	-webkit-transition-duration: 0ms;
+	display:none;
+	background-image:url(images/watchtv/listFocusBg.png);
+}
+#channelList{
+	position:absolute;
+	left:200px;
+	top:27px;
+	width:1000px;
+	height:700px;
+	display:block;
+	overflow: hidden;
+}
+.chRowsCla{
+	position:absolute;
+	left:10px;
+	width:970px;
+	height:188px;
+}
+.chRowsCla0{
+	top:-288px;
+}
+.chRowsCla1{
+	top:10px;
+}
+.chRowsCla2{
+	top:198px;
+}
+.chRowsCla3{
+	top:386px;
+}
+.chRowsCla4{
+	top:574px;
+}
+.chRowsCla5{
+	top:762px;
+}
+.chCla{
+	position:absolute;
+	left:0px;
+	top:0px;
+	width:148px;
+	height:148px;
+	border:1px solid #FFFFFF;
+	display:none;
+	background-image:url(images/watchtv/channel_logo_bg.png);
+}
+.chImgCla{
+	position:absolute;
+	left:0px;
+	top:0px;
+	width:148px;
+	height:148px;
+	
+}
+
+#liveMovieId{
+	position:absolute;
+	left:309px;
+	top:2px;
+	width:421px;
+	height:40px;
+	font-size:22px;
+	color:#F7BA02;
+}
+
+#liveIcon{
+	position:absolute;
+	left:3px;
+	top:-2px;
+	width:34px;
+	height:32px;
+	z-index:9999;
+}
+
+#movieListId{
+	position:absolute;
+	left:-5px;
+	top:50px;
+	width:1000px;
+	height:600px;
+}
+.movieListCla{
+	position:absolute;
+	width:444px;
+	height:34px;
+}
+
+.icon{
+	position:absolute;
+	display:none;
+	left:10px;
+	top:-3px;
+	width:34px;
+	height:32px;
+	z-index:9999;
+}
+.liveSelCla{
+	background-image:url(images/watchtv/zhiboIcon.png);
+}
+.liveNoselCla{
+	background-image:url(images/watchtv/zhiboIconSel.png);
+}
+.wtSelCla{
+	background-image:url(images/watchtv/proSelIcon.png);
+}
+.wtNoselCla{
+	background-image:url(images/watchtv/proNoSelIcon.png);
+}
+.noOnLineCla{
+	background-image:url(images/watchtv/zbnosel.png);
+}
+.movieLineCla{
+	position:absolute;
+	display:none;
+	left:5px;
+	top:35px;
+	width:436px;
+	height:3px;
+	background-image:url(images/watchtv/line.png);
+}

@@ -1,0 +1,24 @@
+@charset "utf-8";
+body {
+	font-family: "黑体";	
+}
+.imgs{position:absolute;margin:7px;z-index:5}
+.imgs img{border:solid 1px white}
+.contentCl{position:absolute;left:60px;top:175px;}
+.contentCl div{position:absolute;}
+.contentCl div img{border:solid 1px white}
+.halation{
+     -webkit-box-shadow:0 0 40px 18px black;
+	 box-shadow:0 0 40px 18px black;
+}
+.div_fonts{position:absolute;z-index:10;color:white;font-size:30px;}
+.div_img{position:absolute;z-index:10;color:white;font-size:25px;opacity:0.8;
+			background:black;left:0.5px}	
+	
+.tiltelCl{
+	position:absolute;bottom:0px;height:32px;background:#191919;overflow: hidden;opacity:0.7;
+	text-align:center;font-size:25px;line-height:32px;
+	/*
+	font-weight:bold;font-family:Arial;
+	*/
+}

@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>专题描述</title>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="common/showList2d.js"></script>
+<link href="" rel="stylesheet" type="text/css"/>
+<style>
+.proCla {
+   top: 0px;
+   width: 200px;
+   height: 318px;
+   position: absolute;
+}
+.proImgCla {
+    width: 200px;
+    height: 278px;
+    left: 0px;
+    top: 0px;
+    position: absolute;
+}
+.proNameCla {
+    width: 200px;
+    height: 40px;
+    left: 0px;
+    top: 278px;
+    text-align: center;
+    font-size: 22px;
+    line-height: 40px;
+    position: absolute;
+}
+</style>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}
+var globalParams = {
+	ajaxObj: null,//ajax请求对象
+	focusPos: 1,//焦点位置
+	index: 0,//滑动游标
+	divPos: 0,//div位置
+	dataArr: null,//请求的数据
+	proData: [],//节目集数据
+	count: 7,//展示的海报数
+	pageFlag: "LISTPAGE"//上级页面位置
+}
+function init(){
+	window.focus();
+	//if(typeof(programId) != "undefined" && pid != ""){
+		//initData(programId,globalParams.pageFlag);
+	//}
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		//返回清空数据
+		globalParams.focusPos = 1;
+		globalParams.index = 0;
+		globalParams.divPos = 0;
+		$("proFocusDiv").style.display = "none";
+		$("proFocusDiv").style.left = "77px"; 
+		$("proList").style.left = "80px";
+		cleraProInfo();
+		tvsee.pageWidgets.getByName("widgetSpecialDesc").minimize();
+		if(globalParams.pageFlag == "HOME"){
+			tvsee.pageWidgets.getByName("widgetMenu").showWin();
+		}else if(globalParams.pageFlag == "OTHER_APP"){
+				exitAppTip();
+		}else{
+			tvsee.pageWidgets.getByName("widgetSpecialList").show();
+		}
+	}
+	return _eventObj.args.type;
+}
+function doSelect(){
+	var movieObj = globalParams.proData[globalParams.focusPos + globalParams.index -1];
+	var pid = movieObj.id;
+	if(pid == ""){
+		return;	
+	}
+	var movieType = movieObj.movieType;
+	var widgetObj = null;
+	if(getMovieTypeDetail(movieType) == "vodVarietyDetail"){//综艺或者新闻
+		 widgetObj = tvsee.pageWidgets.getByName("widgetVodVarietyDetailFull");
+	}else if(getMovieTypeDetail(movieType) == "vodVarietyDetailNew"){
+		widgetObj = tvsee.pageWidgets.getByName("widgetVodVarietyDetailNew");
+	}else{
+		widgetObj = tvsee.pageWidgets.getByName("widgetVodDetailFull");
+	}
+	if(widgetObj != null){
+		widgetObj.show();
+		widgetObj.initData(pid, 11);
+	}
+}
+function moveLR(_num){
+	globalParams.focusPos += _num;
+	if(globalParams.focusPos < 1){
+		globalParams.focusPos = 1;
+		if(globalParams.index > 0){
+			lostFocusStyle();
+			globalParams.index--;
+			if(globalParams.index == 0){
+				$("proList").style.left = "80px"; 
+			}
+			var inx = 0;
+			globalParams.divPos = 0; 
+			if(globalParams.index > 0){
+				inx = globalParams.index -1;
+				globalParams.divPos = 1; 
+			}
+			showData(inx);
+		}else{
+			return;
+		}
+	}else if(globalParams.focusPos > 5){
+		globalParams.focusPos = 5;
+		if((globalParams.index + 5) < globalParams.proData.length){
+			lostFocusStyle();
+			$("proList").style.left = "-150px"; 
+			showData(globalParams.index);
+			globalParams.index++;
+			globalParams.divPos = 5;
+		}else{
+			return;
+		}
+	}else{
+		if(globalParams.focusPos > globalParams.proData.length){
+			globalParams.focusPos -= 1;
+			return; 
+		}
+		lostFocusStyle();
+		globalParams.divPos += _num; 
+	}
+	selectFocusStyle();
+}
+function moveUD(_num){
+}
+//初始化数据
+function initData(programId,pageFlag){
+	if(programId == "")return;
+	hashtable.put("pid", programId);	
+	hashtable.put("epgName", 3);
+	if(globalParams.pageFlag == "HOME"){
+		hashtable.put("vodSource", 3);
+	}else{
+		hashtable.put("vodSource", 1);
+	}
+	tvsLogger.saveOperLog(28);
+	globalParams.pageFlag = pageFlag;
+	var value = tvsee.eventFrame.globalParams.dataCache.get("specialDetail" + programId);	
+	if(value == false){
+		if(globalParams.ajaxObj != null){
+			globalParams.ajaxObj.requestAbort();	
+		}
+		globalParams.ajaxObj = new ajaxClass();
+		globalParams.ajaxObj.frame = window;
+		globalParams.ajaxObj.url = getAjaxUrl("getSpecialDetail" , programId);
+		globalParams.ajaxObj.successCallback = function(_xmlHttp, _params) {
+			eval("globalParams.dataArr = (" + _xmlHttp.responseText + ")");
+			tvsee.eventFrame.globalParams.dataCache.put("specialDetail" + programId, globalParams.dataArr);
+			showData(0);
+			if(globalParams.proData.length > 0){
+				selectFocusStyle();
+			}
+		};
+		globalParams.ajaxObj.failureCallback = function(_xmlHttp, _params) {
+			//$("type_0").innerText = "加载数据失败！";
+		};
+		globalParams.ajaxObj.requestData();
+	}else{
+		globalParams.dataArr = value;
+		showData(0);
+		if(globalParams.proData.length > 0){
+			selectFocusStyle();
+		}
+	}
+}
+//显示数据
+function showData(inx){
+	var j = 0;
+	cleraProInfo();
+	showBGImg();
+	for(var i = inx; i < globalParams.proData.length; i++){
+		if(j >= globalParams.count)break;
+		$("proName" + j).innerHTML = rollTextObj.disStr(globalParams.proData[i].name, 12,"...");
+		$("proImg" + j).src = "images/global_tm.gif";
+		$("proImg" + j).src = PICURL + globalParams.proData[i].imgUrl;
+		//$("proImg" + j).onload = function(){
+			//this.removeAttribute("style");	
+			//fImageSizeToDiv(this);		
+		//}
+		j++;
+	}
+}
+//清除页面信息
+function cleraProInfo(){
+	for(var i = 0; i < globalParams.count; i++){
+		$("proName" + i).innerHTML = "";
+		$("proImg" + i).src = "images/global_tm.gif";
+		$("pro" + i).style.webkitTransform = "scale(1)";
+	}
+	$("pageBg").src = "images/list/bg.png";
+}
+//显示背景图
+function showBGImg(){
+	if(globalParams.dataArr != null){
+		if(globalParams.dataArr.programSeries != null){
+			globalParams.proData = globalParams.dataArr.programSeries;
+		}
+		$("pageBg").src = SPECIAL_PICURL + globalParams.dataArr.cover;
+	}
+}
+//失去焦点样式
+function lostFocusStyle(){
+	$("pro" + globalParams.divPos).style.webkitTransform = "scale(1)";
+}
+//获得焦点样式
+function selectFocusStyle(){
+	var obj = $("pro" + globalParams.focusPos);
+	$("proFocusDiv").style.webkitTransitionDuration = "200ms";
+	$("proFocusDiv").style.left = (obj.offsetLeft- 163) + "px";
+	$("proFocusDiv").style.border = FOCUS_STYLE.BORDER;
+	$("proFocusDiv").style.display = "block";
+	var movieObj = globalParams.proData[globalParams.focusPos + globalParams.index -1];
+	rollTextObj.setRoll("proName" + globalParams.divPos, movieObj.name, 12, "...");
+	$("pro" + globalParams.divPos).style.webkitTransform = "scale(1.1)";
+}
+window.onload = init;
+</script>
+</head>
+  <body>
+    <div style=" position: absolute; width: 1280px; height: 720px; top: 0px; left: 0px;">
+	    <img id="pageBg" src="images/list/bg.png" width="1280px" height="720px"/>
+	    <div id="proList" style="position: absolute; width: 1280px; height: 720px; top: 380px; left: 80px;">
+	        <div id="pro0" style="left:0px;" class="proCla">
+	        	<div class="proImgCla"><img id="proImg0" src="images/global_tm.gif" width="200px" height="278px"/></div>
+	            <div id="proName0" class="proNameCla"/></div>
+	        </div>
+	        <div id="pro1" style="left:230px;" class="proCla">
+	            <div class="proImgCla"><img id="proImg1" src="images/global_tm.gif" width="200px" height="278px"/></div>
+	            <div id="proName1" class="proNameCla"/></div>
+	        </div>
+	        <div id="pro2" style="left:460px;" class="proCla">
+	            <div class="proImgCla"><img id="proImg2" src="images/global_tm.gif" width="200px" height="278px"/></div>
+	            <div id="proName2" class="proNameCla"/></div>
+	        </div>
+	        <div id="pro3" style="left:690px;" class="proCla">
+	            <div class="proImgCla"><img id="proImg3" src="images/global_tm.gif" width="200px" height="278px"/></div>
+	            <div id="proName3" class="proNameCla"/></div>
+	        </div>
+	        <div id="pro4" style="left:920px;" class="proCla">
+	            <div class="proImgCla"><img id="proImg4" src="images/global_tm.gif" width="200px" height="278px"/></div>
+	            <div id="proName4" class="proNameCla"/></div>
+	        </div>
+	        <div id="pro5" style="left:1150px;" class="proCla">
+	            <div class="proImgCla"><img id="proImg5" src="images/global_tm.gif" width="200px" height="278px"/></div>
+	            <div id="proName5" class="proNameCla"/></div>
+	        </div>
+	        <div id="pro6" style="left:1380px;" class="proCla">
+	            <div class="proImgCla"><img id="proImg6" src="images/global_tm.gif" width="200px" height="278px"/></div>
+	            <div id="proName6" class="proNameCla"/></div>
+	        </div>
+	    </div>
+	    <div id="proFocusDiv" style="width: 220px;height: 306px;left: 67px;top: 361px;position: absolute; display:none;"></div>
+    </div>
+  </body>
+</html>

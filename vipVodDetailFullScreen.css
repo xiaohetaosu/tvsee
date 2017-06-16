@@ -1,0 +1,635 @@
+@charset "utf-8";
+/* CSS Document */
+body {
+	overflow:hidden;
+	color: #FFFFFF;
+}
+.recDivCla {
+    border: 1px solid#FFF;
+    position: absolute;
+    width: 130px;
+    height: 184px;
+    top: 5px;
+}
+table,th,td,tr {
+    border-collapse: collapse;
+}
+td{
+    border: 2px solid#585753;
+}
+.hdAndSdBtnCla {
+    width: 59px;
+    height: 71px;
+    position: absolute;
+    top: 4px;
+}
+.recArrowCla {
+    width: 33px;
+    height: 41px;
+    position: absolute;
+    top: 123px;
+}
+.bgCla{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 1280px;
+    height: 720px;
+    background-image: url(images/detail/bg.jpg);
+}
+.picUrlDivCla {
+    position: absolute;
+    width: 245px;
+    height: 344px;
+    left: 63px;
+    top: 45px;
+   /* border: 1px solid #FFF;*/
+}
+.hdMarkCla{
+	 background-image: url(images/detail/hd_mark.png);	
+	 width: 129px;
+	 height: 125px;
+	 position: absolute; 
+	 top: 29px; 
+	 left: 199px;
+	 visibility: hidden;
+}
+.infoDescCla {
+    width: 911px;
+    height: 256px;
+    position: absolute;
+    left: 327px;
+    top: 45px;
+}
+.gradeImgsCla {
+    width: 182px;
+    height: 41px;
+    position: absolute;
+    left: 697px;
+    top: 37px;
+}
+.gradeImgCla {
+    width: 40px;
+    height: 41px;
+    background-image: url(images/detail/x_l.png);
+    position: absolute;
+}
+.gradeImg0Cla {
+    left: 0px;
+}
+.gradeImg1Cla {
+    left: 35px;
+}
+.gradeImg2Cla {
+    left: 70px;
+}
+.gradeImg3Cla {
+    left: 105px;
+}
+.gradeImg4Cla {
+    left: 140px;
+}
+.movieNameCla {
+    width: 908px;
+    height: 34px;
+    position: absolute;
+    font-size: 28px;
+    color: #FFF;
+}
+.directorsCla {
+    position: absolute;
+    width: 384px;
+    height: 23px;
+    top: 46px;
+    left: 7px;
+    font - size: 22px;
+    color: #888888
+}
+.directorNameCla {
+    height: 100% ;
+    width: 70px;
+    position: absolute;
+}
+.directorCla {
+    height: 100% ;
+    left: 70px;
+    position: absolute;
+    top: 0px;
+    width: 333px;
+    overflow: hidden;
+}
+.releaseDatesCla {
+    position: absolute;
+    width: 286px;
+    height: 26px;
+    top: 45px;
+    left: 429px;
+    font - size: 22px;
+    color: #888888
+}
+.releaseDateNameCla {
+    height: 100% ;
+    width: 120px;
+    position: absolute;
+}
+.releaseDateCla {
+    height: 100% ;
+    left: 120px;
+    position: absolute;
+    top: 0px;
+    width: 130px;
+    overflow: hidden;
+}
+.actorsCla {
+    position: absolute;
+    width: 384px;
+    height: 23px;
+    top: 76px;
+    left: 7px;
+    font - size: 22px;
+    color: #888888
+}
+.actorNameCla {
+    height: 100%;
+    width: 70px;
+    position: absolute;
+}
+.actorCla {
+    height: 100% ;
+    left: 70px;
+    position: absolute;
+    top: 0px;
+    width: 333px;
+    overflow: hidden;
+}
+.zonesCla {
+    position: absolute;
+    width: 250px;
+    height: 26px;
+    top: 76px;
+    left: 429px;
+   /* font-size: 22px;*/
+    color: #888888
+}
+.zoneNameCla {
+    height: 100%;
+    width: 70px;
+    position: absolute;
+}
+.zoneCla {
+    height:100% ;
+    left: 70px;
+    position: absolute;
+    top: 0px;
+    width: 180px;
+    overflow: hidden;
+}
+.gradesCla {
+    position: absolute;
+    width: 205px;
+    height: 26px;
+    top: 76px;
+    left: 700px;
+    /*font-size: 22px;*/
+    color: #888888
+}
+.gradeNameCla {
+    height: 25px ;
+    width: 120px;
+    position: absolute;
+    left: 0px;
+	top: 1px;
+}
+.gradeCla {
+    height: 100% ;
+    left: 100px;
+    position: absolute;
+    top: 0px;
+    width: 84px;
+    overflow: hidden;
+	color: #FFCE00;
+	font-size: 26px;
+	line-height: 26px;
+}
+.typeMoviesCla {
+    position: absolute;
+    width: 384px;
+    height: 23px;
+    top: 107px;
+    left: 7px;
+    font - size: 22px;
+    color: #888888
+}
+.typeMovieNameCla {
+    height: 100% ;
+    width: 70px;
+    position: absolute;
+}
+.typeMovieCla {
+    height: 100%;
+    left: 70px;
+    position: absolute;
+    top: 0px;
+    width: 333px;
+    overflow: hidden;
+}
+.timelengthsCla {
+    position: absolute;
+    width: 250px;
+    height: 25px;
+    top: 107px;
+    left: 429px;
+    font - size: 22px;
+    color: #888888
+}
+.timelengthNameCla {
+    height: 100% ;
+    width: 70px;
+    position: absolute;
+}
+.timelengthCla {
+    height: 100% ;
+    left: 70px;
+    position: absolute;
+    top: 0px;
+    width: 180px;
+    overflow: hidden;
+}
+.playCountsCla {
+    position: absolute;
+    width: 205px;
+    height: 25px;
+    top: 107px;
+    left: 700px;
+   /* font-size: 22px;*/
+    color: #888888
+}
+.playCountNameCla {
+    height: 100% ;
+    width: 120px;
+    position: absolute;
+    left: 0px;
+}
+.playCountCla {
+    height: 100% ;
+    left: 120px;
+    position: absolute;
+    top: 0px;
+    width: 84px;
+    overflow: hidden;
+}
+.descInfoLineCla {
+    background-image: url(images/detail/up_X.png);
+    width: 901px;
+    height: 17px;
+    position: absolute;
+    left: -2px;
+    top: 134px;
+}
+.descCla {
+    position: absolute;
+    width: 870px;
+    height: 100px;
+    top: 151px;
+    left: 5px;
+    font-size:22px;
+    color: #FFF;
+    overflow: hidden;
+}
+.btnsCla {
+    width: 910px;
+    height: 82px;
+    position: absolute;
+    left: 327px;
+    top: 312px;
+}
+.playBtnCla {
+    width: 188px;
+    height: 76px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    color: #FFF;
+    text-align: center;
+    font-size: 22px;
+    line-height: 76px;
+}
+.playBtnLoseCla{
+	background-image:url(images/detail/play_drama_select.png);
+}
+.playBtnFocusCla{
+	background-image:url(images/detail/play_drama_selected.png);
+	z-index: 1;
+	visibility: hidden;
+}
+.freeLimitBtn {
+	width: 188px;
+    height: 76px;
+	left: 190px;
+    position: absolute;
+    top: 0px;
+    color: #FFF;
+    text-align: center;
+    font-size: 26px;
+    line-height: 76px;
+	background-image:url(images/detail/free_limit.png);
+}
+.replayBtnCla {
+    width: 188px;
+    height: 76px;
+    position: absolute;
+    top: 0px;
+    left: 381px;
+    color: #FFF;
+    text-align: center;
+    font-size: 22px;
+    line-height: 76px;
+}
+.replayBtnLoseCla{
+	background-image:url(images/detail/play_drama_select.png);
+}
+.replayBtnFocusCla{
+	background-image:url(images/detail/play_drama_selected.png);
+	z-index: 1;
+	visibility: hidden;
+}
+
+.selectEpisodeBtnCla {
+    width: 165px;
+    height: 76px;
+    position: absolute;
+    top: 0px;
+    left: 550px;
+    color: #FFF;
+    text-align: center;
+    font-size: 22px;
+    line-height: 76px;
+}
+.selectEpisodeBtnLoseCla{
+	background-image:url(images/detail/selections_select.png);
+}
+.selectEpisodeBtnFocusCla{
+	background-image:url(images/detail/selections_selected.png);
+	z-index: 1;
+	visibility: hidden;
+}
+.addTvBtnCla {
+    width: 165px;
+    height: 76px;
+    position: absolute;
+    top: 0px;
+    left: 716px;
+    color: #FFF;
+    text-align: center;
+    font-size: 22px;
+    line-height: 76px;
+}
+.addTvBtnLoseCla{
+	background-image:url(images/detail/drama_select.png); 
+}
+.addTvBtnFocusCla{
+	background-image:url(images/detail/drama_selected.png); 
+	z-index: 1;
+	visibility: hidden;
+}
+.sdOrHdCla {
+    position: absolute;
+    left: 720px;
+    width: 200px;
+    height: 76px;
+}
+.sdOrHdVerticalCla {
+    background - image: url(images/detail/cut_off_rule.png);
+    width: 13px;
+    height: 65px;
+    top: 2px;
+}
+.sdButCla {
+    background-image: url(images/detail/sd_select.png);
+    left: 38px;
+}
+.sdButFocusCla{
+	background-image:url(images/detail/sd_selected.png); 
+	left: 38px;
+	visibility: hidden;
+}
+.sdButCurrCla{
+	background-image:url(images/detail/sd_checked.png); 
+	left: 38px;
+	visibility: hidden;
+}
+.hdButCla {
+    background-image: url(images/detail/hd_select.png);
+    left: 112px;
+}
+.hdButFocusCla{
+	background-image:url(images/detail/hd_selected.png); 
+	left: 112px;
+	visibility: hidden;	
+}
+.hdButCurrCla{
+	background-image:url(images/detail/hd_checked.png); 
+	left: 112px;
+	visibility: hidden;	
+}
+.recCla {
+    width: 1169px;
+    height: 258px;
+    position: absolute;
+    left: 56px;
+    top: 427px;
+}
+.recUserTipCla {
+    position: absolute;
+    width: 172px;
+    height: 26px;
+    left: 14px;
+    color: #FFF;
+    font-size:24px;
+}
+.recLineCla {
+    position: absolute;
+    background-image: url(images/detail/down_X.png);
+    width: 983px;
+    height: 17px;
+    left: 188px;
+    top: 5px;
+}
+.leftArrowCla {
+    background-image: url(images/detail/left_n.png);
+    left: 4px;
+}
+.rightArrowCla {
+    background-image: url(images/detail/right_n.png);
+    left: 1127px;
+}
+.recFocusDivBgCla {
+    background-image: url(images/detail/recBg.png);
+    width: 196px;
+    height: 258px;
+	-webkit-transition-duration: 200ms;
+    position: absolute;
+    top: 13px;
+    left: 10px;
+    visibility: hidden;
+}
+.recsCla {
+    top: 36px;
+    width: 1102px;
+    height: 207px;
+    left: 30px;
+    position: absolute;
+    overflow: hidden;
+}
+.recCla0 {
+    left: 10px;
+}
+.recCla1 {
+    left: 168px;
+}
+.recCla2 {
+    left: 326px;
+}
+.recCla3 {
+    left: 484px;
+}
+.recCla4 {
+    left: 642px;
+}
+.recCla5 {
+    left: 800px;
+}
+.recCla6 {
+    left: 958px;
+}
+.recCla7 {
+    left: 1116px;
+}
+.recFocusDivCla {
+    width: 148px;
+    height: 202px;
+    top: 35px;
+    left: 29px;
+    position: absolute; 
+	-webkit-transition-duration: 200ms;
+    visibility: hidden;
+}
+.recMovieNameCla {
+    background: url(images/detail/movieNameBg.png);
+    line-height: 32px;
+    width: 100%;
+    height: 32px;
+    top: 170px;
+    color: #FFF;
+    font-size: 22px;
+    position: absolute;
+	text-align: center;
+}
+.episodesCla {
+    background-image: url(images/detail/episode_dk.png);
+    width: 1280px;
+    height: 321px;
+    position: absolute;
+    top: 399px;
+    left: 0px;
+    display: none;
+}
+.selectEpisodeNameCla {
+    width: 1098px;
+    height: 30px;
+    position: absolute;
+    top: 40px;
+    left: 79px;
+    color: #FFF;
+    font-size: 28px;
+}
+.detailEpisodeTabCla {
+    position: absolute;
+    left: 80px;
+    top: 95px;
+    color: #FFF;
+    font-size: 22px;
+    display: none;
+    text-align: center;
+    width: 1048px;
+    height: 118px;
+}
+.detailEpisodeTabTr1Cla {
+    width: 119px;
+    text-align: center;
+}
+.detailEpisodeTabTr2Cla {
+    width: 116px;
+    height: 59px;
+    text-align: center;
+}
+.detailEpisodeFocusCla {
+    background-image: url(images/detail/dramae.png);
+    width: 135px;
+    height: 82px;
+    position: absolute;
+    left: 191px;
+    top: 88px;
+    display: none;
+    font-size: 22px;
+    color: #FFF;
+    text-align: center;
+    line-height: 82px; 
+	/*-webkit-transition-duration: 200ms;*/
+}
+.episodesTabCla {
+    position: absolute;
+    left: 80px;
+    top: 95px;
+    color: #FFF;
+    font-size: 22px;
+    display: none;
+    text-align: center;
+    width: 1049px;
+    height: 120px;
+}
+.episodesTabTd1Cla {
+    width: 117px;
+    text-align: center;
+}
+.episodesTabTd2Cla {
+    width: 233px;
+    height: 59px;
+    text-align: center;
+}
+.episodesFocusCla {
+    background-image: url(images/detail/dramaeList.png);
+    width: 251px;
+    height: 82px;
+    position: absolute;
+    left: 191px;
+    top: 88px;
+    font-size: 22px;
+    color: #FFF;
+    text-align: center;
+    line-height: 82px; 
+	/*-webkit-transition-duration: 200ms;*/
+    display: none;
+}
+.moreFocusCla {
+    background-image: url(images/detail/moreFocus.png);
+    width: 137px;
+    height: 135px;
+    left: 73px;
+    top: 88px;
+    color: #FFF;
+    font-size: 22px;
+    text-align: center;
+    position: absolute;
+    display: none;
+}
+.moreDivCla{
+	position: absolute; 
+	top: 44px; 
+	height: 60px;
+	text-align: center;
+	width: 100%;
+}
+.gradeFullScreenCla{
+	font-size: 22px;
+}

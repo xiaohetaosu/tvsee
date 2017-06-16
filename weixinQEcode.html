@@ -1,0 +1,35 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>无标题文档</title>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}else{
+	eval("tvsee={}");
+	tvsee = {debug:function(){}};
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_BACK"){
+		goBack();
+	}
+}
+
+function goBack(){
+	gotoPageUrl("about:blank");
+	tvsee.pageWidgets.getByName("widgetMenu").showWin();	
+}
+
+</script>
+</head>
+
+<body>
+<div style="position:absolute; width: 1280px; height: 720px; top: 0px; left: 0px; background-image:url(images/weixin/bg.jpg)">
+
+</div>
+</body>
+</html>

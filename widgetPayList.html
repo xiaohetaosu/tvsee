@@ -1,0 +1,732 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>支付列表页</title>
+<style type="text/css">
+.payTitleCla{
+	position:absolute; 
+	width: 153px; 
+	height: 72px; 
+	background-image:url(images/order/nav_nosel.png); 
+	font-size: 30px; 
+	line-height:72px; 
+	text-align: center;
+}
+.word_0{
+	
+	font-family: '黑体';
+	font-size: 25px;
+	color: white;
+	font-weight: bold;
+	font-style: oblique;
+	/*position: relative;*/
+}
+.spanfont{
+	font-family: '黑体';font-size: 30px;color: white;font-weight: 500;font-style: oblique;
+}
+.word_1{
+	font-family: '黑体';
+	font-size: 30px;
+	color: #FFCE00;
+	font-weight: bold;
+	font-style: oblique;
+	/*position: relative;*/
+}
+.divCla {
+	background-image: url(images/order/taocan_nosel.png);
+	width: 243px;
+	height: 156px;
+	position: absolute;
+}
+.titleCla {
+	width: 100%;
+	text-align: center;
+	font-size: 24px;
+	top: 22px;
+	height: 26px;
+	position: absolute;
+}
+.monthCla {
+	width: 100%;
+	text-align: center;
+	font-size: 28px;
+	top: 56px;
+	height: 26px;
+	position: absolute;
+	color: #FFCE00;
+	font-style: oblique;
+}
+.priceClass {
+	color: aquamarine;
+	width: 100%;
+	text-align: center;
+	font-size: 36px;
+	top: 85px;
+	height: 36px;
+	position: absolute;
+}
+.xieXianCla{
+	position: absolute;
+    top: 56px;
+    left: 83px;
+	display:none;
+}
+
+.zanIcoCla{
+	position: absolute;
+    top: 0px;
+    right: -14px;
+	display: none;
+}
+.songCla{
+	position: absolute;
+	top: 65px;
+	left: 20px;
+	display:none;
+}
+.btnCla {
+	position: absolute;
+	width: 157px;
+	height: 68px;
+	font-size: 26px;
+	line-height: 68px;
+	text-align: center;
+}
+</style>
+<script src="common/config.js"></script>
+<script src="common/protal.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="common/orderData.js"></script>
+<script src="common/showList2d.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+} else {
+	eval("tvsee={}");
+	tvsee = {
+		debug: function() {},
+		eventFrame: {
+			globalParams:{
+				globalCache: {
+					get: function(){
+						return false;	
+					}	
+				}
+			}
+		}
+	};
+	
+}
+
+//globalParams: globalCache
+
+var globalParams = {
+	areaPos: 0,
+	menuShowListObj: null,
+	listX: 0,
+	listY: 0,
+	showData: [],
+	serviceInfoAjax: null,
+	payInfoAjaxObj: null,
+	fromPage: ""
+}
+
+function init(){
+	globalParams.showData = PAY_LIST;
+	globalParams.menuShowListObj = new showList2D({
+		dataLength: Math.ceil(globalParams.showData.length),
+		listSize: 6,
+		focusDiv: "payTitleFocus",
+		listHigh: 73,
+		startPlace: 180,
+		dataPos: 0,
+		showFlag: 1,
+		duration: "0ms",
+		frame: window,
+		foausPos: 0,
+		arrayList: ["payTitle0", "payTitle1", "payTitle2", "payTitle3", "payTitle4", "payTitle5", "payTitle6"],
+		posInfo: {
+			firstPos: {
+				top: "0px",
+				left: "0px"
+			},
+			lastPos: {
+				top: "385px",
+				left: "0px"
+			},
+			firstStatus: {
+				top: "-77px",
+				left: "0px"
+			},
+			endStatus: {
+				top: "462px",
+				left: "0px"
+			}
+		},
+		haveData: function(_listInfo) {
+			$("payTitle" + _listInfo.idPos).innerText = globalParams.showData[_listInfo.dataPos].menuName;
+		},
+		noData: function(_listInfo) {
+			$("payTitle" + _listInfo.idPos).innerText = "";
+			$("payTitle" + _listInfo.idPos).style.display = "none";
+		}
+	});
+	globalParams.menuShowListObj.startShow();
+	showTitleFocus();
+//	initData();
+}
+
+function showTitleFocus(){
+	if(globalParams.areaPos == 0){
+		if(globalParams.menuShowListObj != null){
+			$("payTitleFocus").innerText = globalParams.showData[globalParams.menuShowListObj.dataPos].menuName;
+		}
+		$("payTitleFocus").style.backgroundImage = "url(images/order/nav_sel.png)";
+	}else if(globalParams.areaPos == 1){
+		$("payTitleFocus").style.backgroundImage = "url(images/order/nav_nowOnsel.png)";	
+	}
+}
+
+function initLiveUpdatePackCheck(){
+	if(SETCITY == "chengdu"){
+		var json_0 = getMemberPayStatus(livePayChengduServiceId_0 + zanshengji + halfServiceId_70);
+		var json_1 = getMemberPayStatus(livePayChengduServiceId_1 + livePayChengduServiceId_2 + shengjiS + halfServiceId_100);
+		var json_5 = getMemberPayStatus(livePayChengduServiceId_2);
+		var json_3 = getMemberPayStatus(shengjiServiceId);
+		if(json_5.status == true){
+			if(json_0.expireDate > json_5.expireDate){
+				if(json_5.expireDate > json_1.expireDate){
+					json_1.expireDate = json_5.expireDate;
+				}
+			}
+		}
+//		if(json_3.status == true){
+//			if(json_0.expireDate >json_3.expireDate){
+//				
+//			}else{
+//				return
+//			}
+//		}
+		if(json_1.status == false) {
+			try{
+				json_1.expireDate = TvseeDate.getTime();
+			}catch(e){
+			}
+		}
+		if(json_0.status == true){
+			var data1 = new Date(json_0.expireDate);
+			var data2 = new Date(json_1.expireDate);
+			var data3 = data1.getTime() - data2.getTime();
+			if(json_0.expireDate > json_1.expireDate) {
+				var  test = Math.floor(data3 / (24 * 3600 * 1000));
+				if(test < 2){
+					if(PAY_LIST[1].menuName == LIVE_UPDATE_PAY.menuName){ 
+       					PAY_LIST.splice(1, 1);
+						}
+
+					return
+				}
+				var days = Math.floor(data3 / (24 * 3600 * 1000));
+				shengji[0].periodLength = days;
+				if(PAY_LIST[1].menuName != LIVE_UPDATE_PAY.menuName){
+					PAY_LIST.splice(1, 0, LIVE_UPDATE_PAY);
+				}
+			}else{
+				if(PAY_LIST[1].menuName == LIVE_UPDATE_PAY.menuName){ 
+       					PAY_LIST.splice(1, 1);
+						}
+
+					return
+			}
+		}
+	}else if(SETCITY == "wuhan"){
+		PAY_LIST[0] = PAY_WUHAN;
+	}else if(SETCITY == "chongqing"){
+		PAY_LIST[0] = PAY_CHONGQING
+	}else if(SETCITY == "changsha"){
+		PAY_LIST[0] = PAY_CHANGSHA
+	}else if(SETCITY == "guiyang"){
+		PAY_LIST[0] = PAY_GUIYANG
+	}
+}
+function initData(_fromPage){
+	globalParams.fromPage = _fromPage;
+	$("defautBg").style.zIndex = 1;
+	$("defautBg").innerText = "正在加载数据...";
+	if(globalParams.payInfoAjaxObj !=  null){
+		globalParams.payInfoAjaxObj.requestAbort();
+	}
+	globalParams.payInfoAjaxObj = new ajaxClass();
+	globalParams.payInfoAjaxObj.frame = window;
+	globalParams.payInfoAjaxObj.url = getAjaxUrl("memberPayInfo");
+	globalParams.payInfoAjaxObj.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ")");
+		tvsee.eventFrame.globalParams.globalCache.put("payInfo_CACHE", data);
+		initServiceData();
+	};
+	globalParams.payInfoAjaxObj.failureCallback = function(_xmlHttp, _params) {
+		$("defautBg").innerText = "功能暂不能使用，请稍后再试....";
+	};
+	globalParams.payInfoAjaxObj.requestData();
+	
+}
+function initServiceData(){
+	if(globalParams.areaPos == 1){
+		losePayListFocus();
+		globalParams.listX = 0;
+		globalParams.listY = 0;
+	}else if(globalParams.areaPos == 2){
+		showTitleFocus();	
+		loseExitBtnFocus();
+	}
+	globalParams.areaPos = 0;
+	if(globalParams.areaPos == 0){
+		$("payTitleFocus").style.top = "180px";
+		showTitleFocus();	
+	}
+	globalParams.areaPos = -1;
+	
+	for(var i = 0; i < 7; i++){
+		$("payTitle" + i).style.top = (i * 73) + "px";	
+	}
+	initLiveUpdatePackCheck();
+	init();
+	getServiceInfo(0);		
+}
+function getServiceInfo(index){
+	var serviceIds = "";
+	for(var i = 0; i < globalParams.showData[index].data.length; i++) {
+		serviceIds += globalParams.showData[index].data[i].serviceId + ",";
+	}
+	serviceIds = serviceIds.substring(0, serviceIds.length - 1);
+	if(globalParams.serviceInfoAjax != null){
+		globalParams.serviceInfoAjax.requestAbort();
+	}
+	globalParams.serviceInfoAjax = new ajaxClass();
+	globalParams.serviceInfoAjax.frame = window;
+	globalParams.serviceInfoAjax.callbackParams = [index]
+	globalParams.serviceInfoAjax.url = getAjaxUrl("getServiceInfo", serviceIds);
+	globalParams.serviceInfoAjax.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		for(var i = 0; i < data.length; i++) {
+			for(var j = 0; j < globalParams.showData[_params[0]].data.length; j++) {
+				if(data[i].serviceId == globalParams.showData[_params[0]].data[j].serviceId) {
+					globalParams.showData[_params[0]].data[j].price = data[i].price;
+					if(globalParams.showData[_params[0]].menuName != LIVE_UPDATE_PAY.menuName){
+						globalParams.showData[_params[0]].data[j].periodLength = data[i].periodLength;
+					}
+					globalParams.showData[_params[0]].data[j].title = data[i].serviceName;
+					globalParams.showData[_params[0]].data[j].packpageName = data[i].serviceDesc;
+					globalParams.showData[_params[0]].data[j].serviceName = data[i].serviceName;
+					globalParams.showData[_params[0]].data[j].serviceCode = data[i].serviceCode;
+					globalParams.showData[_params[0]].data[j].originalPrice = data[i].originalPrice;
+					break;
+				}
+			}
+		}
+		if(_params[0] == globalParams.showData.length -1){
+			$("defautBg").innerText = "";
+			$("defautBg").style.zIndex = -1;
+			globalParams.areaPos = 0;
+			showTitleFocus();
+			initListData();
+		}else{
+			getServiceInfo(++_params[0]);
+		}
+	};
+	globalParams.serviceInfoAjax.failureCallback = function(_xmlHttp, _params) {
+		$("defautBg").innerText = "功能暂不能使用，请稍后再试....";
+	};
+	globalParams.serviceInfoAjax.requestData();
+}
+function initListData(){
+	globalParams.listX = 0;
+	globalParams.listY = 0;
+	var data = globalParams.showData[globalParams.menuShowListObj.dataPos].data;
+	var isShowMonth = globalParams.showData[globalParams.menuShowListObj.dataPos].isShowMonth;
+	var isTimeLimit = globalParams.showData[globalParams.menuShowListObj.dataPos].isTimeLimit;
+	var dataLen = data.length;
+	var row = 0, cell = 0;
+	$("menuTipText").innerHTML = globalParams.showData[globalParams.menuShowListObj.dataPos].tipInnerHTML;
+	for(var i = 0; i < dataLen; i++){
+		//zanRow1Cell2 xiexianRow1Cell2 songRow1Cell2 titleRow1Cell2 monthRow1Cell2 priceRow1Cell2
+		var payInfo = tvsee.eventFrame.globalParams.globalCache.get("payInfo_CACHE");
+		var rebateNum = 1;
+		if(payInfo != false && payInfo.result != 2 && payInfo.result != 4 && payInfo.result != 9){
+			var arrObj = rebateServiceId.split(",");
+			var cacheServiced = new Array();
+			if(data[0].serviceId== 1){
+				for(var k = 0; k < payInfo.result.length; k++){
+				for(var j = 0 ;j < arrObj.length;j++){
+					if(payInfo.result[k].serviceId == arrObj[j]){
+						cacheServiced.push(payInfo.result[k].serviceId);
+					}
+				}
+			}
+			}
+			
+			if(cacheServiced.length == 0){
+				rebateNum = 1;
+			}else if(cacheServiced.length == 1){
+				if(cacheServiced[0] == 50){
+					rebateNum = 1;
+				}else if(cacheServiced[0] == 37){
+					rebateNum = 0.5;
+				}else if(cacheServiced[0] == 36){
+					rebateNum = 0.6;
+				}else if(cacheServiced[0] == 35){
+					rebateNum = 0.7;
+				}else if(cacheServiced[0] == 34){
+					rebateNum = 0.7;
+				}
+			}else if(cacheServiced.length >1){
+				cacheServiced.sort(function cat(a,b){return b-a});
+				if(cacheServiced[0] == 50){
+					if(cacheServiced[1] == 37){
+						rebateNum = 0.5;
+					}else if(cacheServiced[1] == 36){
+						rebateNum = 0.6;
+					}else if(cacheServiced[1] == 35){
+						rebateNum = 0.7;
+					}else if(cacheServiced[1] == 34){
+						rebateNum = 0.7;
+					}
+				}else{
+					if(cacheServiced[0] == 37){
+						rebateNum = 0.5;
+					}else if(cacheServiced[0] == 36){
+						rebateNum = 0.6;
+					}else if(cacheServiced[0] == 35){
+						rebateNum = 0.7;
+					}else if(cacheServiced[0] == 34){
+						rebateNum = 0.7;
+					}
+				}
+			}else{
+				rebateNum = 1;
+			}
+		}
+		$("divRow" + row + "Cell" + cell).style.display = "block";	
+		if(isTimeLimit == true){
+			$("zanRow" + row + "Cell" + cell).style.display = "block";	
+		}else{
+			$("zanRow" + row + "Cell" + cell).style.display = "none";	
+		}
+		if(isShowMonth == true){
+			if(globalParams.showData[globalParams.menuShowListObj.dataPos].menuName == LIVE_UPDATE_PAY.menuName){
+				$("monthRow" + row + "Cell" + cell).innerText =  globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].periodLength + "天";
+			}else{
+				$("monthRow" + row + "Cell" + cell).innerText =  globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].periodLength + "个月";
+			}
+			$("xiexianRow" + row + "Cell" + cell).style.display = "none";
+		}else{
+			$("xiexianRow" + row + "Cell" + cell).style.display = "block";	
+			$("monthRow" + row + "Cell" + cell).innerText =  (globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].originalPrice / 100)+ "元";
+		}
+		var price = (globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].price / 100);
+		if(rebateNum  != 1){
+			price = price *	rebateNum;
+		}
+		if(typeof(globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].monthOrImg) != "undefined"){
+			$("songRow" + row + "Cell" + cell).src = globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].monthOrImg[1];
+			$("songRow" + row + "Cell" + cell).style.display = "block";
+		}else{
+			$("songRow" + row + "Cell" + cell).style.display = "none";
+		}
+		if(globalParams.showData[globalParams.menuShowListObj.dataPos].menuName == LIVE_UPDATE_PAY.menuName){
+			var json_0 = getMemberPayStatus(livePayChengduServiceId_0+halfServiceId_70);
+			var json_1 = getMemberPayStatus(livePayChengduServiceId_1+halfServiceId_100);
+			if(json_1.status == false) {
+				try{
+					json_1.expireDate = TvseeDate.getTime();
+				}catch(e){
+				}
+			}
+			if(json_0.status == true){
+				var data1 = new Date(json_0.expireDate);
+				var data2 = new Date(json_1.expireDate);
+				var data3 = data1.getTime() - data2.getTime();
+				if(json_0.expireDate > json_1.expireDate){
+					var shengjiPrice =  globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].periodLength * (globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].price / 100);
+					price = changeTwoDecimal(shengjiPrice)
+				}
+			}
+		}
+		if(globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].serviceId ==1 || globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].serviceId == 65){
+		   var lastprice = (globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].price / 100);
+		   $("priceRow" + row + "Cell" + cell).innerHTML = lastprice + "<span style='font-size: 26px;'>元</span>";
+		}else{
+		$("priceRow" + row + "Cell" + cell).innerHTML = price + "<span style='font-size: 26px;'>元</span>";
+		}
+		
+		$("titleRow" + row + "Cell" + cell).innerHTML = globalParams.showData[globalParams.menuShowListObj.dataPos].data[i].title;
+		cell++;
+		if(i == 2){
+			row = 1;
+			cell = 0;
+		}	
+	}
+	for(var i = dataLen; i < 6; i++){
+		$("divRow" + row + "Cell" + cell).style.display = "none";	
+		cell++;
+		if(i == 2){
+			row = 1;
+			cell = 0;
+		}	
+	}
+}
+changeTwoDecimal= function changeTwoDecimal(floatvar)
+{
+var f_x = parseFloat(floatvar);
+if (isNaN(f_x))
+{
+//alert('function:changeTwoDecimal->parameter error');
+return false;
+}
+var f_x = Math.round(floatvar*100)/100;
+return f_x;
+}
+function eventHandler(_eventObj) {
+	if(_eventObj.code == "KEY_DOWN") {
+		moveUD(1);
+	} else if(_eventObj.code == "KEY_UP") {
+		moveUD(-1);
+	} else if(_eventObj.code == "KEY_SELECT") {
+		doSelect();
+	} else if(_eventObj.code == "KEY_LEFT") {
+		moveLR(-1);
+	} else if(_eventObj.code == "KEY_RIGHT") {
+		moveLR(1);
+	} else if(_eventObj.code == "KEY_BACK") {
+		goBack();
+	}
+	return _eventObj.args.type;
+}
+function moveUD(_num){
+	if(globalParams.areaPos == 0){
+		globalParams.menuShowListObj.changeList(_num);	
+		showTitleFocus();
+		initListData();
+	}else if(globalParams.areaPos == 1){
+		var dataLen = globalParams.showData[globalParams.menuShowListObj.dataPos].data.length;
+		if((globalParams.listY == 0 && _num < 0)){
+			return;	
+		}
+		if((globalParams.listY == 1 && _num > 0) || (dataLen <= 3 && _num > 0 && globalParams.listY == 0)){
+			losePayListFocus();
+			globalParams.areaPos = 2;
+			getExitBtnFocus();
+			return;
+		}
+		losePayListFocus();
+		globalParams.listY += _num;
+		if(globalParams.listY * 3 + globalParams.listX > dataLen - 1 ){
+			globalParams.listX = (dataLen - 1) % 3;	
+		}
+		getPayListFocus();
+	}else if(globalParams.areaPos == 2){
+		if(_num < 0){
+			loseExitBtnFocus();
+			globalParams.areaPos = 1;
+			getPayListFocus();
+		}
+	}
+}
+function moveLR(_num){
+	var dataLen = globalParams.showData[globalParams.menuShowListObj.dataPos].data.length;
+	if(globalParams.areaPos == 0){
+		if(_num < 0){
+			return;	
+		}
+		if(dataLen <= 0){
+			return;	
+		}
+		globalParams.areaPos = 1;
+		showTitleFocus();
+		getPayListFocus();
+	}else if(globalParams.areaPos == 1){
+		if(globalParams.listX == 0 && _num < 0){
+			globalParams.areaPos = 0;
+			losePayListFocus();
+			showTitleFocus();
+			$("giftTip").innerHTML = "";	
+			return;	
+		}
+		if((globalParams.listY * 3 + globalParams.listX >= dataLen - 1 && _num > 0) || (globalParams.listX == 2 && _num > 0)){
+			return;	
+		}
+		losePayListFocus();
+		globalParams.listX += _num;
+		getPayListFocus();
+	}else if(globalParams.areaPos == 2){
+		
+	}
+}
+
+function getExitBtnFocus(){
+	$("goBackBtn").style.backgroundImage = "url(images/order/btn_0.png)";
+}
+function loseExitBtnFocus(){
+	$("goBackBtn").style.backgroundImage = "url(images/order/btn_1.png)";	
+}
+function getPayListFocus(){
+	$("divRow" + globalParams.listY + "Cell" + globalParams.listX).style.backgroundImage = "url(images/order/taocan_sel.png)";	
+	var obj = globalParams.showData[globalParams.menuShowListObj.dataPos].data[globalParams.listY * 3 + globalParams.listX];
+	if(typeof(obj.monthOrImg) == "object"){
+		$("giftTip").innerHTML = obj.monthOrImg[2];	
+	}else{
+		$("giftTip").innerHTML = "";	
+	}
+}
+function losePayListFocus(){
+	$("divRow" + globalParams.listY + "Cell" + globalParams.listX).style.backgroundImage = "url(images/order/taocan_nosel.png)";	
+}
+function doSelect(){
+	if(globalParams.areaPos == 1){
+		var widgetOrderObj = tvsee.pageWidgets.getByName("widgetOrder");
+		var obj = globalParams.showData[globalParams.menuShowListObj.dataPos].data[globalParams.listY * 3 + globalParams.listX];
+		var jsonObj = {
+			title:'',
+			price: 0,
+			periodLength: 0,
+			sessionId: 0,
+			serviceId: 0,
+			serviceCode: 0,
+			serviceName: ''	
+		}
+		jsonObj.title = obj.title;
+		jsonObj.periodLength = obj.periodLength;
+		jsonObj.price = obj.price;
+		jsonObj.serviceId = obj.serviceId;
+		jsonObj.serviceCode = obj.serviceCode;
+		jsonObj.serviceName = obj.serviceName;
+		if(globalParams.showData[globalParams.menuShowListObj.dataPos].menuName == LIVE_UPDATE_PAY.menuName){  
+			jsonObj.price = obj.periodLength * obj.price ;
+		}
+		if(widgetOrderObj != null){
+			widgetOrderObj.showWin("PAYLIST", window, jsonObj);//
+		}
+	}else if(globalParams.areaPos == 2){
+		goBack();
+	}
+}
+function goBack(){
+	tvsee.pageWidgets.getByName("widgetPayList").minimize();
+	if(globalParams.fromPage == "userManager_kunming"){
+		gotoPageUrl("userManager_kunming.html?fromPage=LAUNCHER");
+	}else if(globalParams.fromPage == "LAUNCHER"){
+		tvsee.pageWidgets.getByName("widgetLauncher").showWin();	
+	}
+}
+//window.onload = init;
+</script>
+
+</head>
+
+<body>
+<div style="position: absolute; width: 1280px; height: 720px; top: 0px; left: 0px; background-image: url(images/user/bg.jpg);font-size:26px; color: #FFF;">
+ 	<div id="title" style="position:absolute; font-size: 40px; left: 70px; text-align:right;  top: 36px;">在线购买</div>
+	<div style="overflow:hidden; top: 180px; position: absolute; height: 802px; width: 153px; left: 70px;">
+    	<div style="top: 0px;" id="payTitle0" class="payTitleCla"></div>
+        <div style="top: 77px;" id="payTitle1" class="payTitleCla"></div>
+        <div style="top: 154px;" id="payTitle2" class="payTitleCla"></div>
+        <div style="top: 231px;" id="payTitle3" class="payTitleCla"></div>
+        <div style="top: 308px;" id="payTitle4" class="payTitleCla"></div>
+        <div style="top: 385px;" id="payTitle5" class="payTitleCla"></div>
+        <div style="top: 462px;" id="payTitle6" class="payTitleCla"></div>
+    </div>
+    
+    <div id="payTitleFocus" style="position:absolute; top: 180px; left: 70px;width: 153px; height: 72px; background-image:url(images/order/nav_sel.png); font-size: 30px ;line-height:72px; text-align: center;"></div>
+    
+    <div style="position:absolute; height: 440px; width: 1100px; top:  140px; left: 245px;">
+    	<div id="divRow0Cell0" class="divCla" style="top:0px; left: 0px;">
+    		<div id="zanRow0Cell0" class="zanIcoCla">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="xiexianRow0Cell0" class="xieXianCla">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>
+            <img id="songRow0Cell0" src="images/order/oneMonth.png" class="songCla"/>
+        	<div id="titleRow0Cell0" class="titleCla"></div>
+            <div id="monthRow0Cell0" class="monthCla"></div>
+            <div id="priceRow0Cell0" class="priceClass"><span style="font-size: 24px;"></span></div>
+        </div>
+        
+        <div id="divRow0Cell1" class="divCla" style="left: 330px;">
+    		<div id="zanRow0Cell1" class="zanIcoCla">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="xiexianRow0Cell1" class="xieXianCla">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>
+            <img id="songRow0Cell1" src="images/order/oneMonth.png" class="songCla"/>
+        	<div id="titleRow0Cell1" class="titleCla"></div>
+            <div id="monthRow0Cell1" class="monthCla"></div>
+            <div id="priceRow0Cell1" class="priceClass"><span style="font-size: 24px;"></span></div>
+        </div>
+        
+         <div id="divRow0Cell2" class="divCla" style="left: 660px;">
+    		<div id="zanRow0Cell2" class="zanIcoCla">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="xiexianRow0Cell2" class="xieXianCla">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>
+            <img id="songRow0Cell2" src="images/order/oneMonth.png" class="songCla"/>
+        	<div id="titleRow0Cell2" class="titleCla"></div>
+            <div id="monthRow0Cell2" class="monthCla"></div>
+            <div id="priceRow0Cell2" class="priceClass"><span style="font-size: 24px;"></span></div>
+        </div>
+        
+        
+        <div id="divRow1Cell0" class="divCla" style="top: 165px; left: 0px;">
+    		<div id="zanRow1Cell0" class="zanIcoCla">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="xiexianRow1Cell0" class="xieXianCla">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>
+            <img id="songRow1Cell0" src="images/order/oneMonth.png" class="songCla"/>
+        	<div id="titleRow1Cell0" class="titleCla"></div>
+            <div id="monthRow1Cell0" class="monthCla"></div>
+            <div id="priceRow1Cell0" class="priceClass"><span style="font-size: 24px;"></span></div>
+        </div>
+        
+          <div id="divRow1Cell1" class="divCla" style="left: 330px; top: 165px;">
+    		<div id="zanRow1Cell1" class="zanIcoCla">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="xiexianRow1Cell1" class="xieXianCla">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>
+            <img id="songRow1Cell1" src="images/order/oneMonth.png" class="songCla"/>
+        	<div id="titleRow1Cell1" class="titleCla"></div>
+            <div id="monthRow1Cell1" class="monthCla"></div>
+            <div id="priceRow1Cell1" class="priceClass"><span style="font-size: 24px;"></span></div>
+        </div>
+        
+        <div id="divRow1Cell2" class="divCla" style="left: 660px; top: 165px;">
+    		<div id="zanRow1Cell2" class="zanIcoCla">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="xiexianRow1Cell2" class="xieXianCla">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>
+            <img id="songRow1Cell2" src="images/order/oneMonth.png" class="songCla"/>
+        	<div id="titleRow1Cell2" class="titleCla"></div>
+            <div id="monthRow1Cell2" class="monthCla"></div>
+            <div id="priceRow1Cell2" class="priceClass"><span style="font-size: 24px;"></span></div>
+        </div>
+    </div>
+    
+    <div id="goBackBtn" style="background-image:url(images/order/btn_1.png); top: 600px; left: 1030px;" class="btnCla">返回</div>
+</div>
+
+<div style="position:absolute; top: 0px; left: 0px; width: 1280px; height: 720px;" id="menuTipText"></div>
+<div style="position:absolute; top: 0px; left: 0px; width: 1280px; height: 720px;" id="giftTip"></div>
+<div style="position: absolute; width: 1280px; height: 720px; top: 0px; left: 0px; background-image: url(images/user/bg.jpg); z-index: 7; font-size:26px; color: #FFF; line-height: 720px; text-align:center;" id="defautBg"></div>
+</body>
+</html>

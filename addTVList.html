@@ -1,0 +1,770 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>追剧列表</title>
+<style type="text/css">
+.rowsCla{
+	position: absolute; 
+	width: 100%;	
+	top: 21px; 
+	left: -1px;
+	height: 231px;
+	/*visibility: hidden;*/
+}
+
+.pInfoCla{
+	width: 143px; 
+	height: 100%; 
+	position: absolute;
+	visibility: hidden;
+	/*-webkit-transition-duration: 200ms;*/
+}
+
+.HDMarkCla{
+	background-image: url(images/list/hdMark.png); 
+	width: 100px;
+	height: 97px; 
+	position: absolute; 
+	top: -16px;
+	left: 60px;	
+	visibility: hidden;
+}
+.pImgCla{
+	width: 140px;
+	height: 197px;
+	border: 1px solid #FFF;
+	position: absolute; 
+	top: 0px; 
+	left: 0px;
+}
+.episodeInfoCla{
+	 background-color: #000;
+	 width: 97%; 
+	 height: 30px;
+	 top: 167px; 
+	 position: absolute; 
+	 left: 2px;
+}
+
+</style>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="data.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}else{
+	eval("tvsee={}");
+	tvsee = {debug:function(){}};
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);	
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);	
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		goBack();
+	}
+}
+function goBack(){
+	tvsee.eventFrame.globalParams.focusCache.remove("ADDTV");
+	if(globalParams.fromPage == "HOME"){
+		gotoPageUrl("about:blank");
+		tvsee.pageWidgets.getByName("widgetMenu").showWin();
+	}else if(globalParams.fromPage == "LIST" || globalParams.fromPage == "RECLIST"){
+		gotoPageUrl("about:blank");
+		var widgetList = tvsee.pageWidgets.getByName("widgetVodList");
+		if(globalParams.fromPage == "RECLIST"){
+			widgetList = tvsee.pageWidgets.getByName("widgetRecVodList");
+		}
+		widgetList.show();	
+	}else if(globalParams.fromPage == "OTHER_APP"){
+		exitAppTip();	
+	}else if(globalParams.fromPage == "LAUNCHER"){
+		tvsee.pageWidgets.getByName("widgetLauncher").showWin();
+	}
+}
+function moveUD(_num){
+	if(globalParams.isStartMoveFlag == true){
+		tvsee.debug("END");
+		return;	
+	}
+	var dataPosCount = Math.ceil(globalParams.totalCount / globalParams.listLineNumber);
+	var backupListY = globalParams.listY;
+	globalParams.listDataPos += _num;
+	if(globalParams.listDataPos < 0){
+		globalParams.listDataPos = 0;
+		return;
+	}else if(globalParams.listDataPos >= dataPosCount){
+		globalParams.listDataPos = dataPosCount - 1;	
+		return;
+	}
+	if(dataPosCount - globalParams.listDataPos > 3 && _num > 0){
+		if(globalParams.createHTMLRow <= dataPosCount){
+			createPInfoHTML(1);
+		}
+	}
+	var dataPosCount = Math.ceil(globalParams.totalCount / globalParams.listLineNumber) - 1;
+	if(globalParams.listDataPos == dataPosCount){
+		var endRowDataCount = globalParams.totalCount % globalParams.listLineNumber - 1;
+		if(globalParams.listY > endRowDataCount && _num > 0 && endRowDataCount >= 0){
+			globalParams.listY = endRowDataCount;
+		}	
+	}
+	window.clearTimeout(globalParams.moveUDTimeout);
+	var programName = globalParams.addTVData[(globalParams.listDataPos - _num) * globalParams.listLineNumber + backupListY].programName;
+	beforeLoseFocus(programName, globalParams.listDataPos - _num, backupListY);
+	globalParams.moveUDTimeout = setTimeout(function(){  //先改成这样(领导希望有这效果)
+		test();											 
+	},100);
+}
+
+function test(){
+	window.clearTimeout(globalParams.showTextListTimeout);
+	startMove($("pInfos"), {"top" : - globalParams.listDataPos * globalParams.listLineHigh}, function(){
+		globalParams.isStartMoveFlag = false;
+		listFocusStyle();
+	});
+	selectedListFocusStyle();
+	showPageInfo();
+	globalParams.scrollObj.scroll(globalParams.listDataPos);	
+}
+
+function selectedListFocusStyle(){
+	$("listFocus").style.left = (8 + globalParams.listY * 184) + "px";
+	$("listFocusBg").style.left = (-14 + globalParams.listY * 184) + "px";	
+	globalParams.showTextListTimeout = setTimeout(function(){
+		showProgramNameText();
+	}, 200);	
+}
+function moveLR(_num){
+	if(globalParams.listY == 0 && _num < 0){
+		return;	
+	}
+	globalParams.listY += _num;
+	if(globalParams.listY == globalParams.listLineNumber && _num > 0){
+		globalParams.listY--;
+		return;
+	}
+	var dataPosCount = Math.ceil(globalParams.totalCount / globalParams.listLineNumber) - 1;
+	if(globalParams.listDataPos == dataPosCount){
+		var endRowDataCount = globalParams.totalCount % globalParams.listLineNumber - 1;
+		if(globalParams.listY > endRowDataCount && _num > 0 && endRowDataCount >= 0){
+			globalParams.listY--;	
+			return;
+		}	
+	}
+	window.clearTimeout(globalParams.showTextListTimeout);
+	var programName = globalParams.addTVData[globalParams.listDataPos * globalParams.listLineNumber + globalParams.listY - _num].programName;
+	beforeLoseFocus(programName,  globalParams.listDataPos, globalParams.listY - _num);
+	listFocusStyle();
+	selectedListFocusStyle();
+	showPageInfo();
+}
+function doSelect(){
+	tvsee.eventFrame.globalParams.focusCache.put("ADDTV",globalParams);
+	var porgramObj = globalParams.addTVData[globalParams.listDataPos * globalParams.listLineNumber + globalParams.listY];
+	var pid = porgramObj.pid;	
+	var movietype = porgramObj.movietype;
+	//tvsee.mainFrame.location.href = "vodDetail.html?pid="+pid+"&fromPage=ADDTV&windowSize=fullScreen";
+	if(getMovieTypeDetail(movietype) == "vodVarietyDetail"){//综艺或者新闻
+		gotoPageUrl("vodVarietyDetail.html?pid="+pid+"&fromPage=ADDTV&windowSize=fullScreen");
+	}else if(getMovieTypeDetail(movietype) == "vodVarietyDetailNew"){
+		gotoPageUrl("vodVarietyDetailNew.html?pid="+pid+"&fromPage=ADDTV&windowSize=fullScreen");
+	}else{ /*if(pid >= VIP_JYJC_PID){//VIP专区
+		gotoPageUrl("vipVodDetail.html?pid="+pid+"&fromPage=ADDTV&windowSize=fullScreen");
+	}
+	else{*/
+		gotoPageUrl("vodDetail.html?pid="+pid+"&fromPage=ADDTV&windowSize=fullScreen");
+	}
+}
+var globalParams = {
+	listLineNumber: 6,
+	createHTMLRow: 4,
+	listStartHigh: 21,
+	totalCount: 0,
+	addTVData: [],
+	listDataPos: 0,
+	listY: 0,
+	scrollObj: null,
+	marqueeObj: null,
+	moveUDTimeout: -1,
+	isStartMoveFlag: false,
+	listLineHigh: 252,
+	ajaxListObj: null,
+	fromPage: "HOME"
+}
+function init(){
+	//globalParams.addTVData = addTvData.listPAT;
+	var totalCount = globalParams.addTVData.length;
+	if(tvsee.eventFrame.globalParams.focusCache.get("ADDTV")){
+		if(totalCount == tvsee.eventFrame.globalParams.focusCache.get("ADDTV").totalCount){
+			globalParams = tvsee.eventFrame.globalParams.focusCache.get("ADDTV");
+			var createRow = globalParams.createHTMLRow - 4;
+			globalParams.createHTMLRow = 4;
+			if(createRow > 0){
+				createPInfoHTML(createRow);
+			}
+			//globalParams.createHTMLRow = 4;
+		}
+	}else{
+		//hashtable.put("cateIdLevel1", 0);
+		//hashtable.put("epgName", 23);
+		//tvsLogger.saveOperLog(11);		
+	}
+	hashtable.put("ratingsSource", 11);
+	hashtable.put("pageName", 10);
+	tvsee.eventFrame.saveLogUserActioncontent();
+	if(typeof(fromPage) != "undefined"){
+		globalParams.fromPage = fromPage;	
+	}
+	globalParams.totalCount = globalParams.addTVData.length;
+	if(globalParams.totalCount > 0){
+		globalParams.scrollObj = new scrollBarClass("scroll", "scrollBar", window);
+		var dataPosCount = Math.ceil(globalParams.totalCount / globalParams.listLineNumber);
+		globalParams.scrollObj.init(dataPosCount, 1, 574, 113, "h");
+		var end = 0;
+		if(dataPosCount > globalParams.createHTMLRow){
+			end = globalParams.listLineNumber * globalParams.createHTMLRow;
+		}else{
+			end = globalParams.totalCount;	
+		}
+		showListInfo(0, end);
+		clearListInfo(end, globalParams.listLineNumber * globalParams.createHTMLRow);	
+		showPageInfo();
+		$("listFocus").style.visibility = "visible";
+		$("listFocusBg").style.visibility = "visible";
+		listFocusStyle(1);
+		if(tvsee.eventFrame.globalParams.focusCache.get("ADDTV")){
+			if(totalCount >= globalParams.totalCount){
+				focusBackDeal();
+			}
+		}else{
+			showProgramNameText();
+		}
+	}
+	setTimeout(function(){
+		$("listFocus").style.webkitTransitionDuration = "200ms";
+		$("listFocusBg").style.webkitTransitionDuration = "200ms";
+	},100);
+}
+//焦点返回处理
+function focusBackDeal(){
+	if(tvsee.eventFrame.globalParams.focusCache.get("ADDTV")){
+		selectedListFocusStyle();
+		$("pInfos").style.top = - globalParams.listDataPos * globalParams.listLineHigh + "px";
+	}
+}
+function initData(){
+	window.focus();
+	$("listFocus").style.border = FOCUS_STYLE.BORDER;
+	$("count").style.color = FOCUS_STYLE.COLOR;
+	var value = tvsee.eventFrame.globalParams.globalCache.get("addTv_CACHE");	
+	if(value == false){
+		globalParams.ajaxListObj = new ajaxClass();
+		globalParams.ajaxListObj.frame = window;
+		globalParams.ajaxListObj.url = getAjaxUrl("userQueryMyTV");
+		globalParams.ajaxListObj.successCallback = function(_xmlHttp, _params){
+			eval("globalParams.addTVData = (" + _xmlHttp.responseText + ").listPAT");
+			tvsee.eventFrame.globalParams.globalCache.put("addTv_CACHE", globalParams.addTVData);
+			init();
+		};
+		globalParams.ajaxListObj.failureCallback = function(_xmlHttp, _params) {
+			//$("type_0").innerText = "加载数据失败！";
+		};
+		globalParams.ajaxListObj.requestData();	
+	}else{
+		globalParams.addTVData = value;
+		init();
+	}	
+}
+function listFocusStyle(_type){
+	/*if(typeof(_type) != "undefined"){
+		setTimeout(function(){
+			$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransitionDuration = "300ms";
+			$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransform = "scale(1.15)";
+		},100)
+	}else{*/
+		//$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransitionDuration = "200ms";
+		$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransform = "scale(1.15)";
+	//}
+	globalParams.scrollObj.scroll(globalParams.listDataPos);
+}
+
+function showProgramNameText(){
+	var programName = globalParams.addTVData[globalParams.listDataPos * globalParams.listLineNumber + globalParams.listY].programName;
+	if(getCharByte(programName) > addTvPageStrLen.programNameLen){
+		globalParams.marqueeObj = new marqueeClass("pNameRow" + globalParams.listDataPos + "Cell" + globalParams.listY, programName);
+		globalParams.marqueeObj.scroll();
+	}
+}
+
+function beforeLoseFocus(_programName, _row, _cell){
+	$("pInfoRow" + _row + "Cell" + _cell).style.webkitTransitionDuration = "0ms";
+	$("pInfoRow" + _row + "Cell" + _cell).style.webkitTransform = "scale(1)";
+	if(globalParams.marqueeObj != null){
+		globalParams.marqueeObj.removeScroll();
+		globalParams.marqueeObj = null;
+	}
+	if(getCharByte(_programName) > addTvPageStrLen.programNameLen){
+		_programName = subStr(_programName, addTvPageStrLen.programNameLen, "...");	
+		$("pNameRow" + _row + "Cell" + _cell).innerText = _programName;
+	}
+}
+
+function showListInfo(_start , _end){
+	var row = 0;
+	var j = 0;
+	for(var i = _start; i < _end; i++){
+		$("imgRow" + row + "Cell" + j).src = PICURL + globalParams.addTVData[i].picUrl;
+		$("imgRow" + row + "Cell" + j).style.visibility = "hidden";
+		$("imgRow" + row + "Cell" + j).onload = function(){
+			this.removeAttribute("style");
+			fImageSizeToDiv(this);	
+		}
+		var  programName =  globalParams.addTVData[i].programName;
+		if(getCharByte(programName, addTvPageStrLen.programNameLen)  == true){
+				programName = subStr(programName, addTvPageStrLen.programNameLen, "...");	
+		}
+		if(globalParams.addTVData[i].definition  == SPEC_ID.DEFINITION){
+			$("markRow" + row + "Cell" + j).style.visibility = "visible";	
+		}
+		$("episodeRow" + row + "Cell" + j).innerHTML = (globalParams.addTVData[i].totalEpisode - globalParams.addTVData[i].watchEpisode) + "&nbsp;集";
+		$("episodeRow" + row + "Cell" + j).style.color = FOCUS_STYLE.COLOR;
+		$("pNameRow" + row + "Cell" + j).innerText = programName;
+		$("pInfoRow" + row + "Cell" + j).style.visibility = "visible";
+		if(j !=0 && j % 5 == 0){
+			row++;	
+			j = 0;
+		}else{	
+			j++;
+		}
+	}
+}
+function showPageInfo(){
+	$("count").innerText = (globalParams.listDataPos * globalParams.listLineNumber + globalParams.listY + 1);
+	$("totalCount").innerText = "/" + globalParams.totalCount + "部"
+}
+function clearListInfo(_start, _end){
+	var row = 0;
+	if(_start % globalParams.listLineNumber == 0){
+		row = Math.ceil(_start / globalParams.listLineNumber);
+	}else{
+		row = Math.ceil(_start / globalParams.listLineNumber) - 1;	
+	}
+	var j = _start % globalParams.listLineNumber;
+	for(var i = _start; i < _end; i++){
+		$("pInfoRow" + row + "Cell" + j).style.visibility = "hidden";
+		if(j !=0 && j % 5 == 0){
+			row++;	
+			j = 0;
+		}else{	
+			j++;
+		}
+	}	
+}
+function createPInfoHTML(count){
+	var pInfosObj = $("pInfos");
+	var leftArr = [20, 204, 388, 572, 756, 940];
+	for(var i = 0; i < count; i++){
+		var rowDivObj = document.createElement("div");
+		rowDivObj.id = "rows" + globalParams.createHTMLRow;
+		rowDivObj.style.top = (globalParams.createHTMLRow * 252 + globalParams.listStartHigh) +"px";
+		rowDivObj.className = "rowsCla";
+		for(var j = 0; j < globalParams.listLineNumber; j++){
+			var pInfoRowObj = document.createElement("div");
+			pInfoRowObj.id = "pInfoRow" + globalParams.createHTMLRow + "Cell" + j;
+			pInfoRowObj.style.left = leftArr[j] + "px";
+			pInfoRowObj.className = "pInfoCla";
+			var imgDivObj = document.createElement("div");
+			imgDivObj.className = "pImgCla";
+			pInfoRowObj.appendChild(imgDivObj);
+			
+			var imageObj = new Image();
+			
+			//imageObj.className = "pImgCla";
+			imageObj.id = "imgRow" + globalParams.createHTMLRow + "Cell" + j;
+			imgDivObj.appendChild(imageObj);
+			var HDMarkObj = document.createElement("div");
+			HDMarkObj.className = "HDMarkCla";
+			HDMarkObj.id = "markRow" + globalParams.createHTMLRow + "Cell" + j;
+			pInfoRowObj.appendChild(HDMarkObj);
+		
+			var episodeInfoObj = document.createElement("div");
+			episodeInfoObj.className = "episodeInfoCla";
+			episodeInfoObj.id = "episodeInfoRow" + globalParams.createHTMLRow + "Cell" + j;
+			
+			var episodeObj = document.createElement("div");
+			
+			episodeObj.id = "episodeRow" + globalParams.createHTMLRow + "Cell" + j;//"pNameRow" + globalParams.createHTMLRow + "Cell" + j;
+			episodeObj.className = "episodeCla";
+			episodeInfoObj.appendChild(episodeObj);
+			
+			var episodeTipObj = document.createElement("div");
+			episodeTipObj.className = "episodeTipCla";
+			if(typeof(globalParams.addTVData[globalParams.createHTMLRow * globalParams.listLineNumber + j]) != "undefined"){
+				episodeTipObj.style.visibility = "visible";
+				episodeInfoObj.style.visibility = "visible";
+			}
+			episodeTipObj.innerText = "未观看";
+			episodeInfoObj.appendChild(episodeTipObj);
+			
+			pInfoRowObj.appendChild(episodeInfoObj);
+			var pNameObj = document.createElement("div");
+			pNameObj.id = "pNameRow" + globalParams.createHTMLRow + "Cell" + j;//"episodeRow" + globalParams.createHTMLRow + "Cell" + j;
+			pNameObj.className = "addTvPNameCla";
+			pNameObj.style.visibility = "visible";
+			if(typeof(globalParams.addTVData[globalParams.createHTMLRow * globalParams.listLineNumber + j]) != "undefined"){
+				imgDivObj.style.visibility = "visible";
+				imageObj.src = PICURL + globalParams.addTVData[globalParams.createHTMLRow * globalParams.listLineNumber + j].picUrl;
+				imageObj.style.visibility = "hidden";
+				imageObj.onload = function(){
+					this.removeAttribute("style");
+					fImageSizeToDiv(this);	
+				}
+				var programName = globalParams.addTVData[globalParams.createHTMLRow * globalParams.listLineNumber + j].programName;
+				if(getCharByte(programName, addTvPageStrLen.programNameLen)  == true){
+					programName = subStr(programName, addTvPageStrLen.programNameLen, "...");	
+				}
+				pNameObj.innerText =  programName;	
+				if(globalParams.addTVData[globalParams.createHTMLRow * globalParams.listLineNumber + j].definition == SPEC_ID.DEFINITION){
+					HDMarkObj.style.visibility = "visible";
+				}
+				episodeObj.style.visibility = "visible";
+				episodeObj.innerHTML = (globalParams.addTVData[globalParams.createHTMLRow * globalParams.listLineNumber + j].totalEpisode - globalParams.addTVData[globalParams.createHTMLRow * globalParams.listLineNumber + j].watchEpisode) + "&nbsp;集";
+				episodeObj.style.color = FOCUS_STYLE.COLOR;
+			}else{
+				imageObj.src = "images/global_tm.gif";	
+				pInfoRowObj.style.visibility = "hidden";
+			}
+			pInfoRowObj.appendChild(pNameObj);
+			rowDivObj.appendChild(pInfoRowObj);
+		}
+		pInfosObj.appendChild(rowDivObj);
+		globalParams.createHTMLRow++;
+	}
+}
+window.onload = initData;
+</script>
+</head>
+<body>
+<div style="position: absolute; top: 0px; left: 0px; width: 1280px; height: 720px; background-image: url(images/addtv/bg.png);"></div>
+<div style="position: absolute; top: 0px; left: 0px; width: 1280px; height: 136px; background-image:url(images/record/topBg.png);"></div>
+<div style="position: absolute; width: 1280px; height: 77px; top: 28px; left: 0px;">
+	<div style="position: absolute; top: 22px; left: 75px; width: auto; height: 40px; line-height:40px; font-size: 40px; color: #FFF;" id="title">我的追剧</div>
+        <div class="addTvCountCla">
+        <div id="count" style="float:left;">0</div>
+        <div id="totalCount" style="float:left;">/0部</div>
+	</div>
+</div>
+
+<div style="position:absolute; overflow: hidden;  width: 1102px; height: 642px; left: 95px; top: 108px;"  >
+	<!---webkit-transition-duration: 200ms;-->
+ 	<div style="background-image: url(images/list/listFocusBg.png); width: 208px; height: 309px;    position: absolute; top: -18px; left: -14px; visibility: hidden;" id="listFocusBg"></div>
+	<div style="position: absolute; top: 0px; left: 0px; height: auto; width: 100%;" id="pInfos">
+        <div id="rows0" style="top: 21px;" class="rowsCla">
+            <div id="pInfoRow0Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow0Cell0" />
+                </div>
+                <div id="markRow0Cell0" class="HDMarkCla" ></div>
+                <div id="pNameRow0Cell0" class="addTvPNameCla">&nbsp;</div>
+                <div id="episodeInfoRow0Cell0" class="episodeInfoCla">
+                	<div id="episodeRow0Cell0" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow0Cell1" style="left: 204px;" class="pInfoCla">
+            	<div  class="pImgCla">
+                	<img src="" id="imgRow0Cell1" />
+                </div>
+                <div id="markRow0Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell1" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow0Cell1" class="episodeInfoCla">
+                	<div id="episodeRow0Cell1" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow0Cell2" style="left: 388px;" class="pInfoCla">
+            	<div class="pImgCla">
+              	  <img src="" id="imgRow0Cell2" />
+                </div>
+                <div id="markRow0Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell2" class="addTvPNameCla"></div>
+                 <div id="episodeInfoRow0Cell2" class="episodeInfoCla">
+                	<div id="episodeRow0Cell2" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow0Cell3" style="left: 572px;" class="pInfoCla">
+            	<div class="pImgCla">
+              	  <img src="" id="imgRow0Cell3"  />
+                </div>
+                <div id="markRow0Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell3" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow0Cell3" class="episodeInfoCla">
+                	<div id="episodeRow0Cell3" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow0Cell4" style="left: 756px;" class="pInfoCla">
+            	<div class="pImgCla">
+               	 <img src="" id="imgRow0Cell4" />
+                </div>
+                <div id="markRow0Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell4" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow0Cell4" class="episodeInfoCla">
+                	<div id="episodeRow0Cell4" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow0Cell5" style="left: 940px;" class="pInfoCla">
+            	<div class="pImgCla">
+              	  <img src="" id="imgRow0Cell5" />
+                </div>
+                <div id="markRow0Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell5" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow0Cell5" class="episodeInfoCla">
+                	<div id="episodeRow0Cell5" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="rows1" style="top: 273px; " class="rowsCla">
+            <div id="pInfoRow1Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow1Cell0" />
+                </div>
+                <div id="markRow1Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell0" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow1Cell0" class="episodeInfoCla">
+                	<div id="episodeRow1Cell0" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow1Cell1" style="left: 204px;" class="pInfoCla">
+          		<div class="pImgCla">
+               		 <img src="" id="imgRow1Cell1" />
+                </div>
+                <div id="markRow1Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell1" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow1Cell1" class="episodeInfoCla">
+                	<div id="episodeRow1Cell1" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow1Cell2" style="left: 388px;" class="pInfoCla">
+            	<div class="pImgCla">
+               	  <img src="" id="imgRow1Cell2" />
+                </div>
+                <div id="markRow1Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell2" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow1Cell2" class="episodeInfoCla">
+                	<div id="episodeRow1Cell2" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow1Cell3" style="left: 572px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow1Cell3" />
+                </div>
+                <div id="markRow1Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell3" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow1Cell3" class="episodeInfoCla">
+                	<div id="episodeRow1Cell3" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow1Cell4" style="left: 756px;" class="pInfoCla">
+            	<div class="pImgCla">
+              	  <img src="" id="imgRow1Cell4" />
+                </div>
+                <div id="markRow1Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell4" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow1Cell4" class="episodeInfoCla">
+                	<div id="episodeRow1Cell4" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow1Cell5" style="left: 940px;" class="pInfoCla">
+            	<div class="pImgCla">
+               	 <img src="" id="imgRow1Cell5"  />
+                </div>
+                <div id="markRow1Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell5" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow1Cell5" class="episodeInfoCla">
+                	<div id="episodeRow1Cell5" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="rows2" style="top: 525px;" class="rowsCla">
+            <div id="pInfoRow2Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla">
+               	 <img src="" id="imgRow2Cell0" />
+                </div>
+                <div id="markRow2Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell0" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow2Cell0" class="episodeInfoCla">
+                	<div id="episodeRow2Cell0" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow2Cell1" style="left: 204px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow2Cell1" />
+                </div>
+                <div id="markRow2Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell1" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow2Cell1" class="episodeInfoCla">
+                	<div id="episodeRow2Cell1" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow2Cell2" style="left: 388px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow2Cell2" />
+                </div>
+                <div id="markRow2Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell2" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow2Cell2" class="episodeInfoCla">
+                	<div id="episodeRow2Cell2" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            
+            <div id="pInfoRow2Cell3" style="left: 572px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow2Cell3" />
+                </div>
+                <div id="markRow2Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell3" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow2Cell3" class="episodeInfoCla">
+                	<div id="episodeRow2Cell3" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow2Cell4" style="left: 756px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow2Cell4" />
+                </div>
+                <div id="markRow2Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell4" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow2Cell4" class="episodeInfoCla">
+                	<div id="episodeRow2Cell4" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow2Cell5" style="left: 940px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow2Cell5" />
+                </div>
+                <div id="markRow2Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell5" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow2Cell5" class="episodeInfoCla">
+                	<div id="episodeRow2Cell5" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="rows3" style="top: 777px;" class="rowsCla">
+            <div id="pInfoRow3Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla">
+                	<img src="" id="imgRow3Cell0" />
+                </div>
+                <div id="markRow3Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell0" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow3Cell0" class="episodeInfoCla">
+                	<div id="episodeRow3Cell0" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow3Cell1" style="left: 204px;" class="pInfoCla">
+           		<div class="pImgCla">
+              	  <img src="" id="imgRow3Cell1" />
+                </div>
+                <div id="markRow3Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell1" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow3Cell1" class="episodeInfoCla">
+                	<div id="episodeRow3Cell1" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow3Cell2" style="left: 388px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow3Cell2"/>
+                </div>
+                <div id="markRow3Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell2" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow3Cell2" class="episodeInfoCla">
+                	<div id="episodeRow3Cell2" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow3Cell3" style="left: 572px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow3Cell3" />
+                </div>
+                <div id="markRow3Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell3" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow3Cell3" class="episodeInfoCla">
+                	<div id="episodeRow3Cell3" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow3Cell4" style="left: 756px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow3Cell4" />
+                </div>
+                <div id="markRow3Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell4" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow3Cell4" class="episodeInfoCla">
+                	<div id="episodeRow3Cell4" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+            <div id="pInfoRow3Cell5" style="left: 940px;" class="pInfoCla">
+            	<div class="pImgCla">
+               		 <img src="" id="imgRow3Cell5" />
+                </div>
+                <div id="markRow3Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell5" class="addTvPNameCla"></div>
+                <div id="episodeInfoRow3Cell5" class="episodeInfoCla">
+                	<div id="episodeRow3Cell5" class="episodeCla"></div>
+                    <div class="episodeTipCla">未观看</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- -webkit-transition-duration: 200ms;-->
+    <div style="width: 158px; height: 224px; top: 3px; left: 8px; position: absolute; visibility: hidden;" id="listFocus"></div>
+    <!--   <div style="border: 3px solid #ef7e04; width: 152px; height: 216px; top: 8px; left: 11px; position: absolute; -webkit-transition-duration: 200ms; visibility: hidden;" id="listFocus"></div> -->
+</div>
+
+<div style="width: 19px; position: absolute; left: 1200px; top: 113px;">
+	<img src="images/scrollBg0.png" width="19" height="9" /><br />
+    <img src="images/scrollBg1.png" width="19" height="574" />
+    <img src="images/scrollBg2.png" width="19" height="12" />
+</div>
+
+<div style="width: 19px; position: absolute; left: 1200px; top: 113px;" id="scroll">
+	<img src="images/scrollFocus0.png" width="19" height="9" /><br />
+    <img src="images/scrollFocus1.png" width="19" height="20" id="scrollBar" />
+    <img src="images/scrollFocus2.png" width="19" height="12" />
+</div>
+
+
+</body>
+</html>

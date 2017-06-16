@@ -1,0 +1,495 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>点播返回页面处理</title>
+<style type="text/css">
+.recImgCla{
+	width: 106px; 
+	height: 149px;
+	border: 3px solid #FFF;
+	visibility: hidden;
+}
+</style>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}
+var globalParams = {
+	backFocusArr: [],
+	listX: 1,
+	listY: 0,
+	parentWinObj: null,
+	isHd: false,
+	border: ""
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);	
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);
+	}else if(_eventObj.code == "KEY_SELECT"){
+		var data = globalParams.backFocusArr[globalParams.listY][globalParams.listX];
+//		alert(data.id)
+	try{
+		$(data.id).style.border = "";
+	}catch(e){
+		//TODO handle the exception
+		alert(e)
+	}
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		globalParams.parentWinObj.clickContBtn();
+//		resetBackBtn();
+		var data = globalParams.backFocusArr[globalParams.listY][globalParams.listX];
+//		alert(data.id)
+	try{
+		$(data.id).style.border = "";
+	}catch(e){
+		//TODO handle the exception
+		alert(e)
+	}
+			
+		
+		exit();
+	}
+	return _eventObj.args.type;
+}
+
+function mediaPlayerListeren(_state, _param){
+	globalParams.parentWinObj.mediaPlayerListeren(_state, _param);
+}
+function initParams(_winObj, _isHd){
+	globalParams.parentWinObj = _winObj;
+	globalParams.isHd = _isHd;
+	globalParams.border = _winObj.globalParams.border;
+}
+function initBackPage(){
+	globalParams.backFocusArr = [];
+	var obj = tvsee.eventFrame.globalParams.focusCache.get("vodDetail");
+	if(obj == false){
+		return;	
+	}
+	globalParams.backFocusArr.push([{id: 'conPlayBtn', getFocus: 'conPlayBtn0', loseFocus: 'conPlayBtn', currFocus: ''},
+									{id: 'exitBtn', getFocus: 'exitBtn0', loseFocus: 'exitBtn', currFocus: ''}]);
+	var row2Focus = [];
+	if(obj.globalParams.hdData.length > 0 && obj.globalParams.sdData.length > 0){
+		$("definition").style.display = "block";	
+		row2Focus.push({id: 'sdBtn', getFocus: 'sdBtn1', loseFocus: 'sdBtn', currFocus: 'sdBtn0'});
+		row2Focus.push({id: 'hdBtn', getFocus: 'hdBtn1', loseFocus: 'hdBtn', currFocus: 'hdBtn0'});
+		if(globalParams.isHd == true){
+			$("hdBtn0").style.display = "block";
+			$("hdBtn").style.display = "none";
+			$("hdBtn1").style.display = "none";
+			
+			$("sdBtn0").style.display = "none";
+			$("sdBtn1").style.display = "none";
+			$("sdBtn").style.display = "block";
+		}else{
+			$("sdBtn0").style.display = "block";
+			$("sdBtn").style.display = "none";
+			$("sdBtn1").style.display = "none";
+			
+			$("hdBtn0").style.display = "none";
+			$("hdBtn").style.display = "block";
+			$("hdBtn1").style.display = "none";
+		}
+	}else{
+		$("definition").style.display = "none";
+	}
+	///sltype ifprev
+	if(obj.globalParams.dataArr.program.sltype == obj.globalParams.dataArr.program.ifprevue || getMovieTypeTvOrNoTv(obj.globalParams.dataArr.program.movietype) != "TV"){//电视已更新完成
+		var value = "&nbsp;收藏";
+		if(fontStyle=="large"){
+			value = "收藏";
+		}
+		if(tvsee.eventFrame.globalCache.favoriteObj.get(globalParams.parentWinObj.pid) == true){
+			value = "&nbsp;取消";
+			if(fontStyle=="large"){
+				value = "取消";	
+			}
+		}
+		$("favoriteName").innerHTML = value;
+		$("favoriteName0").innerHTML = value;
+		$("favoriteImg").style.display = "block";
+		$("favoriteImg0").style.display = "none";
+		$("addTVImg").style.display = "none";
+		$("addTVImg0").style.display = "none";
+		row2Focus.push({id: 'favoriteImg', getFocus: 'favoriteImg0', loseFocus: 'favoriteImg', currFocus: ''});
+	}else{//电视未更新完
+		var value = "&nbsp;追剧";
+		if(fontStyle=="large"){
+			value = "追剧";
+		}
+		if(tvsee.eventFrame.globalCache.addTvObj.get(globalParams.parentWinObj.pid) == true){
+			value = "&nbsp;取消";	
+			if(fontStyle=="large"){
+				value = "取消";
+			}
+		}
+		$("addTVName").innerHTML = value;
+		$("addTVName0").innerHTML = value;
+		$("addTVImg").style.display = "block";
+		$("addTVImg0").style.display = "none";
+		$("favoriteImg").style.display = "none";
+		$("favoriteImg0").style.display = "none";
+		row2Focus.push({id: 'addTVImg', getFocus: 'addTVImg0', loseFocus: 'addTVImg', currFocus: ''});
+	}
+	globalParams.backFocusArr.push(row2Focus);
+	var data = [];
+	if(globalParams.isHd == true){
+		data = obj.globalParams.hdData;
+	}else{
+		data = obj.globalParams.sdData;
+	}
+	
+	if(data.length == 1 || getMovieTypeTvOrNoTv(obj.globalParams.dataArr.program.movietype) == "NO_TV"){
+		$("episodes").style.display = "none";	
+	}else{
+		var row3Focus = [];
+		if(globalParams.parentWinObj.episode <= 0){
+			$("upEpisodeImg").style.display = "none";
+			$("upEpisodeImg0").style.display = "none";
+		}else{
+			$("upEpisodeImg").style.display = "block";	
+			row3Focus.push({id: 'upEpisodeImg', getFocus: 'upEpisodeImg0', loseFocus: 'upEpisodeImg', currFocus: ''});
+		}
+		if((globalParams.parentWinObj.episode == data.length - 1)){
+			$("downEpisodeImg").style.display = "none";	
+			$("downEpisodeImg0").style.display = "none";	
+		}else{
+			$("downEpisodeImg").style.display = "block";
+			$("downEpisodeImg0").style.display = "none";	
+			row3Focus.push({id: 'downEpisodeImg', getFocus: 'downEpisodeImg0', loseFocus: 'downEpisodeImg', currFocus: ''});
+		}	
+		if(row3Focus.length > 0){
+			$("episodes").style.display = "block";
+			globalParams.backFocusArr.push(row3Focus);	
+		}
+	}
+	var recData = obj.globalParams.recProgramData;
+	var recDataLen = recData.length;
+	/*if(recDataLen == 0){
+		$("vodId").style.display = "none";
+		return;
+	}*/
+	$("vodId").style.display = "block";
+	if(recDataLen == 0){
+	   $("recid").style.display = "none";
+	   return;
+	}
+	$("recid").style.display = "block";
+	if(recDataLen > 4){
+		recDataLen = 4;	
+	}
+	var row = 0;
+	var cell = 0;
+	var recFocus = [];
+	var recId;
+	for(var i = 0; i < recDataLen; i++){
+		recId = "recDivRow" + row + "Cell" + cell;
+		$(recId).style.visibility = "visible";
+		$("recRow" + row + "Cell" + cell).src = PICURL + recData[i].picurl;
+		$("recRow" + row + "Cell" + cell).onload = function(){
+			drawImage(this.id, 106 , 149);
+		}
+		recFocus.push({id: recId, getFocus: '', loseFocus: '', currFocus: ''});
+		if(i != 0 && i == 1){
+			globalParams.backFocusArr.push(recFocus);	
+			row++;	
+			recFocus = [];
+		}
+		cell++;
+		if(cell > 1){
+			cell = 0;	
+		}
+	}
+	if(recFocus.length > 0){
+		globalParams.backFocusArr.push(recFocus);	
+	}
+}
+
+function moveUD(_num){
+	var dataLen = globalParams.backFocusArr.length;
+	if(globalParams.listY == 0 && _num < 0){
+		return;	
+	}else if(globalParams.listY == dataLen - 1 && _num > 0){
+		return;	
+	}
+	var data = globalParams.backFocusArr[globalParams.listY][globalParams.listX];
+	if(data.id == "sdBtn" && globalParams.isHd == false){
+		$(data.currFocus).style.display = "block";
+		$(data.getFocus).style.display = "none";
+		$(data.loseFocus).style.display = "none";
+	}else if(data.id == "hdBtn" && globalParams.isHd == true){
+		$(data.currFocus).style.display = "block";
+		$(data.getFocus).style.display = "none";
+		$(data.loseFocus).style.display = "none";
+	}else{
+		if(data.loseFocus == ""){
+			$(data.id).style.border = "";
+		}else{
+			$(data.loseFocus).style.display = "block";
+			$(data.getFocus).style.display = "none";
+		}
+	}
+	globalParams.listY += _num;
+	if(globalParams.backFocusArr[globalParams.listY].length - 1 < globalParams.listX){
+		globalParams.listX = globalParams.backFocusArr[globalParams.listY].length - 1;	
+	}
+	if(globalParams.backFocusArr[globalParams.listY][globalParams.listX].getFocus == ""){
+		$(globalParams.backFocusArr[globalParams.listY][globalParams.listX].id).style.border = globalParams.border;
+	}else{
+		$(globalParams.backFocusArr[globalParams.listY][globalParams.listX].getFocus).style.display = "block";
+		$(globalParams.backFocusArr[globalParams.listY][globalParams.listX].loseFocus).style.display = "none";
+		getFocusHdOrSd();
+	}
+}
+
+function getFocusHdOrSd(){
+	var data = globalParams.backFocusArr[globalParams.listY][globalParams.listX];
+	if(data.id == "sdBtn" && globalParams.isHd == false){
+		$(data.currFocus).style.display = "none";
+	}else if(data.id == "hdBtn" && globalParams.isHd == true){
+		$(data.currFocus).style.display = "none";
+	}	
+}
+
+function moveLR(_num){
+	var data = globalParams.backFocusArr[globalParams.listY];
+	if(globalParams.listX == 0 && _num < 0){
+		return;	
+	}else if(globalParams.listX == data.length - 1 && _num > 0){
+		return;	
+	}
+	var id = data[globalParams.listX].id;
+	if(id == "sdBtn" && globalParams.isHd == false){
+		$(data[globalParams.listX].currFocus).style.display = "block";
+		$(data[globalParams.listX].getFocus).style.display = "none";
+		$(data[globalParams.listX].loseFocus).style.display = "none";
+	}else if(id == "hdBtn" && globalParams.isHd == true){
+		$(data[globalParams.listX].currFocus).style.display = "block";
+		$(data[globalParams.listX].getFocus).style.display = "none";
+		$(data[globalParams.listX].loseFocus).style.display = "none";
+	}else{
+		if(data[globalParams.listX].loseFocus == ""){
+			$(data[globalParams.listX].id).style.border = "";
+		}else{
+			$(data[globalParams.listX].loseFocus).style.display = "block";
+			$(data[globalParams.listX].getFocus).style.display = "none";
+		}
+	}
+	globalParams.listX += _num;
+	if(data[globalParams.listX].getFocus == ""){
+		$(data[globalParams.listX].id).style.border = globalParams.border;
+	}else{
+		$(data[globalParams.listX].getFocus).style.display = "block";	
+		$(data[globalParams.listX].loseFocus).style.display = "none";	
+		getFocusHdOrSd();
+	}	
+}
+function doSelect(){
+	var data = globalParams.backFocusArr[globalParams.listY][globalParams.listX];
+	switch(data.id){
+		case "conPlayBtn":
+			globalParams.parentWinObj.clickContBtn(0);
+			exit();
+		break;
+		case "exitBtn":
+			exit();
+			globalParams.parentWinObj.clickExitBtn(0);
+		break;
+		case "sdBtn":
+			globalParams.isHd = false;
+			globalParams.parentWinObj.clickSdBtn();
+			resetBackBtn();
+			exit();
+		break;
+		case "hdBtn":
+			globalParams.isHd = true;
+			globalParams.parentWinObj.clickHdBtn();
+			resetBackBtn();
+			exit();
+		break;
+		case "favoriteImg":
+		case "addTVImg":
+			globalParams.parentWinObj.clickAddTvOrFavo();
+			initBackPage();
+			$(globalParams.backFocusArr[globalParams.listY][globalParams.listX].getFocus).style.display = "block";
+			$(globalParams.backFocusArr[globalParams.listY][globalParams.listX].loseFocus).style.display = "none";
+		break;
+		case "upEpisodeImg":
+			globalParams.parentWinObj.clickUpEpisodeBtn();
+			resetBackBtn();
+			exit();
+		break;
+		case "downEpisodeImg":
+			globalParams.parentWinObj.clickDownEpisodeBtn();
+			resetBackBtn();
+			exit();
+		break;
+	}	
+	try{
+		if(data.id.indexOf("recDivRow") != -1){
+		var row = parseInt(data.id.substring(9, 10), 10);
+		var cell = parseInt(data.id.substring(14, 15), 10);
+		exit();
+		globalParams.parentWinObj.clickRecMovie(0, row * 2 + cell);
+		resetBackBtn();
+	}
+	}catch(e){
+		//TODO handle the exception
+//		alert(e)
+	}
+	
+}
+
+function resetBackBtn(){
+	tvsee.debug("globalParams.backFocusArr:" + globalParams.backFocusArr + "length:" + globalParams.backFocusArr.length + ", listY:" + globalParams.listY + ", listX:" + globalParams.listX);
+	if(globalParams.backFocusArr == null || globalParams.backFocusArr.length == 0){
+		return;
+	}
+	if(globalParams.backFocusArr.length - 1 > globalParams.listY){
+		var data = globalParams.backFocusArr[globalParams.listY][globalParams.listX];
+		if(data.id == "sdBtn" && globalParams.isHd == false){
+			$("hdBtn0").style.display = "block";
+			$("hdBtn").style.display = "none";
+			$("hdBtn1").style.display = "none";
+		}else if(data.id == "hdBtn" && globalParams.isHd == true){
+			$("sdBtn0").style.display = "block";
+			$("sdBtn").style.display = "none";
+			$("sdBtn1").style.display = "none";
+		}else if(data.id.indexOf("recDivRow") != -1){
+			$(data.id).style.border = "";
+		}else{
+			$(data.loseFocus).style.display = "block";
+			$(data.getFocus).style.display = "none";
+		}
+	}
+	initBackPage();
+	globalParams.listX = 1;
+	globalParams.listY = 0;
+	data = globalParams.backFocusArr[globalParams.listY][globalParams.listX];
+	$(data.getFocus).style.display = "block";
+	$(data.loseFocus).style.display = "none";
+}
+
+function exit(){
+	tvsee.pageWidgets.getByName("widgetVodBack").hide();
+}
+</script>
+</head>
+
+<body>
+<div id="backMenu" style="background-image:url(images/play/menuBg.png); width: 336px; height: 720px; position: absolute; top: 0px; left: 0px;">
+    <div style="position: absolute; width: 247px; height: 663px; top: 27px; left: 66px; color: #FFF;" id="vodId">
+        <div style="width:90px; height:23px; color:#FFF; font-size:24px;">您选择</div>
+        <div style="background-image:url(images/play/conPlaybtn_1.png); width: 105px; height: 57px; line-height: 57px; margin-left: -3px; float: left;"
+        id="conPlayBtn">
+            <div style="padding-left:49px; font-size:20px;">继续</div>
+        </div>
+        <div style="background-image:url(images/play/conPlaybtn_0.png); width: 105px; height: 57px; line-height: 57px; margin-left: -3px; float: left; display:none;" id="conPlayBtn0">
+            <div style="padding-left:49px; font-size:20px;">继续</div>
+        </div>
+        <div style="background-image:url(images/play/exitPlayBtn_0.png); width: 105px; height: 57px; line-height: 57px; margin-left: 147px; "
+        id="exitBtn0">
+            <div style="padding-left:49px; font-size:20px;">退出</div>
+        </div>
+         <div style="background-image:url(images/play/exitPlayBtn_1.png); width: 105px; height: 57px; line-height: 57px; margin-left: 147px; display: none;"
+        id="exitBtn">
+            <div style="padding-left:49px; font-size:20px;">退出</div>
+        </div>
+        <div style="width: 100%; height: 110px;" id="defId">
+            <div style=" width: 120px; height: 100%; float: left; " id="definition">
+                <div style="width:100%; height:40px; line-height:40px; font-size:24px;">清晰度</div>
+                <div style="background-image: url(images/play/SD_btn_2.png); width: 52px; height: 64px; margin-left: -3px; float: left;" id="sdBtn"></div>
+                <div style="background-image: url(images/play/SD_btn_1.png); width: 52px; height: 64px; margin-left: -3px; float: left; display:none;" id="sdBtn0"></div>
+                <div style="background-image: url(images/play/SD_btn_0.png); width: 52px; height: 64px; margin-left: -3px; float: left; display: none;" id="sdBtn1"></div>
+                <div style="background-image: url(images/play/HD_btn_2.png); width: 52px; height: 64px; margin-left: 64px;" id="hdBtn"></div>
+                <div style="background-image: url(images/play/HD_btn_1.png); width: 52px; height: 64px; margin-left: 64px; display:none;" id="hdBtn0"></div>
+                <div style="background-image: url(images/play/HD_btn_0.png); width: 52px; height: 64px; margin-left: 64px; display:none;" id="hdBtn1"></div>
+            </div>
+            <div style="width: 110px; height: 100%; float: right;">
+                <div style="width:80px; height:40px; line-height:40px; margin-left:13px; font-size:24px;">
+                    您可以
+                </div>
+                <div style="width:105px; height: 57px; background-image:url(images/play/addTVBun1.png); margin-left: 8px; margin-top: -6px;"
+                id="addTVImg">
+                    <div id="addTVName" style="height:100%; line-height:57px; margin-left:50px; font-size:20px;">
+                        追剧
+                    </div>
+                </div>
+                <div style="width:105px; height: 57px; background-image:url(images/play/addTVBtn0.png); margin-left: 8px; margin-top: -6px; display: none;"
+                id="addTVImg0">
+                    <div id="addTVName0" style="height:100%; line-height:57px; margin-left:50px; font-size:20px;">
+                        追剧
+                    </div>
+                </div>
+                
+                <div style="width:105px; height: 57px; background-image:url(images/play/favoriteBtn1.png); margin-left: 8px; margin-top: -6px; display: none"
+                id="favoriteImg">
+                    <div id="favoriteName" style="height:100%; line-height:57px; margin-left:50px; font-size:20px;">
+                        收藏
+                    </div>
+                </div>
+                <div style="width:105px; height: 57px; background-image:url(images/play/favoriteBtn0.png); margin-left: 8px; margin-top: -6px; display: none;"
+                id="favoriteImg0">
+                    <div id="favoriteName0" style="height:100%; line-height:57px; margin-left:50px; font-size:20px;">
+                        收藏
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="episodes" style="width: 336px; height: 87px">
+            <div style="height:30px; line-height:30px; font-size:24px;">选集</div>
+            <div style="background-image:url(images/play/upEpisodeBtn1.png); width: 135px; height: 57px; margin-left: -6px; float: left;" id="upEpisodeImg">
+                <div style="line-height:57px; margin-left:54px; font-size:20px;">上一集</div>
+            </div>
+            <div style="background-image:url(images/play/upEpisodeBtn0.png); width: 135px; height: 57px; margin-left: -6px; float: left; display: none"
+            id="upEpisodeImg0">
+                <div style="line-height:57px; margin-left:54px; font-size:20px;">上一集</div>
+            </div>
+            <div style="background-image:url(images/play/downEpisodeBtn1.png); width: 135px; height: 57px; margin-left: 124px;"
+            id="downEpisodeImg">
+                <div style="line-height:57px; margin-left:54px; font-size:20px;">下一集</div>
+            </div>
+            <div style="background-image:url(images/play/downEpisodeBtn0.png); width: 135px; height: 57px; margin-left: 124px; display: none"
+            id="downEpisodeImg0">
+                <div style="line-height:57px; margin-left:54px; font-size:20px;">下一集</div>
+            </div>
+        </div>
+        <div style="width: 336px; height: 370px;" id="recid">
+            <div style="height:30px; line-height:30px; font-size:24px;">
+                您还可能喜欢
+            </div>
+            <!-- width="106" height="149" -->
+            <!-- width: 106px; height: 149px; border: 3px solid #FFF;visibility: hidden;-->
+            <div style="background-image:url(); margin-left: 7px; margin-top: 11px; float: left;"
+            class="recImgCla" id="recDivRow0Cell0">
+                <img src="" id="recRow0Cell0" />
+            </div>
+            <div style="background-image:url(); margin-left: 132px; margin-top: 11px;"
+            class="recImgCla" id="recDivRow0Cell1">
+                <img src="" id="recRow0Cell1" />
+            </div>
+            <div style="background-image:url(); margin-left: 7px; margin-top: 16px; float: left;"
+            class="recImgCla" id="recDivRow1Cell0">
+                <img src="" id="recRow1Cell0" />
+            </div>
+            <div style="background-image:url(); margin-left: 132px; margin-top: 16px;"
+            class="recImgCla" id="recDivRow1Cell1">
+                <img src="" id="recRow1Cell1" />
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

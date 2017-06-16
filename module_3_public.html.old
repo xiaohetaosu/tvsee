@@ -1,0 +1,22 @@
+<!-- 
+	这里的css、js脚本调用目录在epg工程下
+ -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<TITLE>EPG首页推荐</TITLE>
+<link type="text/css" rel="stylesheet" href="style/layout.css"/>
+<script language='javascript' src='js/importJs.js'></script>
+<script type="text/javascript" src="js/reflection.js"></script>
+</head>
+<BODY >
+<div id="content" class='contentCl' style="left:70px"><div style="top: 0px; left: 0px; width: 136px; height: 136px;" mkindex="1" id="div_1" up="0" left="0" right="2" down="9"><img src="../backStage/upload/CCTV-1.png</div>
+<script>
+if(parent.parent != self) {
+	parent.parent.jsExtendedInterface(window);
+}
+initPage(window, true);
+window.onload = intoPageInfo;
+</script>
+</BODY>
+</HTML>

@@ -1,0 +1,91 @@
+@charset "utf-8";
+
+body {
+
+	color: #FFFFFF;
+
+	font-family: "黑体";	
+
+}
+
+#div_top{
+
+	position:absolute;
+
+	top:7px;
+
+	height:78px;
+
+	width:1280px;
+
+	text-align:center;
+
+	font-size:26px;
+	background:url(../images/home/logo_live.png);
+/*
+	border-bottom:solid 1px #4B4B4B;*/
+	
+
+}
+/* #4B4B4B*/
+#div_imtems{
+
+	position:absolute;
+
+	top:88px;
+
+	left:215px;
+
+	height:65px;
+
+	width:850px;
+
+	text-align:center;
+
+	overflow: hidden;
+
+}
+
+.menus{
+
+	position:absolute;
+
+	top:0px;
+
+	width:164px;
+
+	height:65px;
+
+	line-height:58px;
+
+	text-align:center;
+
+	font-size:28px;
+
+	color:white
+
+}
+
+.menus_nosel{color:white}
+
+.menus_sel{color:white}
+
+.menus_over{background:url(../images/home/meun_new.png);color:#FFFFFF;font-size:32px}
+
+/*菜单选择样式控制*/
+
+/* Modify by bobo on 2014-02-28 */
+
+/*.meunsEd_over{color:#FDBB03}*/
+
+.meunsEd_over{color:#C0F954}*/
+
+.meunsEd_2{background:url(../images/home/meun_two.png);color:white;font-size:32px}
+
+/*
+
+.meunsEd_4{background:url(../images/home/meun_four.png);color:white;font-size:30px}
+
+*/
+
+.meunsEd_4{background:url(../images/home/meun_new.png);color:white;font-size:32px}

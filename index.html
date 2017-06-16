@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<TITLE> 首页 </TITLE>
+<!-- Modify by bobo on 2014-02-28 :
+			通过importJs.js动态导入CSS
+ -->
+
+<link type="text/css" rel="stylesheet" href="style/index.css"/>
+<link type="text/css" rel="stylesheet" href="style/theme_gitv.css"/>
+
+<script language='javascript' src='js/importJs.js'></script>
+<script language='javascript' src='js/utile.js'></script>
+<script type="text/javascript" src="js/datas.js"></script>
+<script type="text/javascript" src="common/common.js"></script>
+<script type="text/javascript" src="common/liveData.js"></script>
+<script type="text/javascript" src="js/index.js"></script>
+</HEAD>
+
+<script>	
+	if(parent != self) {
+		parent.jsExtendedInterface(window);
+	}
+	initPage(window, true);
+	//处理初始化加载白屏
+	//top.document.getElementById("blackbg").style.display="none";
+	this.onload=function(){
+		intoHome();
+		//日志部分
+		hashtable.put("cateIdLevel1", 0);
+		hashtable.put("epgName", 1);
+		tvsLogger.saveOperLog(11);
+		showTime();
+		weather();
+	}
+</script>
+<style>
+/*body{margin:auto;padding:auto;background-color:black;};*/
+</style>
+<BODY style="margin:auto;padding:auto;">
+<div id="page_bg"></div>
+<div id="div_top">
+	<div id="div_logo"></div>
+	<div style="position:absolute;top:30px;left:690px;color:white;" id="times" ></div>
+	<!--
+	<div style="position:absolute;top:20px;left:710px"><img src="images/home/wifi3.png"/></div>
+	
+	<div style="position:absolute;top:20px;left:310px;color:red;">WUHAN-81-TEST</div>-->
+	<div style="position:absolute;top:30px;left:770px;color:white;" id="dates" ></div>
+	<div id="wimg" style="position:absolute;top:25px;left:957px;width:55px;height:53px;line-height:53px;"></div>
+	<div style="position:absolute;top:23px;left:1020px;height:43px;line-height:43px;color:white; font-size: 22px" id="weather"></div>
+</div>
+<!--菜单项-->
+<div id="div_imtems"></div>
+<div id="div_iframes"></div>
+</BODY>
+</HTML>

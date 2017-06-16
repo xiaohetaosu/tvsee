@@ -1,0 +1,589 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>无标题文档</title>
+		<script src="common/common.js"></script>
+		<script src="common/config.js"></script>
+		<script src="js/jquery-1.8.3.js"></script>
+		<script type="text/javascript">
+			var saverCount = 0;
+			var pagePid = 0;
+			var pidType = null;
+			function gotoLiveOrVod(_keyCode, _type) {
+				var frame = window;
+				tvsee.eventFrame.globalParams.globalCache.put("timeCount", 0);
+				var saverStatus = document.getElementById("saverDiv").style.display;
+				if(typeof(tvsee) != "undefined") {
+					frame = tvsee.eventFrame;
+					/*if(typeof(tvsee.eventFrame.CITY) != "undefined"){
+						return;	
+					}*/
+					var focusName = frameManager.history[frameManager.history.length - 1];
+					if(focusName == "widgetLauncher"){
+						var saverStatus = document.getElementById("saverDiv").style.display;
+						if (saverStatus == "block"){
+							
+						}else{
+							return;
+						}
+					}
+					if (focusName == "widgetMenu"){
+					}
+				} else {
+					return;
+				}
+				if(_keyCode == 27 && saverStatus == "block") {
+//					tvsee.pageWidgets.getByName("widgetMenu").showWin();
+//					tvsee.pageWidgets.getByName("widgetVodList").minimize();
+                   tvsee.eventFrame.globalParams.globalCache.put("isSaverStatus", 1);
+					var status = document.getElementById("notice").style.display;
+					tvsee.eventFrame.globalParams.globalCache.put("timeCount", 0);
+					clearInterval(timetwo);
+					if(saverStatus == "block") {
+						document.getElementById("saverDiv").style.display = "none";
+						document.getElementById("img" + saverCount % maxLength).style.display = "none";
+					}
+					if(typeof(CITY) != "undefined" && CITY == "kunming") {
+						if(status == "block") {
+							document.getElementById("notice").style.display = "none";
+							return;
+						}
+					} else {
+						return
+					}
+				}
+
+				if(_keyCode == 13 && saverStatus == "block") {
+					tvsee.eventFrame.globalParams.globalCache.put("timeCount", 0);
+					var saverStatus = document.getElementById("saverDiv").style.display;
+					clearInterval(timetwo);
+					if(saverStatus == "block") {
+						var i = pagePid;
+						var saverType = saver[i].entityType
+						var saverPid = saver[i].entityId;
+						if(saverType == "catalog") {
+							if (focusName == "widgetVodVarietyDetail"){
+								tvsee.pageWidgets.getByName("widgetVodVarietyDetail").exitThis();
+								tvsee.pageWidgets.getByName("widgetVodList").minimize();
+							}
+							if (focusName == "widgetEpisode"){
+								var widgetEpisode = tvsee.pageWidgets.getByName("widgetEpisode");
+				        	    widgetEpisode.exitEpisode();
+				        	     tvsee.pageWidgets.getByName("widgetVodDetail").minimize();	
+				        	     tvsee.pageWidgets.getByName("widgetVodDetail").refreshDetailFocus();
+				        	     tvsee.eventFrame.globalParams.focusCache.remove("vodDetail");
+                                 frameManager.$(focusName).style.visibility = "hidden";
+                                 tvsee.pageWidgets.getByName("widgetVodList").minimize();
+								}
+							if (focusName == "widgetVodList"){
+								var widgetMovieType = tvsee.pageWidgets.getByName("widgetMovieType");
+			                    if(widgetMovieType != null){
+				                   widgetMovieType.clearGlobalParams();
+			                    }
+								tvsee.pageWidgets.getByName("widgetVodList").minimize();
+								tvsee.pageWidgets.getByName("widgetVodList").close();
+							}
+							tvsee.eventFrame.globalParams.globalCache.put("isSaverStatus", 1);
+							if (focusName == "widgetMenu"){
+								tvsee.pageWidgets.getByName("widgetMenu").hideWin();
+							}
+							if (focusName == "mainFrame"){
+								frameManager.$(focusName).style.visibility = "hidden";
+							}
+							if (focusName == "widgetVodDetail"){
+                                 tvsee.pageWidgets.getByName("widgetVodDetail").minimize();	
+                                 frameManager.$(focusName).style.visibility = "hidden";
+                                 tvsee.pageWidgets.getByName("widgetVodList").minimize();
+//                               return
+					        }
+							if (focusName == "widgetVodVarietyDetail"){
+                                 tvsee.pageWidgets.getByName("widgetVodVarietyDetail").minimize();
+                                 frameManager.$(focusName).style.visibility = "hidden";
+                                 tvsee.pageWidgets.getByName("widgetVodList").minimize();
+					        }
+					        if (focusName == "widgetVodVarietyDetailNew"){
+                                 tvsee.pageWidgets.getByName("widgetVodVarietyDetailNew").minimize();
+                                 frameManager.$(focusName).style.visibility = "hidden";
+                                 tvsee.pageWidgets.getByName("widgetVodList").minimize();
+					        }
+							if(saverPid == 1) {
+								var saverClname = "电影";
+							}
+							if(saverPid == 2) {
+								var saverClname = "电视剧";
+							}
+							if(saverPid == 6) {
+								var saverClname = "综艺";
+							}
+							if(saverPid == 4) {
+								var saverClname = "动漫";
+							}
+							if(saverPid == 3) {
+								var saverClname = "纪录片";
+							}
+							if(saverPid == 15) {
+								var saverClname = "少儿";
+							}
+							if(saverPid == 100001) {
+								var saverClname = "银河VIP";
+							}
+							if(saverPid == 100004) {
+								var saverClname = "精彩记录";
+							}
+							gotoProgramListPage(saverPid, saverClname);
+							document.getElementById("saverDiv").style.display = "none";
+							document.getElementById("img" + saverCount % maxLength).style.display = "none";
+							return;
+						} else {
+							if (focusName == "widgetVodVarietyDetail"){
+								tvsee.pageWidgets.getByName("widgetVodVarietyDetail").exitThis();
+								tvsee.pageWidgets.getByName("widgetVodList").minimize();
+							}
+							if (focusName == "widgetEpisode"){
+								var widgetEpisode = tvsee.pageWidgets.getByName("widgetEpisode");
+				        	    widgetEpisode.exitEpisode();
+				        	     tvsee.pageWidgets.getByName("widgetVodDetail").minimize();	
+				        	     tvsee.pageWidgets.getByName("widgetVodDetail").refreshDetailFocus();
+				        	     tvsee.eventFrame.globalParams.focusCache.remove("vodDetail");
+                                 frameManager.$(focusName).style.visibility = "hidden";
+                                 tvsee.pageWidgets.getByName("widgetVodList").minimize();
+								}
+							if (focusName == "widgetVodList"){
+								var widgetMovieType = tvsee.pageWidgets.getByName("widgetMovieType");
+			                    if(widgetMovieType != null){
+				                   widgetMovieType.clearGlobalParams();
+			                    }
+								tvsee.pageWidgets.getByName("widgetVodList").minimize();
+								tvsee.pageWidgets.getByName("widgetVodList").close();
+							}
+							
+							if (focusName == "widgetMenu"){
+								tvsee.pageWidgets.getByName("widgetMenu").hideWin();
+							}
+							if (focusName == "mainFrame"){
+								frameManager.$(focusName).style.visibility = "hidden";
+							}
+							if (focusName == "widgetVodDetail"){
+                                 tvsee.pageWidgets.getByName("widgetVodDetail").minimize();	
+                                 frameManager.$(focusName).style.visibility = "hidden";
+                                 tvsee.pageWidgets.getByName("widgetVodList").minimize();
+//                               return
+					        }
+							if (focusName == "widgetVodVarietyDetail"){
+                                 tvsee.pageWidgets.getByName("widgetVodVarietyDetail").minimize();
+                                 frameManager.$(focusName).style.visibility = "hidden";
+                                 tvsee.pageWidgets.getByName("widgetVodList").minimize();
+					        }
+					        if (focusName == "widgetVodVarietyDetailNew"){
+                                 tvsee.pageWidgets.getByName("widgetVodVarietyDetailNew").minimize();
+                                 frameManager.$(focusName).style.visibility = "hidden";
+                                 tvsee.pageWidgets.getByName("widgetVodList").minimize();
+					        }
+							if(saverPid == "" || saverPid == null) {
+								document.getElementById("saverDiv").style.display = "none";
+								document.getElementById("img" + saverCount % maxLength).style.display = "none";
+								return;
+							} else {
+								getMovieType();
+//								document.getElementById("saverDiv").style.display = "none";
+//								document.getElementById("img" + saverCount % maxLength).style.display = "none";
+							}
+						}
+					} else {
+						return
+					}
+				}
+				if(_keyCode != 13 && saverStatus == "block") {
+					tvsee.eventFrame.globalParams.globalCache.put("timeCount", 0);
+					tvsee.eventFrame.globalParams.globalCache.put("isSaverStatus", 1);
+//					tvsee.pageWidgets.getByName("widgetMenu").showWin();
+					clearInterval(timetwo);
+					var saverStatus = document.getElementById("saverDiv").style.display;
+					if(saverStatus == "block") {
+						clearInterval(timetwo);
+						//						timeOne = setInterval("timeClock()", 10000);
+						document.getElementById("saverDiv").style.display = "none";
+						document.getElementById("img" + saverCount % maxLength).style.display = "none";
+					}
+				}
+				if(_keyCode == 170) {
+					if(LIVE_PAGE_GOTO != "") {
+						frame.location.href = LIVE_PAGE_GOTO;
+					}
+					//if(typeof(CITY) != "undefined" && CITY == "kunming"){
+					//		 document.getElementById("notice").style.display="block";
+					//	}else{
+					//		return
+					//	}
+				}
+				if(_keyCode == 183 || _keyCode == 832) { //点播
+					/*if(VOD_PAGE_GOTO != ""){
+						frame.location.href = VOD_PAGE_GOTO + "?functionKeyCode=183";
+						if(_keyCode == 1){
+							globalvar.set("EPG_URL", VOD_PAGE_GOTO);
+						}else if(_keyCode == 0){
+							globalvar.set("EPG_URL", "");	
+						}
+					}*/
+					if(VOD_PAGE_GOTO != "") {
+						frame.location.href = VOD_PAGE_GOTO;
+					}
+				} else if(_keyCode == 184 || _keyCode == 833) { //直播
+					if(LIVE_PAGE_GOTO != ""){
+			frame.location.href = LIVE_PAGE_GOTO;
+		}
+					/*if(LIVE_PAGE_GOTO != ""){
+						frame.location.href = LIVE_PAGE_GOTO + "?functionKeyCode=184";
+						if(_keyCode == 1){
+							globalvar.set("EPG_URL", LIVE_PAGE_GOTO);
+						}else if(_keyCode == 0){
+							globalvar.set("EPG_URL", "");	
+						}
+					}*/
+//					LIVE_PAGE_GOTO_NOTICE = "noticePage.html";
+//					if(LIVE_PAGE_GOTO_NOTICE != "") {
+//						frame.location.href = LIVE_PAGE_GOTO_NOTICE;
+//					}
+					//      gotoPageUrl("noticePage.html");
+//					if(typeof(CITY) != "undefined" && CITY == "kunming") {
+//						document.getElementById("notice").style.display = "block";
+//					} else {
+//						return
+//					}
+
+				} else if(_keyCode == 185 || _keyCode == 834) {
+					if(_type == 0) {
+						frame.location.href = globalvar.get("EPG_URL");
+					}
+
+				} else if(_keyCode == 186 || _keyCode == 835) {
+					if(_type == 0) {
+						frame.location.href = globalvar.get("EPG_URL");
+					}
+				}
+			}
+
+			function gotoDetailPage(pid, type) {
+				if(pid == "") {
+					return;
+				}
+				var goToUrl = "vodDetail.html?pid=" + pid;
+				goToUrl += "&fromPage=HOME&windowSize=fullScreen";
+				if(type == "variety") { //综艺详情页
+					goToUrl = " vodVarietyDetailNew.html?pid=" + pid;
+					goToUrl += "&fromPage=HOME&windowSize=fullScreen";
+				} else if(type == "otherDetail") {
+					goToUrl = " vodVarietyDetail.html?pid=" + pid;
+					goToUrl += "&fromPage=HOME&windowSize=fullScreen";
+				}
+				hashtable.put("ratingsSource", 3);
+				//goToUrl = "userManager_kunming.html";
+//				tvsee.pageWidgets.getByName("widgetMenu").hideWin();
+				gotoPageUrl(goToUrl);
+			}
+			if(typeof(functionKeyCode) != "undefined") {
+				gotoLiveOrVod(functionKeyCode, 0);
+			}
+			window.onunload = function() {
+				globalvar.set("EPG_URL", window.location.href);
+			}
+		</script>
+		<script src="common/keyEvent.js"></script>
+		<script src="common/protal.js"></script>
+		<script src="common/mediaPlayerObj.js"></script>
+		<script src="common/globalCacheData.js"></script>
+		<script src="common/_tvsee_util.js"></script>
+		<script src="common/liveData.js"></script>
+		<script src="common/globalUploadLogs.js"></script>
+		<script type="text/javascript">
+			function init() {
+				//window.location.href = "http://10.255.199.17:7777/tvseePage16_inner_live/runtime.htm";
+				//window.location.href = "http://10.255.199.17:7777/tvseePage16_inner/runtime.htm";
+				//return;
+				checkBrowserType();
+				//var node = window.document.createElement("script");
+				//node.type = "text/javascript";
+				/*if (globalParams.browserType == "Android" && typeof(androidExtApi_app) != "undefined") {
+					node.src = "scripts/extAndroid.js";
+				}
+				node.addEventListener("load", function() {*/
+				//run();
+				//	}, false);
+				//window.document.head.appendChild(node);
+				run();
+			}
+
+			function mediaPlayerListeren(_state, _param) {
+				if(remotePlayStatus == 1) {
+					if(typeof(videoRemotePlayerFrame.mediaPlayerListeren) == "function") {
+						videoRemotePlayerFrame.mediaPlayerListeren(_state, _param);
+					}
+				} else {
+					var focusName = frameManager.history[frameManager.history.length - 1];
+					if(frameManager.history[frameManager.history.length - 1] == "widgetMenu") {
+						var frameObj = window.frames[focusName];
+						if(typeof(frameObj.frames[menus[window.frames["widgetMenu"].menuSelectPos - 1].iframeName].mediaPlayerListeren) == "function") {
+							frameObj.frames[menus[window.frames["widgetMenu"].menuSelectPos - 1].iframeName].mediaPlayerListeren(_state, _param);
+						}
+					} else {
+						var frameObj = window.frames[focusName];
+						if(typeof(frameObj.mediaPlayerListeren) == "function") {
+							frameObj.mediaPlayerListeren(_state, _param);
+						}
+					}
+				}
+			}
+
+			function GuidToUrl_Callback(_url) {
+				if(remotePlayStatus == 1) {
+					if(typeof(videoRemotePlayerFrame.GuidToUrl_Callback) == "function") {
+						videoRemotePlayerFrame.GuidToUrl_Callback(_url);
+					}
+				} else {
+					/*if(typeof(tvsee.mainFrame.GuidToUrl_Callback) == "function"){
+						tvsee.mainFrame.GuidToUrl_Callback(_url);
+					}*/
+					var focusName = frameManager.history[frameManager.history.length - 1];
+					if(frameManager.history[frameManager.history.length - 1] == "widgetMenu") {
+						if(window.frames["widgetMenu"].globalParams.isParentFocus == false) {
+							var frameObj = window.frames[focusName];
+							if(typeof(frameObj.frames[frameObj.globalParams.ifrChildName].GuidToUrl_Callback) == "function") {
+								frameObj.frames[frameObj.globalParams.ifrChildName].GuidToUrl_Callback(_state, _param);
+							}
+						}
+					} else {
+						var frameObj = window.frames[focusName];
+						if(typeof(frameObj.GuidToUrl_Callback) == "function") {
+							frameObj.GuidToUrl_Callback(_state, _param);
+						}
+					}
+				}
+			}
+
+			window.onload = init;
+			
+		</script>
+	</head>
+
+	<body style="margin:0px; overflow: hidden; background-color:transparent;">
+		<div id="loadPageStatus" style="position:absolute; left:50px; top:495px; width:175px; height:175px; background:none no-repeat; z-index:65536; visibility:hidden;"></div>
+
+		<!-- 0- Added by bobo on 2013-11-14 -->
+		<div id="videoRemotePlayerDiv" style="position:absolute; left:0px; top:0px; width:1280px; height:720px; background:none no-repeat; z-index:65536; display:none;">
+			<iframe id="videoRemotePlayerFrame" name="videoRemotePlayerFrame" src="vodRemotePlay.html" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+		</div>
+
+		<!-- 处理初始化加载白屏 -->
+		<div id="blackbg" style="position:absolute; left:0px; top:0px; width:1280px; height:720px; background-color:black; z-index:655377;">
+
+			<script type="text/javascript">
+				var loadingStatus = 0;
+				var bgLoadingUrl = "loading.jpg";
+				if(typeof(CITY) != "undefined" && CITY == "kunming") {
+					bgLoadingUrl = "loading_kunming.jpg";
+				}
+				document.getElementById("blackbg").style.backgroundImage = "url(" + (PUBLIC_VIDEO_PATH + bgLoadingUrl) + ")";
+				setTimeout(function() {
+					if(loadingStatus != 1) {
+						loadingStatus = 2;
+					} else {
+						document.getElementById("blackbg").style.display = "none";
+					}
+				}, 8000);
+			</script>
+		</div>
+
+		<div id="saverDiv" style="position:absolute; left:0px; top:0px; width:1280px; height:720px; z-index:655377;display: none;background-repeat: no-repeat;background-size: cover;background-position:center;">
+
+		</div>
+		<script type="text/javascript">
+			var saver = {
+				entityId: null,
+				entityType: null,
+				id: null,
+				name: null,
+				promotionPicUrl: null
+			}
+			var arr = {};
+
+			function getMovieType() {
+				var severUrl = VODEPG_SERVER + "GetMoviesByProgramId.action";
+				var asc = "asc";
+				var maxLength = saver.length;
+					var saverPid = saver[(saverCount-1)%maxLength].entityId;
+					jQuery.ajax({
+					type: "get",
+					url: severUrl,
+					data:{
+						pid: saverPid,
+						count: 0,
+						taxis: asc,
+					},success: function(data) {
+						dataArr = data.movies;
+						gotoDetail(dataArr[0].movietype);
+						document.getElementById("saverDiv").style.display = "none";
+				        document.getElementById("img" + saverCount % maxLength).style.display = "none";
+					}
+				})	
+			}
+
+			function getScreenPic() {
+				document.getElementById("saverDiv").style.display = "none";
+//			    document.getElementById("img" + saverCount % maxLength).style.display = "none";
+				var stbscreen = "stb_screen_saver";
+				jQuery.ajax({
+					type: "get",
+					url: "http://118.122.88.229:7070/vodEPG/jsonp/promotionAction.action",
+					data: {
+						position: stbscreen,
+					},success: function(data) {
+						saver = data.promotionList;
+						preLoadImg();
+						//	    		url = saver.promotionPicUrl;
+						//	    		timePre();
+					}
+				});
+			}
+			getScreenPic();
+//			setTimeout("getMovieType()", 3000)
+				//	    var timeCount = 0;
+				//      window.timeCount = 0;
+			var timeOne = setInterval("timeClock()", 60000);
+			function timeClock() {
+				if (typeof(tvsee) == undefined){
+					return;
+				}
+				var timeCount = tvsee.eventFrame.globalParams.globalCache.get("timeCount");
+				if(timeCount == false) {
+					timeCount = 0;
+				}
+				timeCount += 10;
+				tvsee.eventFrame.globalParams.globalCache.put("timeCount", timeCount);
+				//				console.log(timeCount);
+				if(timeCount == 50) {
+					var focusName = frameManager.history[frameManager.history.length - 1];
+					tvsee.eventFrame.globalParams.globalCache.put("timeCount", 0);
+					tvsee.eventFrame.globalParams.globalCache.put("isSaverStatus", 0);
+					if(mainFrame.location.href.indexOf("vodPlay.html") != -1) {
+						tvsee.eventFrame.globalParams.globalCache.put("isSaverStatus", 1);
+						tvsee.eventFrame.globalParams.globalCache.put("timeCount", 0);
+						return false;
+					} 
+					if (focusName == "widgetOrder"){
+						tvsee.eventFrame.globalParams.globalCache.put("isSaverStatus", 1);
+						tvsee.eventFrame.globalParams.globalCache.put("timeCount", 0);
+						return false;
+					}
+					if (mainFrame.location.href.indexOf("userOrderList.html") != -1){
+						tvsee.eventFrame.globalParams.globalCache.put("isSaverStatus", 1);
+						tvsee.eventFrame.globalParams.globalCache.put("timeCount", 0);
+						return false;
+					}
+					if (mainFrame.location.href.indexOf("recordList.html") != -1){
+						tvsee.eventFrame.globalParams.globalCache.put("isSaverStatus", 1);
+						tvsee.eventFrame.globalParams.globalCache.put("timeCount", 0);
+						return false;
+					}
+					
+					if (focusName == "widgetMovieType"){
+						var widgetMovieType = tvsee.pageWidgets.getByName("widgetMovieType");
+	                    if(widgetMovieType != null){
+		                widgetMovieType.minimize();
+	                    }
+					}
+						timetwo = setInterval("saverPageTag()", 8000);
+
+					
+				}
+			}
+			
+			/*跳转栏目列表页面*/
+			function gotoDetail(pidType) {
+				var maxLength=saver.length;
+				var saverPid = saver[(saverCount-1) % maxLength].entityId;
+				tvsee.eventFrame.globalParams.globalCache.put("isSaverStatus",1);
+				if(pidType == "电影") {
+					gotoDetailPage(saverPid, "detailed");
+					
+				}
+				if(pidType == "电视剧") {
+					gotoDetailPage(saverPid, "detailed");
+				}
+				if(pidType == "综艺") {
+					gotoDetailPage(saverPid, "variety");
+				}
+				if(pidType == "其他") {
+					gotoDetailPage(saverPid, "otherDetail");
+				}
+				document.getElementById("saverDiv").style.display = "none";
+				document.getElementById("img" + saverCount % maxLength).style.display = "none";
+			}
+
+			function gotoProgramListPage(cid,cname){
+	          if(cid == ""){
+		        return;
+	            }
+	     var widgetVodList = tvsee.pageWidgets.getByName("widgetVodList");
+	        if(widgetVodList != null){
+	        	if(typeof(CITY) != "undefined" && CITY == "kunming") {
+	        		tvsee.pageWidgets.getByName("widgetLauncher").hideWin();
+				}else{
+					tvsee.pageWidgets.getByName("widgetMenu").hideWin();
+				}
+		           widgetVodList.show();
+		        if(typeof(CITY) != "undefined" && CITY == "kunming") {
+	        		widgetVodList.initMenu(cid,cname, "LAUNCHER");
+				}else{
+					widgetVodList.initMenu(cid,cname);
+				}
+	}
+} 
+			//      预加载
+			var VOD_SAVER = "http://118.122.88.229:9876/poster/gitv";
+
+			function preLoadImg() {
+				arr = new Array();
+				for(i = 0; i < saver.length; i++) {
+					//      		img.src = VOD_SAVER +saver[i].promotionPicUrl;
+					var img = document.createElement("img");
+					arr[i] = VOD_SAVER + saver[i].promotionPicUrl;
+					img.src = arr[i];
+					img.setAttribute("id", "img" + i);
+					img.style.display = "none";
+					img.style.top = "0px";
+					img.style.left = "0px";
+					img.style.position = "absolute";
+					document.getElementById("saverDiv").appendChild(img);
+				}
+
+			}
+
+			function saverPageTag() {
+				var VOD_SAVER = "http://118.122.88.229:9876/poster/gitv";
+				var maxLength = saver.length;
+				tvsee.eventFrame.globalParams.globalCache.put("timeCount", 0);
+				//          		    document.getElementById("saverDiv").style.backgroundImage = "url(" + (VOD_SAVER +saver[saverCount].promotionPicUrl) + ")";
+				document.getElementById("saverDiv").style.display = "block";
+				document.getElementById("img" + saverCount % maxLength).style.display = "block";
+				//	    				setTimeout(function(){
+//					tvsee.pageWidgets.getByName("widgetMenu").hideWin();
+//					tvsee.pageWidgets.getByName("widgetVodList").minimize();
+//					tvsee.pageWidgets.getByName("widgetVodDetail").hide();
+				pagePid = saverCount % maxLength;
+				if(saverCount != 0) {
+					document.getElementById("img" + ((saverCount - 1) % maxLength)).style.display = "none"
+				}
+				//              console.log(saverCount%maxLength);
+				saverCount++;
+			}
+			/*清除上次请求的数据*/
+
+		</script>
+
+		<div id="notice" style="width: 1280px;height : 720px;top: 0px;left: 0px;background-image: url(images/noticeP.jpg);background-size: cover;background-repeat: no-repeat;display: none;"></div>
+		<div id="widgetVolume" style="position: absolute; left: 0px; top: 0px; width: 1280px; height: 720px; visibility: hidden; z-index: -1;"><iframe name="widgetVolume" src="widgetVolume.html" width="100%" height="100%" frameborder="0" scrolling="no"></iframe></div>
+	</body>
+
+</html>

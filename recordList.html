@@ -1,0 +1,807 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>最近观看历史记录</title>
+<style type="text/css">
+div{
+	/*border: 1px solid red;*/	
+}
+.rowsCla{
+	position: absolute; 
+	width: 1032px;	
+	top: 21px; 
+	left: 134px;
+	height: 231px;
+	/*visibility: hidden;*/
+}
+.pInfoCla{
+	width: 143px; 
+	height: 100%; 
+	position: absolute;
+	visibility: hidden;
+	/*-webkit-transition-duration: 200ms;*/
+}
+
+.HDMarkCla{
+	background-image: url(images/list/hdMark.png); 
+	width: 100px;
+	height: 97px; 
+	position: absolute; 
+	top: -16px;
+	left: 60px;	
+	visibility: hidden;
+}
+.pImgCla{
+	width: 140px;
+	height: 197px;
+	border: 1px solid #FFF;
+	position: absolute; 
+	top: 0px; 
+	left: 0px;
+}
+
+
+</style>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}else{
+	eval("tvsee={}");
+	tvsee = {debug:function(){}};
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);	
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);	
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		tvsee.eventFrame.globalParams.focusCache.remove("RECORD");	
+		if(globalParams.fromPage == "LIST" || globalParams.fromPage == "RECLIST"){
+			gotoPageUrl("about:blank");
+			var widgetList = tvsee.pageWidgets.getByName("widgetVodList");
+			if(globalParams.fromPage == "RECLIST"){
+				widgetList = tvsee.pageWidgets.getByName("widgetRecVodList");
+			}
+			widgetList.show();
+		}else if(globalParams.fromPage == "HOME"){
+			gotoPageUrl("about:blank");
+			tvsee.pageWidgets.getByName("widgetMenu").showWin();
+		}else if(globalParams.fromPage == "OTHER_APP"){
+			exitAppTip();	
+		}else if(globalParams.fromPage == "LAUNCHER"){
+			tvsee.pageWidgets.getByName("widgetLauncher").showWin();
+		}
+	}
+}
+function moveUD(_num){
+	if(globalParams.areaPos == 0){
+		globalParams.menuDataPos += _num;
+		var backDataPos = globalParams.menuDataPos;
+		if(globalParams.menuDataPos >= globalParams.menuData.length){
+			globalParams.menuDataPos--;	
+			return;
+		}else if(globalParams.menuDataPos < 0){
+			globalParams.menuDataPos = 0;
+			return;
+		}
+		/*var count =  0;
+		//菜单跟着左边列表变动    _num  下面的判断  +=globalParams.listPos  
+		if(_num > 0){
+			count = - globalParams.menuData[globalParams.menuDataPos - _num];// + globalParams.listPos;
+		}else{
+			count = globalParams.menuData[globalParams.menuDataPos];// - globalParams.listPos;
+		}
+		$("menu" + (globalParams.menuDataPos - _num)).style.color = "#FFF";
+		$("menu" + globalParams.menuDataPos).style.color = "#ffc000";
+		var top =  parseInt($("pInfos").style.top, 10) + count * globalParams.listLineHigh;
+		$("menuFocus").style.top = (-top + globalParams.menuStartPlace) + "px";
+		$("menuFocus").innerHTML = globalParams.menuNameData[globalParams.menuDataPos];
+		startMove($("pInfos"), {"top" : top}, function(){
+													   
+		});*/
+		globalParams.listDataPos = getListDataPos();
+		$("menuFocus").style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";
+		$("menu" + (globalParams.menuDataPos - _num)).style.color = "#FFF";
+		$("menu" + globalParams.menuDataPos).style.color = FOCUS_STYLE.COLOR;
+		$("menuFocus").innerHTML = globalParams.menuNameData[globalParams.menuDataPos];
+		//$("menuFocus").style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";	
+	
+		
+		startMove($("pInfos"), {"top" : - globalParams.listDataPos * globalParams.listLineHigh }, function(){});
+		//菜单跟着左边列表变动 
+		$("menu" +  globalParams.menuDataPos).style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";	
+		globalParams.listPos = 0;
+		globalParams.scrollObj.scroll(globalParams.listDataPos);
+	}else if(globalParams.areaPos == 1){
+		var backupListY = globalParams.listY;
+		var backupMenuDataPos = globalParams.menuDataPos;
+		var backupListPos = globalParams.listPos;
+		globalParams.listDataPos += _num;
+		if(globalParams.listDataPos < 0){
+			globalParams.listDataPos = 0;
+			return;
+		}else if(globalParams.listDataPos >= globalParams.totalCount){
+			globalParams.listDataPos = globalParams.totalCount - 1;	
+			return;
+		}
+		var dataMenuListCount = Math.ceil(globalParams.listDataArr[globalParams.menuDataPos].length / globalParams.listLineNumber) - 1;
+		globalParams.listPos += _num;
+		if(globalParams.listPos < 0){
+			globalParams.menuDataPos--;
+			globalParams.listPos = 	Math.ceil(globalParams.listDataArr[globalParams.menuDataPos].length / globalParams.listLineNumber) - 1;
+		}else if(globalParams.listPos > dataMenuListCount){
+			globalParams.listPos = 	0;	
+			globalParams.menuDataPos++;
+		}
+		dataMenuListCount = Math.ceil(globalParams.listDataArr[globalParams.menuDataPos].length / globalParams.listLineNumber) - 1;
+		if(globalParams.listPos == dataMenuListCount){
+			var endRowDataCount = globalParams.listDataArr[globalParams.menuDataPos].length % globalParams.listLineNumber - 1;
+			if(globalParams.listY > endRowDataCount && endRowDataCount >= 0){
+				globalParams.listY = endRowDataCount;
+			}
+		}
+		if(globalParams.menuDataPos != backupMenuDataPos){
+			$("menu" + backupMenuDataPos).style.color = "#FFF";
+			$("menu" + globalParams.menuDataPos).style.color = FOCUS_STYLE.COLOR;
+			var top = 0;
+			if(_num > 0){
+				top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace);
+			}else{
+				top = ((globalParams.listDataPos - (Math.ceil(globalParams.listDataArr[globalParams.menuDataPos].length / globalParams.listLineNumber) - 1)) * globalParams.listLineHigh + globalParams.menuStartPlace);
+			}
+			$("menuFocus").style.top =  top + "px";	
+		}
+		//菜单跟着左边列表变动
+		$("menu" + globalParams.menuDataPos).style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";
+		$("menuFocus").style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";	
+		//}
+		var programName = globalParams.listDataArr[backupMenuDataPos][backupListPos * globalParams.listLineNumber + backupListY].programName;
+		beforeLoseFocus(programName, globalParams.listDataPos - _num, backupListY);
+		window.clearTimeout(globalParams.moveUDTimeout);
+		globalParams.moveUDTimeout = setTimeout(function(){  //先改成这样(领导希望有这效果)
+//			setMenuPosition();														 
+			test();											 
+		},100);
+	}
+}
+
+function test(){
+	window.clearTimeout(globalParams.showTextListTimeout);
+	startMove($("pInfos"), {"top" : - globalParams.listDataPos * globalParams.listLineHigh}, function(){
+		globalParams.isStartMoveFlag = false;
+		listFocusStyle(2);
+	});
+	selectedListFocusStyle();
+	showPageInfo();
+	globalParams.scrollObj.scroll(globalParams.listDataPos);	
+}
+function moveLR(_num){
+	if(globalParams.areaPos == 0 && _num > 0){
+		globalParams.areaPos = 1;	
+		loseMenuFocus();
+		getListFocus();
+		listFocusStyle();
+	}else if(globalParams.areaPos == 1){
+		if(_num < 0 && globalParams.listY == 0){
+			globalParams.areaPos = 0;	
+			listLoseFocusStyle();
+		}else{
+			globalParams.listY += _num;
+			var dataCount = globalParams.listDataArr[globalParams.menuDataPos].length;
+			if(globalParams.listY == globalParams.listLineNumber && _num > 0){
+				globalParams.listY--;
+				return;
+			}
+			if(globalParams.listPos * globalParams.listLineNumber + globalParams.listY >= dataCount){
+				globalParams.listY--;
+				return;	
+			}
+			var programName = globalParams.listDataArr[globalParams.menuDataPos][globalParams.listPos * globalParams.listLineNumber + globalParams.listY - _num].programName;
+			beforeLoseFocus(programName,  globalParams.listDataPos, globalParams.listY - _num);
+			listFocusStyle(1);
+			selectedListFocusStyle();
+		}
+		showPageInfo();
+	}	
+}
+function doSelect(){
+	if(globalParams.areaPos == 1){
+		tvsee.eventFrame.globalParams.focusCache.put("RECORD", globalParams);
+		var porgramObj = globalParams.listDataArr[globalParams.menuDataPos][globalParams.listPos * globalParams.listLineNumber + globalParams.listY];
+		var pid = porgramObj.pid;	
+		var movietype = porgramObj.movieType;
+		if(getMovieTypeDetail(movietype) == "vodVarietyDetail"){//综艺或者新闻
+			gotoPageUrl("vodVarietyDetail.html?pid=" + pid + "&fromPage=RECORD&windowSize=fullScreen");
+		}else if(getMovieTypeDetail(movietype) == "vodVarietyDetailNew"){
+			gotoPageUrl("vodVarietyDetailNew.html?pid=" + pid + "&fromPage=RECORD&windowSize=fullScreen");
+		}else{
+			gotoPageUrl("vodDetail.html?pid=" + pid + "&fromPage=RECORD&windowSize=fullScreen");
+		}
+	}
+}
+
+function getListDataPos(){
+	var sum = 0;
+	for(var i = 0; i < globalParams.menuDataPos; i++){
+	 	sum += globalParams.menuData[i];
+	}	
+	return sum;
+}
+
+function getMenuFocus(){
+	$("menuFocus").style.visibility = "visible";	
+	$("menu" + globalParams.menuDataPos).style.color = FOCUS_STYLE.COLOR;
+	$("menuFocus").innerHTML = globalParams.menuNameData[globalParams.menuDataPos];
+}
+function loseMenuFocus(){
+	$("menuFocus").style.visibility = "hidden";			
+}
+function getListFocus(){
+	$("menuFocus").style.visibility = "hidden";
+	$("listFocus").style.visibility = "visible";
+	$("listFocus").style.left = "142px";
+	$("listFocusBg").style.visibility = "visible";
+	$("listFocusBg").style.left = "121px";	
+	showProgramNameText();
+	showPageInfo();
+}
+function listLoseFocusStyle(){
+	var programName = globalParams.listDataArr[globalParams.menuDataPos][globalParams.listPos * globalParams.listLineNumber + globalParams.listY].programName;
+	beforeLoseFocus(programName, globalParams.listDataPos, globalParams.listY);
+	loseListFocus();
+}
+
+function beforeLoseFocus(_programName, _row, _cell){
+	$("pInfoRow" + _row + "Cell" + _cell).style.webkitTransitionDuration = "0ms";
+	$("pInfoRow" + _row + "Cell" + _cell).style.webkitTransform = "scale(1)";
+	if(globalParams.marqueeObj != null){
+		globalParams.marqueeObj.removeScroll();
+		globalParams.marqueeObj = null;
+	}
+	if(getCharByte(_programName) > recordPageStrLen.programNameLen){
+		_programName = subStr(_programName, recordPageStrLen.programNameLen, "...");	
+		$("pNameRow" + _row + "Cell" + _cell).innerText = _programName;
+	}
+}
+function loseListFocus(){
+	$("menuFocus").style.visibility = "visible";
+	$("listFocus").style.visibility = "hidden";
+	$("listFocusBg").style.visibility = "hidden";		
+	$("menuFocus").innerHTML = globalParams.menuNameData[globalParams.menuDataPos];
+}
+function listFocusStyle(_type){
+	///if(typeof(_type) != "undefined"){
+		//if(_type == 1){
+		//	setTimeout(function(){
+				//$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransitionDuration = "300ms";
+				$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransform = "scale(1.15)";					
+		//	},100);
+		//}else if(_type == 2){
+			//$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransitionDuration = "0ms";
+			//$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransform = "scale(1.15)";	
+		//}
+	//}else{
+	//	$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransitionDuration = "300ms";
+	//	$("pInfoRow" + globalParams.listDataPos + "Cell" + globalParams.listY).style.webkitTransform = "scale(1.15)";
+	//}
+}
+function selectedListFocusStyle(){
+	window.clearTimeout(globalParams.showTextListTimeout);
+	$("listFocus").style.left = (142 + globalParams.listY * 170) + "px";
+	$("listFocusBg").style.left = (121 + globalParams.listY * 170) + "px";	
+	globalParams.showTextListTimeout = setTimeout(function(){
+		showProgramNameText();
+	}, 200);
+}
+
+function showProgramNameText(){
+	var programName = globalParams.listDataArr[globalParams.menuDataPos][globalParams.listPos * globalParams.listLineNumber + globalParams.listY].programName;
+	if(getCharByte(programName) > recordPageStrLen.programNameLen){
+		globalParams.marqueeObj = new marqueeClass("pNameRow" + globalParams.listDataPos + "Cell" + globalParams.listY, programName);
+		globalParams.marqueeObj.scroll();
+	}
+}
+function showPageInfo(){
+	var sum = 0;
+	for(var i = 0 ; i < globalParams.menuDataPos; i++){
+		sum += globalParams.listDataArr[i].length;
+	}
+	if(globalParams.areaPos == 1){
+		$("count").innerText = (sum + globalParams.listPos * globalParams.listLineNumber + globalParams.listY + 1);
+	}else{
+		$("count").innerText = 0;	
+	}
+	$("totalCount").innerText = "/" + (globalParams.januaryCount + globalParams.otherCount + globalParams.weekCount) + "部"
+}
+var globalParams = {
+	weekCount: 0,
+	januaryCount: 0,
+	otherCount: 0,
+	loadDataRow: 0,
+	menuDataPos: 0,
+	menuData: [],
+	menuStartPlace: 30,
+	listLineNumber: 6,
+	listY: 0,
+	listPos: 0,
+	areaPos: 0,	
+	ajaxListObj: null,
+	listData: null,
+	totalCount: 0,
+	defaltRow: 4,
+	createHTMLRow: 4,
+	listDataPos: 0,
+	listDataArr:[],
+	menuNameData:[],
+	marqueeObj: null,
+	showTextListTimeout: -1,
+	listLineHigh: 252,
+	listStartHigh: 21,
+	ajaxListObj: null,
+	fromPage: "HOME"
+}
+function init(){
+	window.focus();
+	$("count").style.color = FOCUS_STYLE.COLOR;
+	$("listFocus").style.border = FOCUS_STYLE.BORDER;
+	var cacheGlobalParams = tvsee.eventFrame.globalParams.focusCache.get("RECORD");
+	var records = tvsee.eventFrame.globalParams.globalCache.get("recordGroup_CACHE");
+	if(cacheGlobalParams && records != false && (cacheGlobalParams.weekCount + cacheGlobalParams.januaryCount + cacheGlobalParams.otherCount) == (records.week.length + records.january.length + records.other.length)){
+		globalParams = cacheGlobalParams;
+		globalParams.menuNameData = [];
+		globalParams.listDataArr = [];
+		globalParams.createHTMLRow = 4;
+		globalParams.menuData = [];
+		globalParams.loadDataRow = 0;
+	}else{
+		//hashtable.put("cateIdLevel1", 0);
+		//hashtable.put("epgName", 21);
+		//tvsLogger.saveOperLog(11);		
+		
+	}
+	
+	hashtable.put("ratingsSource", 9);
+	hashtable.put("pageName", 8);
+	tvsee.eventFrame.saveLogUserActioncontent();
+	
+	if(typeof(fromPage) != "undefined"){
+		globalParams.fromPage = fromPage;	
+	}
+	var value = tvsee.eventFrame.globalParams.globalCache.get("recordGroup_CACHE");
+	globalParams.scrollObj = new scrollBarClass("scroll", "scrollBar", window);
+	if(value == false){
+		//globalParams.listData = data.historyDateHashtable;	
+		globalParams.ajaxListObj = new ajaxClass();
+		globalParams.ajaxListObj.frame = window;
+		globalParams.ajaxListObj.url = getAjaxUrl("newUserQueryGroupRecord");
+		globalParams.ajaxListObj.successCallback = function(_xmlHttp, _params) {
+			eval("globalParams.listData = (" + _xmlHttp.responseText + ").historyDateHashtable");
+			tvsee.eventFrame.globalParams.globalCache.put("recordGroup_CACHE", globalParams.listData);
+			initMenu();
+			focusBackDeal();
+		};
+		globalParams.ajaxListObj.failureCallback = function(_xmlHttp, _params) {
+			//$("type_0").innerText = "加载数据失败！";
+		};
+		globalParams.ajaxListObj.requestData();
+	}else{
+		globalParams.listData = value;
+		initMenu();
+		focusBackDeal();
+	}
+}
+
+//焦点返回处理
+function focusBackDeal(){
+	if(tvsee.eventFrame.globalParams.focusCache.get("RECORD")){
+		if(globalParams.areaPos == 1){
+			$("pInfos").style.top = - globalParams.listDataPos * globalParams.listLineHigh+"px";
+			//菜单跟着左边列表变动
+			$("menu" + globalParams.menuDataPos).style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";
+			$("menuFocus").style.top = (globalParams.listDataPos * globalParams.listLineHigh + globalParams.menuStartPlace) + "px";	
+			$("menu" + globalParams.menuDataPos).style.color = FOCUS_STYLE.COLOR;
+			//$("menuFocus").innerHTML =  "<br/>" + verticalTextMiddle(globalParams.menuNameData[globalParams.menuDataPos]);
+			
+			$("menuFocus").style.visibility = "hidden";
+			$("listFocus").style.visibility = "visible";
+			$("listFocus").style.left = "142px";
+			$("listFocusBg").style.visibility = "visible";
+			$("listFocusBg").style.left = "121px";	
+			showPageInfo();
+			listFocusStyle(1);
+			selectedListFocusStyle();
+			showPageInfo();
+			globalParams.scrollObj.scroll(globalParams.listDataPos);
+		}
+	}/*else{
+		getMenuFocus();	
+	}*/
+}
+
+function initMenu(){
+	var j = 0;
+	var isWeek = false;
+	var count = 0;
+	var weekCount = 0;
+	var januaryCount = 0;
+	var otherCount = 0;
+	globalParams.weekCount = globalParams.listData.week.length;
+	globalParams.januaryCount = globalParams.listData.january.length;
+	globalParams.otherCount = globalParams.listData.other.length;
+	if(globalParams.listData.week.length > 0){
+		$("menu0").innerHTML = "<br/>一<br/>周<br/>观<br/>看";
+		globalParams.menuNameData.push("<br/>一<br/>周<br/>观<br/>看");
+		isWeek = true;
+		weekCount = Math.ceil(globalParams.listData.week.length / globalParams.listLineNumber);
+		globalParams.menuData.push(weekCount);
+		globalParams.listDataArr.push( globalParams.listData.week);
+		j++;	
+	}	
+	if(globalParams.listData.january.length > 0){
+		if(j == 0){
+			$("menu0").innerHTML = "<br/>本<br/>月<br/>观<br/>看";
+		}else if(j == 1){
+			$("menu1").innerHTML = "<br/>本<br/>月<br/>观<br/>看";
+			$("menu1").style.top = (globalParams.menuStartPlace + globalParams.listLineHigh * weekCount) + "px";
+		}
+		globalParams.menuNameData.push("<br/>本<br/>月<br/>观<br/>看");
+		januaryCount = Math.ceil(globalParams.listData.january.length / globalParams.listLineNumber);
+		globalParams.menuData.push(januaryCount);
+		globalParams.listDataArr.push( globalParams.listData.january);
+		j++;
+	}
+	if(globalParams.listData.other.length > 0){
+		if(j == 0){
+			$("menu0").innerHTML = "<br/>更<br/>多<br/>记<br/>录";
+		}else if(j == 1){
+			$("menu1").innerHTML = "<br/>更<br/>多<br/>记<br/>录";
+			if(isWeek == true){
+				count = weekCount;
+			}else{
+				count = januaryCount;	
+			}
+			$("menu1").style.top = (globalParams.menuStartPlace + globalParams.listLineHigh * count) + "px";
+		}else if(j == 2){
+			count = weekCount + januaryCount;	
+			$("menu2").innerHTML = "<br/>更<br/>多<br/>记<br/>录";
+			$("menu2").style.top = (globalParams.menuStartPlace + globalParams.listLineHigh * count) + "px";
+		}	
+		globalParams.menuNameData.push("<br/>更<br/>多<br/>记<br/>录");
+		j++;
+		otherCount = Math.ceil(globalParams.listData.other.length / globalParams.listLineNumber);	
+		globalParams.menuData.push(otherCount);
+		globalParams.listDataArr.push( globalParams.listData.other);
+	}
+	for(var i = 0; i < j; i++){
+		$("menu" + i).style.visibility = "visible";	
+	}
+	globalParams.totalCount = otherCount + weekCount + januaryCount;
+	if(globalParams.totalCount > globalParams.defaltRow){
+		createPInfoHTML(globalParams.totalCount - globalParams.defaltRow);	
+	}
+	
+	if(j > 0){
+		initListData();
+		showPageInfo();
+		globalParams.scrollObj.init(globalParams.totalCount, 1, 574, 113, "h");
+		globalParams.scrollObj.scroll(0);
+		getMenuFocus();	
+	}
+	setTimeout(function(){
+		$("listFocus").style.webkitTransitionDuration = "200ms";
+		$("listFocusBg").style.webkitTransitionDuration = "200ms";
+	},100);
+}
+
+
+
+function initListData(){
+	showListText(Math.ceil(globalParams.weekCount / globalParams.listLineNumber), globalParams.listData.week);
+	showListText(Math.ceil(globalParams.januaryCount / globalParams.listLineNumber), globalParams.listData.january);
+	showListText(Math.ceil(globalParams.otherCount / globalParams.listLineNumber), globalParams.listData.other);
+	for(var i = globalParams.loadDataRow; i < globalParams.defaltRow; i++){
+		for(var k = 0; k < globalParams.listLineNumber; k++){
+			$("pInfoRow" + i + "Cell" + k).style.visibility = "hidden";	
+		}
+	}
+}
+
+function showListText(_size, _data){
+	for(var i = 0; i < _size; i++){
+		for(var k = 0; k < globalParams.listLineNumber; k++){
+			if(typeof(_data[k + globalParams.listLineNumber * i]) != "undefined"){
+				$("imgRow" + globalParams.loadDataRow + "Cell" + k).src = PICURL + _data[k + globalParams.listLineNumber * i].picUrl;		
+				$("imgRow" + globalParams.loadDataRow + "Cell" + k).style.visibility = "hidden";
+				$("imgRow" + globalParams.loadDataRow + "Cell" + k).onload = function(){
+					this.removeAttribute("style");
+					fImageSizeToDiv(this);		
+				}
+				var  programName =  _data[k + globalParams.listLineNumber * i].programName;
+				if(getCharByte(programName, recordPageStrLen.programNameLen)  == true){
+						programName = subStr(programName, recordPageStrLen.programNameLen, "...");	
+				}
+				$("pNameRow" + globalParams.loadDataRow + "Cell" + k).innerText = programName;
+				if(_data[k + globalParams.listLineNumber * i].definition == SPEC_ID.DEFINITION){
+					$("markRow" + globalParams.loadDataRow + "Cell" + k).style.visibility = "visible";		
+				}
+				$("pInfoRow" + globalParams.loadDataRow + "Cell" + k).style.visibility = "visible";
+			}else{
+				//$("markRow" + j + "Cell" + k).style.visibility = "hidden";	
+				//$("pNameRow" + j + "Cell" + k).innerText = "";
+				//("imgRow" + j + "Cell" + k).src = "images/global_tm.gif";
+				$("pInfoRow" + globalParams.loadDataRow + "Cell" + k).style.visibility = "hidden";
+			}
+		}
+		globalParams.loadDataRow++;
+	}	
+	
+}
+
+function createPInfoHTML(count){
+	var pInfosObj = $("pInfos");
+	var leftArr = [20, 190, 360, 530, 700, 870];
+	for(var i = 0; i < count; i++){
+		var rowDivObj = document.createElement("div");
+		rowDivObj.id = "rows" + globalParams.createHTMLRow;
+		rowDivObj.style.top = (globalParams.createHTMLRow * globalParams.listLineHigh + globalParams.listStartHigh) +"px";
+		rowDivObj.className = "rowsCla";
+		for(var j = 0; j < globalParams.listLineNumber; j++){
+			var pInfoRowObj = document.createElement("div");
+			pInfoRowObj.id = "pInfoRow" + globalParams.createHTMLRow + "Cell" + j;
+			pInfoRowObj.style.left = leftArr[j] + "px";
+			pInfoRowObj.className = "pInfoCla";
+			
+			var imgDivObj = document.createElement("div");
+			imgDivObj.className = "pImgCla";
+			pInfoRowObj.appendChild(imgDivObj);
+			
+			var imageObj = new Image();
+			//imageObj.className = "pImgCla";
+			imageObj.id = "imgRow" + globalParams.createHTMLRow + "Cell" + j;
+			imgDivObj.appendChild(imageObj);
+			var HDMarkObj = document.createElement("div");
+			HDMarkObj.className = "HDMarkCla";
+			HDMarkObj.id = "markRow" + globalParams.createHTMLRow + "Cell" + j;
+			pInfoRowObj.appendChild(HDMarkObj);
+			var pNameObj = document.createElement("div");
+			pNameObj.id = "pNameRow" + globalParams.createHTMLRow + "Cell" + j;
+			pNameObj.className = "recordPNameCla";
+			imageObj.src = "images/global_tm.gif";	
+			//pInfoRowObj.style.visibility = "hidden";
+			pInfoRowObj.appendChild(pNameObj);
+			rowDivObj.appendChild(pInfoRowObj);
+		}
+		pInfosObj.appendChild(rowDivObj);
+		globalParams.createHTMLRow++;
+	}
+}
+
+window.onload = init;
+</script>
+</head>
+<body>
+<div style="position: absolute; top: 0px; left: 0px; width: 1280px; height: 720px; background-image:url(images/record/bg.png);"></div>
+<div style="position: absolute; top: 0px; left: 0px; width: 1280px; height: 136px; background-image:url(images/record/topBg.png);"></div>
+<div style="position:absolute; overflow: hidden;  width: 1167px; height: 642px; left: 0px; top: 108px; "  >
+	<!---webkit-transition-duration: 200ms;-->
+ 	<div style="background-image: url(images/list/listFocusBg.png); width: 208px; height: 309px; position: absolute; top: -18px; left: 121px; visibility: hidden;" id="listFocusBg"></div>
+	<div style="position: absolute; top: 0px; left: 0px; height: auto; width: 100%;" id="pInfos">
+    	<div id="menu0" class="recordMenuCla" style="top: 30px;"></div>
+        <div id="menu1" class="recordMenuCla" style="top: 284px;"></div>
+        <div id="menu2" class="recordMenuCla" style="top: 538px;"></div>
+        <div id="menuFocus" class="recordMenuFocusCla"></div>
+        <div id="rows0" style="top: 21px;" class="rowsCla">
+            <div id="pInfoRow0Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla" >
+               		 <img src="" id="imgRow0Cell0" />
+                </div>
+                <div id="markRow0Cell0" class="HDMarkCla" ></div>
+                <div id="pNameRow0Cell0" class="recordPNameCla">&nbsp;</div>
+            </div>
+            <div id="pInfoRow0Cell1" style="left: 190px;" class="pInfoCla">
+            	<div class="pImgCla" >
+               		 <img src="" id="imgRow0Cell1" />
+                </div>
+                <div id="markRow0Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell1" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow0Cell2" style="left: 360px;" class="pInfoCla">
+            	<div class="pImgCla" >
+               		 <img src="" id="imgRow0Cell2" />
+                </div>
+                <div id="markRow0Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell2" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow0Cell3" style="left: 530px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow0Cell3" />
+                </div>
+                <div id="markRow0Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell3" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow0Cell4" style="left: 700px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow0Cell4" />
+                </div>
+                <div id="markRow0Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell4" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow0Cell5" style="left: 870px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow0Cell5" />
+                </div>
+                <div id="markRow0Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow0Cell5" class="recordPNameCla"></div>
+            </div>
+        </div>
+        
+        <div id="rows1" style="top: 273px; " class="rowsCla">
+            <div id="pInfoRow1Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow1Cell0" />
+                </div>
+                <div id="markRow1Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell0" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell1" style="left: 190px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow1Cell1" />
+                </div>
+                <div id="markRow1Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell1" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell2" style="left: 360px;" class="pInfoCla">
+            	<div class="pImgCla" >
+               		 <img src="" id="imgRow1Cell2" />
+                </div>
+                <div id="markRow1Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell2" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell3" style="left: 530px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow1Cell3" />
+                </div>
+                <div id="markRow1Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell3" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell4" style="left: 700px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow1Cell4" />
+                </div>
+                <div id="markRow1Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell4" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow1Cell5" style="left: 870px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow1Cell5" />
+                </div>
+                <div id="markRow1Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow1Cell5" class="recordPNameCla"></div>
+            </div>
+        </div>
+        
+        <div id="rows2" style="top: 525px;" class="rowsCla">
+            <div id="pInfoRow2Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla" >
+               		 <img src="" id="imgRow2Cell0" />
+                </div>
+                <div id="markRow2Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell0" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell1" style="left: 190px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow2Cell1" />
+                </div>
+                <div id="markRow2Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell1" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell2" style="left: 360px;" class="pInfoCla">
+            	<div class="pImgCla" >
+               		 <img src="" id="imgRow2Cell2" />
+                </div>
+                <div id="markRow2Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell2" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell3" style="left: 530px;" class="pInfoCla">
+            	<div class="pImgCla" >
+               		 <img src="" id="imgRow2Cell3" />
+                </div>
+                <div id="markRow2Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell3" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell4" style="left: 700px;" class="pInfoCla">
+            	<div class="pImgCla" >
+               		 <img src="" id="imgRow2Cell4" />
+                </div>
+                <div id="markRow2Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell4" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow2Cell5" style="left: 870px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow2Cell5" />
+                </div>
+                <div id="markRow2Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow2Cell5" class="recordPNameCla"></div>
+            </div>
+        </div>
+        
+        <div id="rows3" style="top: 777px;" class="rowsCla">
+            <div id="pInfoRow3Cell0" style="left: 20px;" class="pInfoCla">
+            	<div class="pImgCla" >
+               		<img src="" id="imgRow3Cell0" />
+                </div>
+                <div id="markRow3Cell0" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell0" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell1" style="left: 190px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow3Cell1" />
+                </div>
+                <div id="markRow3Cell1" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell1" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell2" style="left: 360px;" class="pInfoCla">
+            	<div class="pImgCla" >
+              	  <img src="" id="imgRow3Cell2" />
+                </div>
+                <div id="markRow3Cell2" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell2" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell3" style="left: 530px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow3Cell3" />
+                </div>
+                <div id="markRow3Cell3" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell3" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell4" style="left: 700px;" class="pInfoCla">
+            	<div class="pImgCla" >
+                	<img src="" id="imgRow3Cell4" />
+                </div>
+                <div id="markRow3Cell4" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell4" class="recordPNameCla"></div>
+            </div>
+            <div id="pInfoRow3Cell5" style="left: 870px;" class="pInfoCla">
+            	<div class="pImgCla" >
+               		 <img src="" id="imgRow3Cell5" />
+                </div>
+                <div id="markRow3Cell5" class="HDMarkCla"></div>
+                <div id="pNameRow3Cell5" class="recordPNameCla"></div>
+            </div>
+        </div>
+    </div>
+    <!---webkit-transition-duration: 200ms;-->
+    <div style="width: 160px; height: 224px; top: 3px; left: 142px; position: absolute;  visibility: hidden;" id="listFocus"></div>
+</div>
+
+<div class="recordTitleCla" id="title"></div>
+<div class="recordCountCla">
+	<div id="count" style="float:left;">0</div>
+    <div id="totalCount" style="float:left;">/0部</div>
+</div>
+
+<div style="width: 19px; position: absolute; left: 1165px; top: 113px;">
+	<img src="images/scrollBg0.png" width="19" height="9" /><br />
+    <img src="images/scrollBg1.png" width="19" height="574" />
+    <img src="images/scrollBg2.png" width="19" height="12" />
+</div>
+
+<div style="width: 19px; position: absolute; left: 1165px; top: 113px;" id="scroll">
+	<img src="images/scrollFocus0.png" width="19" height="9" /><br />
+    <img src="images/scrollFocus1.png" width="19" height="20" id="scrollBar" />
+    <img src="images/scrollFocus2.png" width="19" height="12" />
+</div>
+</body>
+</html>

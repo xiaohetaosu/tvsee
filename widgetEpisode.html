@@ -1,0 +1,510 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>选集</title>
+		<script type="text/javascript" src="common/config.js"></script>
+		<script type="text/javascript" src="common/keyEvent.js"></script>
+		<script type="text/javascript" src="common/common.js"></script>
+		<script type="text/javascript" src="js/home.js"></script>
+		<script type="text/javascript">
+			initPage(window, false);
+			if(parent != self) {
+				parent.jsExtendedInterface(window);
+			}
+			var globalParams = {
+				windowsParams: {
+					fullScreen: {
+						episodeFocus: {
+							initTop: 483,
+							initLeft: 183,
+							leftMoveHigh: 115,
+							topMoveHigh: 63
+						},
+						episodeInterval: {
+							initTop: 609,
+							initLeft: 183,
+							leftMoveHigh: 232
+						}
+					},
+					small: {
+						episodeFocus: {
+							initTop: 465,
+							initLeft: 228,
+							leftMoveHigh: 103,
+							topMoveHigh: 58
+						},
+						episodeInterval: {
+							initTop: 465,
+							initLeft: 228,
+							leftMoveHigh: 208
+						}
+					}
+				},
+				windowObjType: null,
+				episodeListX: 0,
+				episodeListY: 0,
+				areaPos: 0,
+				episodeIntervalX: 0,
+				episodeData: [],
+				detailObj: null,
+				episodeIntervalData: [],
+				episodeIntervalData1: [],
+				episodeTotalPage: 0,
+				movieData: [],
+				showListLoopObj: null
+			}
+
+			function initData() {
+				initParams();
+			}
+
+			function initParams() {
+				globalParams.episodeListX = 0;
+				globalParams.episodeListY = 0;
+				globalParams.episodeData = [];
+				globalParams.episodeIntervalX = 0;
+				globalParams.episodeIntervalData = [];
+				globalParams.episodeData = globalParams.detailObj.getMovieData();
+				globalParams.movieData = globalParams.detailObj.globalParams.dataArr;
+				if(windowSize == "small") {
+					globalParams.windowObjType = globalParams.windowsParams.small;
+				} else {
+					globalParams.windowObjType = globalParams.windowsParams.fullScreen;
+				}
+				getEpisodeInterval();
+				showEpisodeList();
+				showEpisodesArrow();
+			}
+
+			if(windowSize != "small") {
+				globalParams.detailObj = tvsee.mainFrame;
+				document.write('<link href="widgetEpisodeFullScreen.css" rel="stylesheet" type="text/css"/>');
+			}
+			if(fontStyle == "small" && windowSize == "small") {
+				document.write('<link href="widgetEpisodeSmallFontSmall.css" rel="stylesheet" type="text/css"/>');
+			} else if(fontStyle == "small" && windowSize != "") {
+				document.write('<link href="widgetEpisodeFullFontSmall.css" rel="stylesheet" type="text/css"/>');
+			} else if(fontStyle != "small" && windowSize != "small") {
+				document.write('<link href="widgetEpisodeFullFontLarge.css" rel="stylesheet" type="text/css"/>');
+			} else if(fontStyle != "small" && windowSize == "small") {
+				document.write('<link href="widgetEpisodeSmallFontLarge.css" rel="stylesheet" type="text/css"/>');
+			}
+
+			function fullDigit(_movieName) {
+				var charCode = _movieName.substring(_movieName.length - 3, _movieName.length).charCodeAt(0);
+				if(charCode >= 48 && charCode <= 57) {
+					_movieName = _movieName.substring(_movieName.length - 3, _movieName.length);
+				} else {
+					_movieName = _movieName.substring(_movieName.length - 2, _movieName.length);
+				}
+				return _movieName;
+			}
+
+			function clearEpisodeList() {
+				var episodeTab0Obj = $("episodeTab0");
+				var episodeTab1Obj = $("episodeTab1");
+				for(var i = 0; i < 4; i++) {
+					episodeTab0Obj.rows[0].cell[i].innerText = "";
+				}
+				for(var i = 0; i < 4; i++) {
+					episodeTab1Obj.rows[0].cell[i].innerText = "";
+				}
+			}
+
+			function showEpisodeList() {
+				var episodeTab0Obj = $("episodeTab0");
+				var episodeTab1Obj = $("episodeTab1");
+				var size = (globalParams.showListLoopObj.dataPos + 1) * 16;
+				if(size > globalParams.episodeData.length) {
+					size = globalParams.episodeData.length;
+				}
+				var row = 0;
+				var cell = 0;
+				var j = 0;
+				var tab = episodeTab0Obj;
+				for(var i = globalParams.showListLoopObj.dataPos * 16; i < size; i++) {
+					if(i != globalParams.showListLoopObj.dataPos * 16 && i % 8 == 0) {
+						row++;
+						cell = 0;
+					}
+					if(row == 1) {
+						tab = episodeTab1Obj;
+					}
+					if(getMovieTypeTvOrNoTv(globalParams.movieData.program.movietype) == "TV") {
+						var movieRec = globalParams.episodeData[i].movieRec;
+						if(movieRec != null && movieRec != "" && movieRec != "0") {
+							tab.rows[0].cells[cell].innerText = movieRec;
+//												alert(globalParams.movieData.serviceId);
+							if(globalParams.movieData.serviceId != -1 && movieRec >3) {
+									tab.rows[0].cells[cell].className = "testOne";
+									//						alert(tab.rows[0].cells[cell].className);
+								}else{
+									tab.rows[0].cells[cell].className = "episodeTabTdsCla";
+								}
+							
+
+						} else {
+							tab.rows[0].cells[cell].innerText = fullDigit(globalParams.episodeData[i].moviename);
+						}
+					} else {
+						tab.rows[0].cells[cell].innerText = (i + 1);
+					}
+					cell++;
+					j++;
+				}
+				for(var i = j; i < 16; i++) {
+					if(i % 8 == 0) {
+						row++;
+						cell = 0;
+					}
+					if(row == 1) {
+						tab = episodeTab1Obj;
+					}
+					tab.rows[0].cells[cell].innerHTML = "&nbsp";
+					tab.rows[0].cells[cell].className = "episodeTabTdsCla";
+					cell++;
+				}
+				globalParams.episodeListX = 0;
+				globalParams.episodeListY = 0;
+				getEpisodeFocus();
+			}
+
+			function eventHandler(_eventObj) {
+				if(_eventObj.code == "KEY_DOWN") {
+					moveUD(1);
+				} else if(_eventObj.code == "KEY_UP") {
+					moveUD(-1);
+				} else if(_eventObj.code == "KEY_SELECT") {
+					doSelect();
+				} else if(_eventObj.code == "KEY_LEFT") {
+					moveLR(-1);
+				} else if(_eventObj.code == "KEY_RIGHT") {
+					moveLR(1);
+				} else if(_eventObj.code == "KEY_BACK") {
+					exitEpisode();
+				}
+				return _eventObj.args.type;
+			}
+
+			function moveUD(_num) {
+				if(globalParams.areaPos == 0) {
+					if(globalParams.episodeListY == 1 && _num > 0) { //进入选择集数区段
+						episodeIntervalGetFocus();
+						episodeLoseFocus();
+						return;
+					}
+					globalParams.episodeListY += _num;
+					if(globalParams.episodeListY < 0) {
+						globalParams.episodeListY = 0;
+						exitEpisode();
+						return;
+					}
+					if(globalParams.episodeIntervalData.length - 1 == globalParams.showListLoopObj.dataPos) {
+						var count = globalParams.episodeData.length % 16;
+						if(count <= 8 && count != 0) {
+							globalParams.episodeListY--;
+							episodeIntervalGetFocus();
+							episodeLoseFocus();
+							return;
+						}
+						if(globalParams.episodeListX >= count % 8 && count != 0) {
+							globalParams.episodeListX = count % 8 - 1;
+						}
+					}
+					getEpisodeFocus();
+				} else if(globalParams.areaPos == 1) {
+					if(_num > 0) {
+						return;
+					} else { //选集区段得到焦点
+						episodeIntervalLoseFocus();
+						episodeGetFocus();
+					}
+				}
+			}
+
+			function moveLR(_num) {
+				if(globalParams.areaPos == 0) {
+					if(globalParams.episodeIntervalData.length - 1 == globalParams.showListLoopObj.dataPos) {
+						if((globalParams.showListLoopObj.dataPos * 16 + globalParams.episodeListY * 8 + globalParams.episodeListX + 1 >= globalParams.episodeData.length) && (_num > 0)) {
+							changeListAction(1);
+							return;
+						}
+					}
+					globalParams.episodeListX += _num;
+					if(globalParams.episodeListX >= 8) {
+						globalParams.episodeListX = 8;
+						changeListAction(1);
+						return;
+					} else if(globalParams.episodeListX < 0) {
+						globalParams.episodeListX = 0;
+						changeListAction(-1);
+						return;
+					}
+					getEpisodeFocus();
+				} else if(globalParams.areaPos == 1) {
+					changeListAction(_num);
+				}
+			}
+          
+			function changeListAction(_num) {
+				if(globalParams.episodeIntervalData.length != 1) {
+					globalParams.showListLoopObj.changeList(_num);
+					showEpisodeList();
+				}
+			}
+
+			function getEpisodeFocus() {
+				var pos = globalParams.showListLoopObj.dataPos * 16 + globalParams.episodeListX + globalParams.episodeListY * 8;
+				var _movieName = "";
+				if(typeof(DETAIL_PROGRAM_NAME) != "undefined" && DETAIL_PROGRAM_NAME == 0) { //显示节目集名称
+					_movieName = globalParams.detailObj.globalParams.dataArr.program.programname;
+					if(getMovieTypeTvOrNoTv(globalParams.detailObj.globalParams.dataArr.program.movietype) == "TV") {
+						_movieName += "第" + globalParams.episodeData[pos].movieRec + "集";
+					}
+				} else {
+					_movieName = globalParams.episodeData[pos].moviename;
+				}
+				$("episodeName").innerText = _movieName;
+				var episodeFocusObj = globalParams.windowObjType.episodeFocus;
+				$("sEpisodeFocus").style.left = (globalParams.episodeListX * episodeFocusObj.leftMoveHigh + globalParams.episodeListX + episodeFocusObj.initLeft) + "px";
+				$("sEpisodeFocus").style.top = (globalParams.episodeListY * episodeFocusObj.topMoveHigh + episodeFocusObj.initTop) + "px";
+				if(getMovieTypeTvOrNoTv(globalParams.movieData.program.movietype) == "TV") {
+					var movieRec = globalParams.episodeData[pos].movieRec;
+					if(movieRec != null && movieRec != "" && movieRec != "0") {
+						if (globalParams.movieData.serviceId != -1){
+							if (movieRec >=4){
+								document.getElementById("sEpisodeFocus").className="sEpisodeFocusClaVip";
+							}else{
+								document.getElementById("sEpisodeFocus").className="sEpisodeFocusCla";
+							}
+							
+						}
+//						alert(movieRec);
+						$("sEpisodeFocus").innerText = movieRec;
+					} else {
+						$("sEpisodeFocus").innerText = fullDigit(globalParams.episodeData[pos].moviename);
+					}
+				} else {
+					$("sEpisodeFocus").innerText = pos + 1; //pos + 1;
+				}
+				globalParams.detailObj.showEpisodeProgramInfoAction(globalParams.episodeData, pos);
+			}
+
+			function episodeLoseFocus() {
+				$("sEpisodeFocus").style.visibility = "hidden";
+			}
+
+			function episodeGetFocus() {
+				$("sEpisodeFocus").style.visibility = "visible";
+				globalParams.areaPos = 0;
+			}
+
+			function doSelect() {
+				var blo = tvsee.eventFrame.globalParams.globalCache.get("isSaverStatus");
+	            if (blo === 0){
+		          return
+	             }
+				if(globalParams.areaPos == 0) {
+					var pos = globalParams.showListLoopObj.dataPos * 16 + globalParams.episodeListX + globalParams.episodeListY * 8;
+					var movieRec = globalParams.episodeData[pos].movieRec;
+					var json = getMemberPayStatus(globalParams.movieData.serviceId);
+//					var stats = json.status;
+					if(globalParams.movieData.serviceId == -1) {
+						globalParams.detailObj.openPlay("selectPlay", true);
+						return;
+					}
+					if(json.status==false && globalParams.movieData.serviceId != -1) {
+						if(movieRec <= 3) {
+							globalParams.detailObj.openPlay("selectPlay", true);
+							return;
+						} else {
+							//          	alert("跳转到订购也");
+							var widgetOrderObj = tvsee.pageWidgets.getByName("widgetOrder");
+							if(widgetOrderObj != null) {
+								widgetOrderObj.showWin("widgetEpisode", window, globalParams.movieData.serviceId);
+								widgetEpisode.minimize();
+								globalParams.detailObj.selectEpisodeLoseFocus();
+								return
+							}
+						}
+					}
+				}
+				if(json.status== true && globalParams.movieData.serviceId != -1) {
+					globalParams.detailObj.openPlay("selectPlay", true);
+					return;
+				}
+			}
+
+			function getPlayEpisodeInfo() {
+				var episode = globalParams.showListLoopObj.dataPos * 16 + globalParams.episodeListY * 8 + globalParams.episodeListX;
+				var guid = globalParams.episodeData[episode].guid;
+				var timelength = globalParams.episodeData[episode].timelength;
+				var moviepicurl = globalParams.episodeData[episode].moviepicurl;
+				return {
+					episode: episode,
+					guid: guid,
+					timelength: timelength,
+					moviepicurl: moviepicurl
+				};
+			}
+
+			function getEpisodeInterval() {
+				globalParams.episodeTotalPage = Math.ceil(globalParams.episodeData.length / 16);
+				globalParams.episodeIntervalData = [];
+				globalParams.episodeIntervalData1 = [];
+				var row = 0;
+				var cell = 1;
+				var startEpisode = 0;
+				if(getMovieTypeTvOrNoTv(globalParams.movieData.program.movietype) == "TV") {
+					var movieRec = globalParams.episodeData[0].movieRec;
+					if(movieRec != null && movieRec != "" && movieRec != "0") {
+						startEpisode = movieRec - 1;
+					} else {
+						startEpisode = parseInt(fullDigit(globalParams.episodeData[0].moviename), 10) - 1;
+					}
+				}
+				for(var i = 0; i < globalParams.episodeTotalPage; i++) {
+					if(i != 0 && i % 4 == 0) {
+						row++;
+						cell = 0;
+					}
+					var end = ((i + 1) * 16 + startEpisode);
+					if(i == globalParams.episodeTotalPage - 1) {
+						if(end > globalParams.episodeData.length) {
+							end = globalParams.episodeData.length;
+							end += startEpisode;
+						}
+					}
+					var episodeCount = ((i * 16 + startEpisode) == 0 ? 1 : (i * 16 + 1 + startEpisode));
+					var value = episodeCount + " - " + end;
+					if(episodeCount == end) {
+						value = episodeCount;
+					}
+					globalParams.episodeIntervalData.push(value);
+					globalParams.episodeIntervalData1.push(value);
+					cell++;
+				}
+				showEpisodeInterval();
+			}
+
+			function clearEpisodeInterval() {
+				var episodeIntervalTabObj = $("episodeIntervalTab");
+				for(var i = 0; i < 4; i++) {
+					episodeIntervalTabObj.rows[0].cells[i].innerText = "";
+				}
+			}
+
+			function showEpisodeInterval() {
+				globalParams.showListLoopObj = new showListLoop({
+					dataPos: 0,
+					focusPos: 0,
+					listSize: 4,
+					frame: window,
+					dataLength: globalParams.episodeIntervalData.length,
+					data: globalParams.episodeIntervalData1
+				});
+				globalParams.showListLoopObj.haveData = function(_idPos, _data) {
+					$("episodeIntervalTab").rows[0].cells[_idPos].innerText = _data;
+				}
+				globalParams.showListLoopObj.noData = function(_idPos) {
+					$("episodeIntervalTab").rows[0].cells[_idPos].innerText = "";
+				}
+				globalParams.showListLoopObj.showFocus = function(_dataPos, _focusPos) {
+					var episodeIntervalObj = globalParams.windowObjType.episodeInterval;
+					$("sSEpisodeFocus").style.left = (_focusPos * episodeIntervalObj.leftMoveHigh + episodeIntervalObj.initLeft) + "px";
+					$("sSEpisodeFocus").innerText = globalParams.episodeIntervalData[_dataPos];
+				}
+				globalParams.showListLoopObj.initData();
+			}
+			//sSEpisodeFocus
+			function episodeIntervalLoseFocus() {
+				$("sSEpisodeFocus").style.visibility = "hidden";
+			}
+
+			function episodeIntervalGetFocus() {
+				$("sSEpisodeFocus").style.visibility = "visible";
+				globalParams.areaPos = 1;
+			}
+
+			function showEpisodesArrow() {
+				if(globalParams.episodeIntervalData.length > 1) {
+					$("arrowLeft").style.visibility = "visible";
+					$("arrowRight").style.visibility = "visible";
+				} else {
+					$("arrowLeft").style.visibility = "hidden";
+					$("arrowRight").style.visibility = "hidden";
+				}
+			}
+
+			if(windowSize == "small") {
+				if(typeof(fromPage) != "undefined" && fromPage == "VIPDETAIL") {
+					globalParams.detailObj = tvsee.pageWidgets.getByName("widgetVIPDetail");
+				} else {
+					globalParams.detailObj = tvsee.pageWidgets.getByName("widgetVodDetail");
+					//		globalParams.episodeData = globalParams.detailObj.getMovieData();
+					document.write('<link href="widgetEpisodeSmall.css" rel="stylesheet" type="text/css"/>');
+
+				}
+			}
+
+			function exitEpisode() {
+				var widgetEpisode = tvsee.pageWidgets.getByName("widgetEpisode");
+				widgetEpisode.minimize();
+				globalParams.detailObj.selectEpisodeLoseFocus();
+			}
+		</script>
+	</head>
+
+	<body style="background-color:transparent; width:1280px; height:720px; margin:0px; overflow:hidden;">
+		<!--	<div style="background-image:url(images/selectEpisode/1.jpg); position: absolute; top: 0px; left: 0px; width:1280px; height: 720px;"></div>-->
+		<div class="bgClaEpisode">
+			<div id="episodeName" class="episodeNameCla"></div>
+			<div class="arrowsCla arrowLeftCla" id="arrowLeft"></div>
+			<div class="arrowsCla arrowRightCla" id="arrowRight"></div>
+			<div class="episodesCla">
+				<div id="episode0" class="episodesDivCla episode0DivCla">
+					<table id="episodeTab0" class="episodeTabsCla episodeTab0Cla">
+						<tr>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+						</tr>
+					</table>
+				</div>
+				<div id="episode1" class="episodesDivCla episode1DivCla">
+					<table id="episodeTab1" class="episodeTabsCla episodeTab1Cla">
+						<tr>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+							<td class="episodeTabTdsCla"></td>
+						</tr>
+					</table>
+				</div>
+				<div id="episodeInterval" class="episodesDivCla episodeIntervalDivCla">
+					<table id="episodeIntervalTab" class="episodeTabsCla episodeIntervalTabCla">
+						<tr>
+							<td class="episodeIntervaTd0Cla"></td>
+							<td class="episodeIntervaTd1Cla"></td>
+							<td class="episodeIntervaTd2Cla"></td>
+							<td class="episodeIntervaTd3Cla"></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div id="sEpisodeFocus" class="sEpisodeFocusCla"></div>
+		<div id="sSEpisodeFocus" class="sSEpisodeFocusCla"></div>
+	</body>
+
+</html>

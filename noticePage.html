@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>公告提示</title>
+<script src="common/common.js"></script>
+<script src="common/config.js"></script>
+<!--<script src="common/keyEvent.js"></script>-->
+
+<script src="js/jquery-1.8.3.js"></script>
+<!--<script src="common/showList2d.js"></script>-->
+<script type="text/javascript">
+function gotoLiveOrVod(_keyCode, _type){
+	var frame = window;
+	 var VOD_PAGE_GOTO_RUN = "runtime.htm";
+	alert(VOD_PAGE_GOTO_RUN);
+	if(typeof(tvsee) != "undefined"){
+		frame = tvsee.eventFrame;	
+	}
+	if (_keyCode == 27){
+		if(VOD_PAGE_GOTO_RUN != ""){
+			alert(VOD_PAGE_GOTO_RUN);
+			frame.location.href = VOD_PAGE_GOTO_RUN;
+	}
+	if(_keyCode == 170){
+		if(VOD_PAGE_GOTO_RUN != ""){
+			alert(VOD_PAGE_GOTO_RUN);
+			frame.location.href = VOD_PAGE_GOTO_RUN;
+		}	
+	}
+	if(_keyCode == 183 || _keyCode == 832){//点播
+		/*if(VOD_PAGE_GOTO_RUN != ""){
+			frame.location.href = VOD_PAGE_GOTO_RUN + "?functionKeyCode=183";
+			if(_keyCode == 1){
+				globalvar.set("EPG_URL", VOD_PAGE_GOTO_RUN);
+			}else if(_keyCode == 0){
+				globalvar.set("EPG_URL", "");	
+			}
+		}*/
+		if(VOD_PAGE_GOTO_RUN != ""){
+			frame.location.href = VOD_PAGE_GOTO_RUN;
+		}else if(VOD_PAGE_GOTO_RUN != ""){
+			frame.location.href = VOD_PAGE_GOTO_RUN;
+		}
+	}else if(_keyCode == 184 || _keyCode == 833){//直播
+		/*if(VOD_PAGE_GOTO_RUN != ""){
+			frame.location.href = VOD_PAGE_GOTO_RUN + "?functionKeyCode=184";
+			if(_keyCode == 1){
+				globalvar.set("EPG_URL", VOD_PAGE_GOTO_RUN);
+			}else if(_keyCode == 0){
+				globalvar.set("EPG_URL", "");	
+			}
+		}*/
+		if(VOD_PAGE_GOTO_RUN != ""){
+			frame.location.href = VOD_PAGE_GOTO_RUN;
+		}
+	}else if(_keyCode == 185 || _keyCode == 834){
+		if(_type == 0){
+			frame.location.href = globalvar.get("EPG_URL");
+		}
+		
+	}else if(_keyCode == 186 || _keyCode == 835){
+		if(_type == 0){
+			frame.location.href = globalvar.get("EPG_URL");
+		}
+	}
+}
+//functionKeyCode =170;
+if(typeof(functionKeyCode) != "undefined"){
+	gotoLiveOrVod(functionKeyCode, 0);
+}
+window.onunload = function(){
+	globalvar.set("EPG_URL", window.location.href);
+}
+</script>
+</head>
+<div id="bg" style="width: 1280px;height : 720px;top: 0px;left: 0px;background-image: url(images/noticeP.jpg);background-size: cover;background-repeat: no-repeat;">
+	
+</div>
+<body>
+
+
+</body>
+</html>

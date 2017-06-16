@@ -1,0 +1,722 @@
+@charset "utf-8";
+body {
+	overflow: hidden;
+	color: #FFFFFF;
+	font-family: "黑体";
+}
+
+table,
+th,
+td,
+tr {
+	border-collapse: collapse;
+}
+
+td {
+	border: 2px solid #585753;
+}
+
+.payBtnCla {
+	width: 160px;
+	height: 63px;
+	position: absolute;
+	top: 200px;
+	left: 25px;
+	color: #FFF;
+	text-align: center;
+	font-size: 26px;
+	line-height: 63px;
+}
+
+.payBtnNoFocusCla {
+	background-image: url(images/detail/pay_select_small.png);
+}
+
+.payBtnGetFocusCla {
+	background-image: url(images/detail/pay_selected_small.png);
+}
+
+.bgCla {
+	position: absolute;
+	top: 26px;
+	left: 56px;
+	width: 1190px;
+	height: 681px;
+	background-image: url(images/detail/newBG.png);
+}
+
+.picUrlDivCla {
+	position: absolute;
+	width: 220px;
+	height: 310px;
+	left: 125px;
+	top: 87px;
+	/*border: 1px solid #FFF;*/
+}
+
+.picImgCla {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	visibility: hidden;
+}
+
+.hdMarkCla {
+	background-image: url(images/detail/hd_mark_small.png);
+	width: 119px;
+	height: 115px;
+	position: absolute;
+	top: 71px;
+	left: 246px;
+	visibility: hidden;
+}
+
+.infoDescCla {
+	width: 220px;
+	height: 236px;
+	position: absolute;
+	left: 125px;
+	top: 407px;
+}
+
+.gradeImgsCla {
+	width: 182px;
+	height: 41px;
+	position: absolute;
+	left: 40px;
+	top: 37px;
+}
+
+.gradeImgCla {
+	width: 35px;
+	height: 34px;
+	background-image: url(images/detail/x_l_small.png);
+	position: absolute;
+}
+
+.gradeImg0Cla {
+	left: 0px;
+}
+
+.gradeImg1Cla {
+	left: 30px;
+}
+
+.gradeImg2Cla {
+	left: 60px;
+}
+
+.gradeImg3Cla {
+	left: 90px;
+}
+
+.gradeImg4Cla {
+	left: 120px;
+}
+
+.movieNameCla {
+	width: 220px;
+	height: 34px;
+	position: absolute;
+	font-size: 28px;
+	color: #C8C8C8;
+	text-align: center;
+	left: 0px;
+	top: 0px;
+}
+
+.gradesCla {
+	position: absolute;
+	width: 174px;
+	height: 22px;
+	top: 71px;
+	left: 40px;
+	font-size: 20px;
+	color: #888888;
+}
+
+.gradeNameCla {
+	height: 18px;
+	width: 110px;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}
+
+.gradeCla {
+	height: 100%;
+	left: 105px;
+	position: absolute;
+	top: 0px;
+	width: 84px;
+	overflow: hidden;
+	color: #FFCE00;
+	font-size: 20px;
+}
+
+.playCountsCla {
+	position: absolute;
+	width: 165px;
+	height: 22px;
+	top: 101px;
+	left: 40px;
+	font-size: 20px;
+	color: #888888
+}
+
+.playCountNameCla {
+	height: 100%;
+	width: 110px;
+	position: absolute;
+	left: 0px;
+}
+
+.playCountCla {
+	height: 100%;
+	left: 105px;
+	position: absolute;
+	top: 0px;
+	width: 84px;
+	overflow: hidden;
+}
+
+.descInfoLineCla {
+	background-image: url(images/detail/up_X_small.png);
+	width: 798px;
+	height: 10px;
+	position: absolute;
+	left: 2px;
+	top: 125px;
+}
+
+.descCla {
+	position: absolute;
+	width: 650px;
+	height: 90px;
+	top: 87px;
+	left: 370px;
+	font-size: 22px;
+	color: #FFF;
+	overflow: hidden;
+}
+
+.btnsCla {
+	width: 220px;
+	height: 72px;
+	position: absolute;
+	left: 125px;
+	top: 420px;
+}
+
+.selectEpisodeBtnCla {
+	width: 143px;
+	height: 63px;
+	position: absolute;
+	top: 0px;
+	left: 340px;
+	color: #FFF;
+	text-align: center;
+	font-size: 26px;
+	line-height: 63px;
+}
+
+.selectEpisodeBtnLoseCla {
+	background-image: url(images/detail/selections_select_small.png);
+}
+
+.selectEpisodeBtnFocusCla {
+	background-image: url(images/detail/selections_selected_small.png);
+	z-index: 1;
+	visibility: hidden;
+}
+
+.addTvBtnCla {
+	width: 143px;
+	height: 63px;
+	position: absolute;
+	top: 110px;
+	left: 35px;
+	color: #FFF;
+	text-align: center;
+	font-size: 26px;
+	line-height: 63px;
+}
+
+.addTvBtnLoseCla {
+	background-image: url(images/detail/drama_select_small.png);
+}
+
+.addTvBtnFocusCla {
+	background-image: url(images/detail/drama_selected_small.png);
+	z-index: 1;
+	visibility: hidden;
+}
+
+.sdOrHdCla {
+	position: absolute;
+	top: 170px;
+	left: 25px;
+	width: 160px;
+	height: 60px;
+}
+
+.sdOrHdVerticalCla {
+	background-image: url(images/detail/cut_off_rule_samll.png);
+	width: 10px;
+	height: 55px;
+}
+
+.hdAndSdBtnCla {
+	width: 49px;
+	height: 60px;
+	position: absolute;
+	top: 4px;
+}
+
+.sdButCla {
+	background-image: url(images/detail/sd_select_small.png);
+	left: 24px;
+}
+
+.sdButFocusCla {
+	background-image: url(images/detail/sd_selected_small.png);
+	left: 24px;
+	visibility: hidden;
+}
+
+.sdButCurrCla {
+	background-image: url(images/detail/sd_checked_small.png);
+	left: 24px;
+	visibility: hidden;
+}
+
+.hdButCla {
+	background-image: url(images/detail/hd_select_small.png);
+	left: 87px;
+}
+
+.hdButFocusCla {
+	background-image: url(images/detail/hd_selected_small.png);
+	left: 87px;
+	visibility: hidden;
+}
+
+.hdButCurrCla {
+	background-image: url(images/detail/hd_checked_small.png);
+	left: 87px;
+	visibility: hidden;
+}
+
+.recUserTipCla {
+	position: absolute;
+	width: 186px;
+	height: 24px;
+	top: 38px;
+	left: 30px;
+	color: #AAAAAA;
+	font-size: 22px;
+}
+
+.recLineCla {
+	position: absolute;
+	background-image: url(images/detail/down_X_samll.png);
+	width: 842px;
+	height: 10px;
+	left: 203px;
+	top: 5px;
+}
+
+.recMovieNameCla {
+	background: url(images/detail/movieNameBg.png);
+	line-height: 32px;
+	width: 100%;
+	height: 32px;
+	top: 150px;
+	color: #FFF;
+	font-size: 26px;
+	position: absolute;
+	text-align: center;
+}
+
+.recDivCla {
+	/*border: 1px solid #FFF;*/
+	position: absolute;
+	width: 118px;
+	height: 165px;
+	left: 10px;
+}
+
+.recImgCla {
+	position: absolute;
+	width: 118px;
+	height: 165px;
+	top: 0px;
+	left: 0px;
+	visibility: hidden;
+}
+
+.recsCla {
+	top: 72px;
+	width: 150px;
+	height: 590px;
+	left: 30px;
+	position: absolute;
+	overflow: hidden;
+	left: 53px;
+}
+
+.recCla {
+	width: 228px;
+	height: 681px;
+	position: absolute;
+	left: 1020px;
+	top: 40px;
+}
+
+.recCla0 {
+	top: 20px;
+}
+
+.recCla1 {
+	top: 210px;
+}
+
+.recCla2 {
+	top: 400px;
+}
+
+.recCla3 {
+	top: 590px;
+}
+
+.recFocusDivBgCla {
+	background-image: url(images/detail/recBg_small.png);
+	width: 176px;
+	height: 232px;
+	-webkit-transition-duration: 200ms;
+	position: absolute;
+	top: 56px;
+	left: 32px;
+	visibility: hidden;
+}
+
+.recFocusDivCla {
+	width: 134px;
+	height: 189px;
+	top: 33px;
+	left: 52px;
+	position: absolute;
+	-webkit-transition-duration: 200ms;
+	visibility: hidden;
+}
+
+.episodesCla {
+	background-image: url(images/detail/episode_dk_small.png);
+	width: 1178px;
+	height: 308px;
+	position: absolute;
+	top: 400px;
+	left: 60px;
+	display: none;
+}
+
+.selectEpisodeNameCla {
+	width: 1068px;
+	height: 30px;
+	position: absolute;
+	top: 20px;
+	left: 59px;
+	color: #FFF;
+	font-size: 26px;
+}
+
+.detailEpisodeTabCla {
+	position: absolute;
+	left: 62px;
+	top: 70px;
+	color: #FFF;
+	font-size: 26px;
+	text-align: center;
+	width: 940px;
+	height: 108px;
+	display: none;
+}
+
+.detailEpisodeTabTr1Cla {
+	width: 107px;
+	text-align: center;
+}
+
+.detailEpisodeTabTr2Cla {
+	width: 104px;
+	height: 54px;
+	text-align: center;
+}
+
+.detailEpisodeFocusCla {
+	background-image: url(images/detail/dramae_small.png);
+	width: 118px;
+	height: 72px;
+	position: absolute;
+	left: 163px;
+	top: 65px;
+	display: none;
+	font-size: 26px;
+	color: #FFF;
+	text-align: center;
+	line-height: 72px;
+	/*-webkit-transition-duration: 200ms;*/
+}
+
+.episodesTabCla {
+	position: absolute;
+	left: 62px;
+	top: 70px;
+	color: #FFF;
+	font-size: 26px;
+	display: none;
+	text-align: center;
+	width: 940px;
+	height: 106px;
+}
+
+.episodesTabTd1Cla {
+	width: 104px;
+	text-align: center;
+}
+
+.episodesTabTd2Cla {
+	width: 208px;
+	height: 53px;
+	text-align: center;
+}
+
+.episodesFocusCla {
+	background-image: url(images/detail/dramaeList_small.png);
+	width: 222px;
+	height: 72px;
+	position: absolute;
+	left: 163px;
+	top: 64px;
+	font-size: 26px;
+	color: #FFF;
+	text-align: center;
+	line-height: 72px;
+	/*-webkit-transition-duration: 200ms; */
+	display: none;
+}
+
+.moreFocusCla {
+	background-image: url(images/detail/moreFocus_small.png);
+	width: 120px;
+	height: 130px;
+	left: 57px;
+	top: 65px;
+	color: #FFF;
+	font-size: 26px;
+	text-align: center;
+	position: absolute;
+	display: none;
+}
+
+.moreDivCla {
+	position: absolute;
+	top: 38px;
+	text-align: center;
+	width: 100%;
+	height: 80px;
+}
+
+.scrollBgCla {
+	width: 19px;
+	position: absolute;
+	left: 1000px;
+	top: 185px;
+	height: 445px;
+}
+
+.scrollFocusCla {
+	width: 19px;
+	position: absolute;
+	left: 1000px;
+	top: 185px;
+}
+
+.scrollBg1Cla {
+	height: 425px;
+}
+
+.descLineCla {
+	position: absolute;
+	background-image: url(images/detail/content_line.png);
+	width: 704px;
+	height: 9px;
+	top: 140px;
+	left: 330px;
+}
+
+.movieListCla {
+	position: absolute;
+	top: 185px;
+	left: 395px;
+	width: 650px;
+	height: 495px;
+	overflow: hidden;
+}
+
+.oneMovieDivCla {
+	position: absolute;
+	width: 552px;
+	height: 38px;
+}
+
+.rowCellCla {
+	position: absolute;
+	width: 552px;
+	height: 38px;
+	line-height: 40px;
+	color: #FFFFFF;
+	font-size: 20px;
+	text-align: left;
+	background-repeat: no-repeat;
+	background-position: right;
+}
+.rowCellClaVip {
+	position: absolute;
+	width: 552px;
+	height: 38px;
+	line-height: 40px;
+	color: #FFFFFF;
+	font-size: 20px;
+	text-align: left;
+	background-image: url(images/detail/VIP-ICON.png);
+	background-repeat: no-repeat;
+	background-position: right;
+}
+
+.oneMovieFocusCla {
+	position: absolute;
+	background-image: url(images/detail/programBtn_Selected_small.png);
+	width: 557px;
+	height: 38px;
+	z-index: 1;
+	top: 191px;
+	left: 395px;
+	visibility: hidden;
+}
+.oneMovieFocusClaVip {
+	position: absolute;
+	background-image: url(images/detail/programBtn_Selected_small_vip.png);
+	width: 557px;
+	height: 38px;
+	z-index: 1;
+	top: 191px;
+	left: 395px;
+	visibility: hidden;
+}
+.oneMovieNameCla {
+	position: absolute;
+	width: 550px;
+	height: 38px;
+	line-height: 38px;
+	color: white;
+	font-size: 20px;
+	text-align: left;
+	left: 2px;
+}
+
+.moveDivCla0 {
+	top: 0px
+}
+
+.moveDivCla1 {
+	top: 45px
+}
+
+.moveDivCla2 {
+	top: 90px
+}
+
+.moveDivCla3 {
+	top: 135px
+}
+
+.moveDivCla4 {
+	top: 180px
+}
+
+.moveDivCla5 {
+	top: 225px;
+}
+
+.moveDivCla6 {
+	top: 270px;
+}
+
+.moveDivCla7 {
+	top: 315px;
+}
+
+.moveDivCla8 {
+	top: 360px;
+}
+
+.moveDivCla9 {
+	top: 405px;
+}
+
+.moveDivCla10 {
+	top: 450px;
+}
+
+.moveDivCla11 {
+	top: 495px;
+}
+
+.movieLineCla {
+	position: absolute;
+	background-image: url(images/detail/movieLine_small.png);
+	width: 629px;
+	height: 3px;
+	left: 360px;
+}
+
+.movieLineCla0 {
+	top: 222px
+}
+
+.movieLineCla1 {
+	top: 267px
+}
+
+.movieLineCla2 {
+	top: 312px
+}
+
+.movieLineCla3 {
+	top: 357px
+}
+
+.movieLineCla4 {
+	top: 402px
+}
+
+.movieLineCla5 {
+	top: 447px
+}
+
+.movieLineCla6 {
+	top: 492px
+}
+
+.movieLineCla7 {
+	top: 537px
+}
+
+.movieLineCla8 {
+	top: 582px
+}
+
+.movieLineCla9 {
+	top: 627px
+}

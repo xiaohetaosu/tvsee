@@ -1,0 +1,2579 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>直播支付</title>
+<style type="text/css">
+.pagesCla {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 1280px;
+	height: 720px;
+}
+.zan_inco{
+	position: absolute;
+    top: 0px;
+    right: -14px;
+}
+.word_0{
+	
+	font-family: '黑体';
+	font-size: 25px;
+	color: white;
+	font-weight: bold;
+	font-style: oblique;
+	/*position: relative;*/
+}
+.spanfont{
+	font-family: '黑体';font-size: 30px;color: white;font-weight: 500;font-style: oblique;
+}
+.word_1{
+	font-family: '黑体';
+	font-size: 30px;
+	color: #FFCE00;
+	font-weight: bold;
+	font-style: oblique;
+	/*position: relative;*/
+}
+.btnCla {
+	position: absolute;
+	width: 157px;
+	height: 68px;
+	font-size: 26px;
+	line-height: 68px;
+	text-align: center;
+}
+
+.divCla {
+	background-image: url(images/order/taocan_nosel.png);
+	width: 243px;
+	height: 156px;
+	position: absolute;
+}
+
+.titleCla {
+	width: 100%;
+	text-align: center;
+	font-size: 24px;
+	top: 22px;
+	height: 26px;
+	position: absolute;
+}
+.yuanjia{
+	position: absolute;
+	transform: rotate(40deg);
+	top: 31px;
+	left: 181px;
+	-webkit-transform: rotate(40deg);    /* for Chrome || Safari */
+	 /*-moz-transform: rotate(40deg);       /* for Firefox */
+   /*-ms-transform: rotate(40deg);        /* for IE */
+}
+.xiexian{
+	position: absolute;
+    top: 56px;
+    left: 83px;
+}
+.monthCla {
+	width: 100%;
+	text-align: center;
+	font-size: 28px;
+	top: 56px;
+	height: 26px;
+	position: absolute;
+	color: #FFCE00;
+	font-style: oblique;
+}
+
+.priceClass {
+	color: aquamarine;
+	width: 100%;
+	text-align: center;
+	font-size: 36px;
+	top: 85px;
+	height: 36px;
+	position: absolute;
+}</style>
+<script src="common/config.js"></script>
+<script src="common/protal.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="common/orderData.js"></script>
+<script src="js/jquery-1.8.3.js"></script>
+<script type="text/javascript">initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+} else {
+	eval("tvsee={}");
+	tvsee = {
+		debug: function() {}
+	};
+}
+
+function eventHandler(_eventObj) {
+	if(_eventObj.code == "KEY_DOWN") {
+		moveUD(1);
+	} else if(_eventObj.code == "KEY_UP") {
+		moveUD(-1);
+	} else if(_eventObj.code == "KEY_SELECT") {
+		doSelect();
+	} else if(_eventObj.code == "KEY_LEFT") {
+		moveLR(-1);
+	} else if(_eventObj.code == "KEY_RIGHT") {
+		moveLR(1);
+	} else if(_eventObj.code == "KEY_BACK") {
+		goBack();
+	}
+	return _eventObj.args.type;
+}
+var globalParams = {
+	areaPos: 0,
+	listX: 0,
+	listY: 0,
+	serviceInfoAjax: null,
+	isStatus: false
+}
+var selectPage = {
+	listX: 0,
+	listY: 0,
+	payM: 0
+}
+var defrayPage = {
+	listX: 0,
+	listY: 0
+}
+var cacheZan ={
+	numB:null,
+	price:null
+}
+var cache = {
+	areaPos: null,
+	serialNum: null,
+	stbMac: null,
+	serviceId: null,
+	price: null,
+	time: null,
+	payStatus: null,
+	serviceTime:null,
+	shengjiStatus:null
+}
+
+var payInfo = {}
+var payData={};
+var navY = 0;
+var div2Xstatus = 0;
+var div2Ystatus = 0;
+function showXuan(){
+	document.getElementById("xuanWord_0").style.display = "block";
+	document.getElementById("xuanWord_1").style.display = "block";
+	document.getElementById("ggWord").style.display = "block";
+}
+function moveUD(_num) {
+	if(!globalParams.isStatus) {
+		return;
+	}
+	if(globalParams.areaPos == 0) {
+		if(cache.shengjiStatus == 11){
+			if(_num > 0){
+				navY+=_num
+				if (navY >4){
+		   			navY =4;
+		  	 	}
+				if(navY==1){
+					loseBtn1Focus();
+					getBtn2Focus();
+					document.getElementById("zhibobag").style.display = "none";
+					document.getElementById("zuhebag").style.display = "block";
+				}
+				if(navY == 2){
+					loseBtn2Focus();
+					getBtn3Focus();
+					document.getElementById("zuhebag").style.display = "none";
+					document.getElementById("yinhebag").style.display = "block";
+				}
+				if(navY == 3){
+					loseBtn3Focus();
+					getBtn4Focus();
+					document.getElementById("yinhebag").style.display = "none";
+					document.getElementById("jilubag").style.display = "block";
+				}
+				if(navY == 4){
+					loseBtn4Focus();
+					getBtn5Focus();
+					document.getElementById("jilubag").style.display = "none";
+					document.getElementById("tthebag").style.display = "block";
+				}
+			}else{
+				navY += _num;
+			if (navY<0){
+				navY=0;
+			}
+			if(navY == 3){
+					loseBtn5Focus();
+					getBtn4Focus();
+					document.getElementById("tthebag").style.display = "none";
+					document.getElementById("jilubag").style.display = "block";
+				}
+			if(navY == 2){
+				loseBtn4Focus();
+				getBtn3Focus();
+				document.getElementById("yinhebag").style.display = "block";
+				document.getElementById("jilubag").style.display = "none";
+			}
+			if(navY == 1){
+				loseBtn3Focus();
+				getBtn2Focus();
+				document.getElementById("yinhebag").style.display = "none";
+				document.getElementById("zuhebag").style.display = "block";
+			}
+			if(navY == 0){
+				loseBtn2Focus();
+				getBtn1Focus();
+				document.getElementById("zuhebag").style.display = "none";
+				document.getElementById("zhibobag").style.display = "block";
+			}
+			}
+		}else{
+		if(_num > 0){
+		   navY += _num;
+		   if (navY >3){
+		   	navY =3;
+		   }
+		   if (navY == 1){
+		   	loseBtn1Focus();
+		   	getBtn2Focus();
+		   	document.getElementById("zhibobag").style.display = "none";
+		   	document.getElementById("yinhebag").style.display = "block";
+		   }
+		   if (navY == 2){
+		   	loseBtn2Focus();
+		   	getBtn4Focus();
+		   	document.getElementById("yinhebag").style.display = "none";
+		   	document.getElementById("jilubag").style.display = "block";
+		   }
+		   if (navY == 3){
+		   	loseBtn4Focus();
+		   	getBtn5Focus();
+		   	document.getElementById("jilubag").style.display = "none";
+		   	document.getElementById("tthebag").style.display = "block";
+		   }
+		}else{
+			navY += _num;
+			if (navY<0){
+				navY=0;
+			}
+			if (navY == 2){
+		   	loseBtn5Focus();
+		   	getBtn4Focus();
+		   	document.getElementById("tthebag").style.display = "none";
+		   	document.getElementById("jilubag").style.display = "block";
+		   }
+		   if (navY == 1){
+		   	loseBtn4Focus();
+		   	getBtn2Focus();
+		   	document.getElementById("jilubag").style.display = "none";
+		   	document.getElementById("yinhebag").style.display = "block";
+		   }
+		   if (navY == 0){
+		   	loseBtn2Focus();
+		   	getBtn1Focus();
+		   	document.getElementById("yinhebag").style.display = "none";
+		   	document.getElementById("zhibobag").style.display = "block";
+		   }
+		}
+		}
+	}
+
+	if(globalParams.areaPos == 1) {
+		if(_num > 0) {
+				globalParams.areaPos = 2;
+				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				getExitBtnFocus();
+				return
+			}else{
+				return
+			}
+		if(globalParams.listX == 1 && globalParams.listY == 2){
+			if(_num > 0 ){
+				
+			}else{
+				hideTitle()
+			}
+		}
+		if(globalParams.listX == 0 && globalParams.listY == 0){
+			if(_num > 0 ){
+				showTitle();
+				document.getElementById("span_2").innerText="7"
+				document.getElementById("span_num").innerText="1"
+			}
+		}
+		if(globalParams.listX == 1 && globalParams.listY == 0){
+			if(_num < 0 ){
+				hideTitle();
+			}
+		}
+		if(globalParams.listX == 0 && globalParams.listY == 1){
+			if(_num > 0 ){
+				showTitle();
+				document.getElementById("span_2").innerText="6"
+				document.getElementById("span_num").innerText="1"
+			}
+		}
+		if(globalParams.listX == 1 && globalParams.listY == 1){
+			if(_num < 0 ){
+				hideTitle();
+			}
+		}
+		if(globalParams.listX == 0 && globalParams.listY == 2){
+			if(_num > 0 ){
+				showTitle();
+				document.getElementById("span_2").innerText="5";
+				document.getElementById("span_num").innerText="1"
+			}
+		}
+		if(globalParams.listX == 2 && globalParams.listY == 0) {
+			if(_num > 0) {
+				globalParams.areaPos = 2;
+				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				getExitBtnFocus();
+				return
+			}
+		}
+		if(globalParams.listX == 1 && globalParams.listY == 0) {
+			if(_num > 0) {
+//				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+//				globalParams.listX += _num;
+//				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+				globalParams.areaPos = 2;
+				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				getExitBtnFocus();
+			} else {
+				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				globalParams.listX += _num;
+				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+			}
+			return
+		}
+		if(globalParams.listX == 1 && globalParams.listY == 1) {
+			if(_num > 0) {
+//				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+//				globalParams.listX = 2;
+//				globalParams.listY = 0;
+//				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+				globalParams.areaPos = 2;
+				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				getExitBtnFocus();
+				return
+			}
+		}
+		if(globalParams.listX == 1 && globalParams.listY == 2) {
+			if(_num > 0) {
+//				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+//				globalParams.listX = 2;
+//				globalParams.listY = 0;
+//				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+				globalParams.areaPos = 2;
+				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				getExitBtnFocus();
+				return
+			}
+		}
+		if(globalParams.listX == 0) {
+			globalParams.listX += _num;
+			if(globalParams.listX > 1) {
+				globalParams.listX = 1;
+			}
+			if(globalParams.listX < 0) {
+				globalParams.listX = 0;
+			}
+			$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+			if(_num < 0) {
+				$("divRow" + (globalParams.listX + 1) + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+			} else {
+				$("divRow" + (globalParams.listX - 1) + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+			}
+			return
+		}
+		if(globalParams.listX == 1 || globalParams.listX == 2) {
+			globalParams.listX += _num;
+			if(globalParams.listX > 1) {
+				globalParams.listX = 1;
+			}
+			if(globalParams.listX < 0) {
+				globalParams.listX = 0;
+			}
+			$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+			if(_num < 0) {
+				$("divRow" + (globalParams.listX + 1) + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+			} else {
+				$("divRow" + (globalParams.listX - 1) + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+			}
+			return
+		}
+
+	}
+	if(globalParams.areaPos == 2) {
+		if(globalParams.areaPos == 2){
+		if(_num < 0){
+			loseExitBtnFocus();
+			if(cache.shengjiStatus ==11){
+				if(navY == 0){
+					globalParams.areaPos = 1;
+		   			$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+					return
+				}
+				if(navY == 1){
+					globalParams.areaPos = 4;
+		   			$("div2Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+					return
+				}
+				if(navY == 2){
+					globalParams.areaPos = 3;
+		   			$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+					return
+				}
+				if(navY == 3){
+					globalParams.areaPos = 5;
+		   			$("div3Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+					return
+				}
+				if(navY == 4){
+					globalParams.areaPos = 9;
+		   			$("div5Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+					return
+				}
+			}
+		   	if (navY == 0){
+		   		globalParams.areaPos = 1;
+		   		$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+		   	}
+		   	if (navY == 1){
+		   		globalParams.areaPos = 3;
+		   		$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+		   	}
+		   	if (navY == 2){
+		   		globalParams.areaPos = 5;
+		   		$("div3Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+		   	}
+		   	if (navY == 3){
+		   		globalParams.areaPos = 5;
+		   		$("div3Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+		   	}
+			if(navY == 4){
+					globalParams.areaPos = 9;
+		   			$("div5Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+					return
+				}
+			return;	
+		}else{
+			return
+		}
+	}
+	}
+	if(globalParams.areaPos == 3) {
+		if(globalParams.listX == 0 && globalParams.listY == 0) {
+			if(_num > 0) {
+				globalParams.areaPos = 2;
+				getExitBtnFocus();
+				$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				return
+			}
+		}
+		if(globalParams.listX == 0 && globalParams.listY == 1) {
+			if(_num > 0) {
+				globalParams.areaPos = 2;
+				getExitBtnFocus();
+				$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				return
+			}
+		}
+		if(globalParams.listX == 0 && globalParams.listY == 2) {
+			if(_num > 0) {
+				globalParams.areaPos = 2;
+				getExitBtnFocus();
+				$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				return
+			}
+		}
+		return
+		if(globalParams.listX == 0 && globalParams.listY == 2) {
+			return;
+			if(_num < 0) {
+				return
+			}
+			$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+			globalParams.listX = 1;
+			globalParams.listY = 1;
+			$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+
+		}
+		globalParams.listX += _num;
+		if(globalParams.listX > 1) {
+			globalParams.listX = 1;
+		}
+		if(globalParams.listX < 0) {
+			globalParams.listX = 0;
+		}
+		$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+		if(_num < 0) {
+			$("div1Row" + (globalParams.listX + 1) + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+		} else {
+			$("div1Row" + (globalParams.listX - 1) + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+		}
+	}
+	if(globalParams.areaPos == 4) {
+		if(_num > 0) {
+			globalParams.areaPos = 2;
+			getExitBtnFocus();
+			$("div2Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+		}
+		return
+	}
+	if(globalParams.areaPos == 5) {
+		if(_num > 0) {
+			globalParams.areaPos = 2;
+			getExitBtnFocus();
+			$("div3Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+		}
+		return
+	}
+	if(globalParams.areaPos == 9) {
+		if(_num > 0) {
+			globalParams.areaPos = 2;
+			getExitBtnFocus();
+			$("div5Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+		}
+		return
+	}
+}
+
+function loseDiv1Focus(_listX, _listY) {
+	//$("divFocus").style.visibility = "hidden";
+	$("divRow" + _listY + "Cell" + _listX).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+}
+
+function getDiv1Focus() {
+	$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+	//$("divFocus").style.visibility = "visible";
+}
+
+function loseDiv2Focus() {
+	//$("divFocus").style.visibility = "hidden";
+	$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+}
+
+function getDiv2Focus() {
+	$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+	//$("divFocus").style.visibility = "visible";
+}
+
+function loseBtn1Focus() {
+	document.getElementById("xuanWord_0").style.display = "none";
+	document.getElementById("xuanWord_1").style.display = "none";
+	document.getElementById("ggWord").style.display = "none";
+	$("nav_zhibo").style.backgroundImage = "url(images/order/nav_nosel.png)";
+}
+
+function getBtn1Focus() {
+	document.getElementById("xuanWord_0").style.display = "block";
+	document.getElementById("xuanWord_1").style.display = "block";
+	document.getElementById("ggWord").style.display = "block";
+	$("nav_zhibo").style.backgroundImage = "url(images/order/nav_sel.png)";
+}
+
+function loseBtn2Focus() {
+	$("nav_yinhe").style.backgroundImage = "url(images/order/nav_nosel.png)";
+}
+
+function getBtn2Focus() {
+	$("nav_yinhe").style.backgroundImage = "url(images/order/nav_sel.png)";
+}
+
+function loseBtn3Focus() {
+	$("nav_zuhe").style.backgroundImage = "url(images/order/nav_nosel.png)";
+}
+
+function getBtn3Focus() {
+	$("nav_zuhe").style.backgroundImage = "url(images/order/nav_sel.png)";
+}
+
+function loseBtn4Focus() {
+	$("nav_jilu").style.backgroundImage = "url(images/order/nav_nosel.png)";
+}
+function loseBtn5Focus() {
+	$("nav_tt").style.backgroundImage = "url(images/order/nav_nosel.png)";
+}
+function getBtn4Focus() {
+	$("nav_jilu").style.backgroundImage = "url(images/order/nav_sel.png)";
+}
+function loseBtn5Focus() {
+	$("nav_tt").style.backgroundImage = "url(images/order/nav_nosel.png)";
+}
+
+function getBtn5Focus() {
+	$("nav_tt").style.backgroundImage = "url(images/order/nav_sel.png)";
+}
+function getExitBtnFocus() {
+	$("exitBtn").style.backgroundImage = "url(images/order/btn_0.png)";
+}
+
+function loseExitBtnFocus() {
+	$("exitBtn").style.backgroundImage = "url(images/order/btn_1.png)";
+}
+
+function getOndiv1Chose() {
+	$("nav_zhibo").style.backgroundImage = "url(images/order/nav_nowOnsel.png)";
+}
+
+function getOndiv2Chose() {
+	$("nav_yinhe").style.backgroundImage = "url(images/order/nav_nowOnsel.png)";
+}
+
+function getOndiv3Chose() {
+	$("nav_zuhe").style.backgroundImage = "url(images/order/nav_nowOnsel.png)";
+}
+
+function getOndiv4Chose() {
+	$("nav_jilu").style.backgroundImage = "url(images/order/nav_nowOnsel.png)";
+}
+function getOndiv5Chose() {
+	$("nav_tt").style.backgroundImage = "url(images/order/nav_nowOnsel.png)";
+}
+function showDivText() {
+//	$("monthRow0Cell0").innerText = "12个月";
+//	$("monthRow1Cell0").innerText = "12个月";
+//	$("monthRow0Cell1").innerText = "24个月";
+//	$("monthRow1Cell1").innerText = "24个月";
+//	$("monthRow0Cell2").innerText = "36个月";
+//	$("monthRow1Cell2").innerText = "36个月";
+	var index = globalParams.listX + globalParams.listY * 3;
+	$("titleFocus").innerText = livePay[index].title;
+	$("monthFocus").innerText = livePay[index].monthLength;
+//	$("monthRow0Cell0").innerText = "12个月";
+//	$("monthRow1Cell0").innerText = "12个月";
+//	$("monthRow0Cell1").innerText = "24个月";
+//	$("monthRow1Cell1").innerText = "24个月";
+//	$("monthRow0Cell2").innerText = "36个月";
+//	$("monthRow1Cell2").innerText = "36个月";
+	var price = livePay[index].price / 100;
+	$("priceFocus").innerHTML = price + "<span style='font-size: 26px;'>元</span>";
+	//livePay[i].title; livePay[i].monthLength (livePay[i].price / 100) + "<span style='font-size: 26px;'>元</span>";
+}
+
+function getDiv3Focus() {
+	$("div2Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+}
+
+function getDiv4Focus() {
+	$("div3Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+}
+function getDiv5Focus() {
+	$("div5Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+}
+function showTitle(){
+	document.getElementById("title_1").style.display = "block";
+	document.getElementById("title_word").style.display = "block";
+}
+function hideTitle(){
+	document.getElementById("title_1").style.display = "none";
+	document.getElementById("title_word").style.display = "none";
+}
+//setInterval(function() {
+//	console.log(navY)
+//}, 2000)
+
+function moveLR(_num) {
+if(!globalParams.isStatus){
+		return;	
+	}
+	if(globalParams.areaPos == 0){
+		if(cache.shengjiStatus == 11){
+			if(_num>0){
+					if (navY == 0){
+		   				globalParams.areaPos =1;
+		   				loseBtn1Focus();
+		   				showXuan();
+					   	getOndiv1Chose();
+					   	globalParams.listX = 0;
+					   	globalParams.listY = 0;
+					   	getDiv1Focus();
+					   	return
+		   			}
+					if(navY == 1){
+						globalParams.areaPos =4;
+						loseBtn2Focus();
+					   	globalParams.listX = 0;
+					   	globalParams.listY = 0;
+					   	getDiv3Focus();
+					   	getOndiv2Chose();
+					   	return
+					}
+					if(navY == 2){
+						globalParams.areaPos =3;
+						loseBtn3Focus();
+						getOndiv3Chose();
+						globalParams.listX = 0;
+					   	globalParams.listY = 0;
+					   	getDiv2Focus();
+					   	return
+					}
+					if(navY == 3){
+						globalParams.areaPos =5;
+						globalParams.listX = 0;
+					   	globalParams.listY = 0;
+						loseBtn4Focus();
+						getOndiv4Chose();
+					   	getDiv4Focus();
+					   	return
+					}
+					if(navY == 4){
+						globalParams.areaPos =9;
+						globalParams.listX = 0;
+					   	globalParams.listY = 0;
+						loseBtn5Focus();
+						getOndiv5Chose();
+					   	getDiv5Focus();
+					   	return
+					}
+			}
+		}else{
+		if(_num > 0){
+		   
+		   if (navY == 0){
+		   	globalParams.areaPos =1;
+		   	loseBtn1Focus();
+		   	showXuan();
+		   	getOndiv1Chose();
+		   	globalParams.listX = 0;
+		   	globalParams.listY = 0;
+		   	getDiv1Focus();
+		   	return
+		   }
+		   if (navY == 1){
+		   	globalParams.areaPos =3;
+		   	loseBtn2Focus();
+		   	globalParams.listX = 0;
+		   	globalParams.listY = 0;
+		   	getOndiv2Chose();
+		   	getDiv2Focus();
+		   	return 
+		   }
+		   if (navY == 3){
+		   	globalParams.areaPos =9;
+		   	globalParams.listX = 0;
+		   	globalParams.listY = 0;
+		   	loseBtn5Focus();
+		   	getOndiv5Chose();
+		   	getDiv5Focus();
+		   	return
+		   }
+		   if (navY == 2){
+		   	globalParams.areaPos =5;
+		   	globalParams.listX = 0;
+		   	globalParams.listY = 0;
+		   	loseBtn4Focus();
+		   	getOndiv4Chose();
+		   	getDiv4Focus();
+		   	return
+		   }
+		}
+		}
+	}
+	
+//	if (globalParams.areaPos == 2){
+//		if (_num < 0){
+//			if (document.getElementById("zhibo").style.display == "block"){
+//				globalParams.areaPos = 1;
+//			}
+//		}
+//	}
+	if(globalParams.areaPos == 9){
+		if(cache.shengjiStatus == 11 && _num <0 &&globalParams.listX ==0&&globalParams.listY== 0){
+			getBtn5Focus();
+			globalParams.areaPos = 0;
+			$("div5Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+			return
+		}
+		if (globalParams.listX == 1 && globalParams.listY== 0){
+			if (_num < 0){
+				$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				getBtn2Focus();
+				globalParams.listX = 0;
+				globalParams.listY = 0;
+				globalParams.areaPos = 0;
+				navY =1;
+				return
+			}
+		}
+		if (globalParams.listX == 1 && globalParams.listY== 1){
+			if (_num >0){
+				return
+			}
+		}
+		globalParams.listY += _num;
+    		if (globalParams.listY >2){
+    			globalParams.listY = 2
+    		}
+    		if (globalParams.listY <0){
+    			globalParams.listX = 0;
+    			globalParams.listY = 0;
+    			getBtn5Focus();
+    			globalParams.areaPos = 0;
+    			navY = 3;
+    			$("div5Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    			return;
+    		}
+    		
+    		$("div5Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+    	    
+    	    if (_num<0){
+    	    	$("div5Row" + globalParams.listX + "Cell" + (globalParams.listY+1)).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    	    }else{
+    	    	$("div5Row" + globalParams.listX + "Cell" + (globalParams.listY-1)).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    	    }
+	}
+    if (globalParams.areaPos == 5){
+    	if(cache.shengjiStatus == 11 && _num <0 &&globalParams.listX ==0&&globalParams.listY== 0){
+			getBtn4Focus();
+			globalParams.areaPos = 0;
+			$("div3Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+			return
+		}
+    	globalParams.listY += _num;
+    		if (globalParams.listY >1){
+    			globalParams.listY = 1
+    		}
+    		if (globalParams.listY <0){
+    			globalParams.listY = 0
+    			getBtn4Focus();
+    			globalParams.areaPos = 0;
+    			navY = 2;
+    			$("div3Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    			return;
+    		}
+    		
+    		$("div3Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+    	    
+    	    if (_num<0){
+    	    	$("div3Row" + globalParams.listX + "Cell" + (globalParams.listY+1)).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    	    }else{
+    	    	$("div3Row" + globalParams.listX + "Cell" + (globalParams.listY-1)).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    	    }
+    }
+    if (globalParams.areaPos == 4){
+    	if(cache.shengjiStatus == 11){
+    			if(_num < 0){
+    				getBtn2Focus();
+    				globalParams.areaPos = 0;
+    				$("div2Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    			}
+    			return
+    		}
+    		globalParams.listY += _num;
+    		if (globalParams.listY >2){
+    			globalParams.listY = 2
+    		}
+    		if (globalParams.listY <0){
+    			globalParams.listY = 0
+    			getBtn3Focus();
+    			globalParams.areaPos = 0;
+    			navY = 2;
+    			$("div2Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    			return;
+    		}
+    		
+    		$("div2Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+    	    
+    	    if (_num<0){
+    	    	$("div2Row" + globalParams.listX + "Cell" + (globalParams.listY+1)).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    	    }else{
+    	    	$("div2Row" + globalParams.listX + "Cell" + (globalParams.listY-1)).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    	    }
+    }
+    if (globalParams.areaPos == 2){
+    	if (_num<0 && navY == 0){
+    		$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+    		loseExitBtnFocus();
+    		globalParams.areaPos = 1;
+    		return
+    	}
+    }
+	if (globalParams.areaPos == 1){
+		showXuan();
+		if(globalParams.listX == 0 && globalParams.listY == 0){
+			if(_num > 0){
+//				document.getElementById("span_2").innerText = "6";
+				
+			}else{
+				hideTitle()
+			}
+		}
+		if(globalParams.listX == 1 && globalParams.listY == 0){
+			if(_num > 0){
+				document.getElementById("span_2").innerText = "6";
+				document.getElementById("span_num").innerText="1"
+			}else{
+				hideTitle()
+			}
+		}
+		if(globalParams.listX == 1 && globalParams.listY == 1){
+			if(_num > 0){
+				document.getElementById("span_2").innerText = "5";
+				document.getElementById("span_num").innerText="1"
+			}else{
+				document.getElementById("span_2").innerText = "7";
+				document.getElementById("span_num").innerText="1"
+			}
+		}
+		if(globalParams.listX == 1 && globalParams.listY == 2){
+			if(_num < 0){
+				document.getElementById("span_2").innerText = "6";
+				document.getElementById("span_num").innerText="1"
+			}
+		}
+		if (globalParams.listX ==2 && globalParams.listY==0){
+			if (_num > 0){
+				globalParams.areaPos = 2;
+				getExitBtnFocus();
+				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				return
+			}else{
+				globalParams.areaPos = 0;
+				getBtn1Focus();
+				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				globalParams.listX = 0;
+				globalParams.listY=0;
+				navY = 0;
+				return
+			}
+		}
+		if (globalParams.listX ==1 && globalParams.listY==0){
+			if (_num > 0){
+				
+			}else{
+				globalParams.areaPos = 0;
+				getBtn1Focus();
+				$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				globalParams.listX = 0;
+				globalParams.listY=0;
+				navY = 0;
+				return
+			}
+		}
+		globalParams.listY += _num;
+		if (globalParams.listY >2){
+    			globalParams.listY = 2
+    		}
+		if (globalParams.listY <0){
+    			globalParams.listY = 0;
+    			globalParams.listX = 0;
+    			getBtn1Focus();
+    			globalParams.areaPos = 0;
+    			navY = 0;
+    			$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    			return;
+    		}
+		$("divRow" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+		if (_num <0){
+			$("divRow" + globalParams.listX + "Cell" + (globalParams.listY+1)).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+		}else{
+			$("divRow" + globalParams.listX + "Cell" + (globalParams.listY-1)).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+		}
+	}
+	if (globalParams.areaPos == 3){
+		if(cache.shengjiStatus == 11 && _num <0 &&globalParams.listX ==0&&globalParams.listY== 0){
+			getBtn3Focus();
+			globalParams.areaPos = 0;
+			$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+			return
+		}
+		if (globalParams.listX == 1 && globalParams.listY== 0){
+			if (_num < 0){
+				$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+				getBtn2Focus();
+				globalParams.listX = 0;
+				globalParams.listY = 0;
+				globalParams.areaPos = 0;
+				navY =1;
+				return
+			}
+		}
+		if (globalParams.listX == 1 && globalParams.listY== 1){
+			if (_num >0){
+				return
+			}
+		}
+		globalParams.listY += _num;
+    		if (globalParams.listY >2){
+    			globalParams.listY = 2
+    		}
+    		if (globalParams.listY <0){
+    			globalParams.listX = 0;
+    			globalParams.listY = 0;
+    			getBtn2Focus();
+    			globalParams.areaPos = 0;
+    			navY = 1;
+    			$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    			return;
+    		}
+    		
+    		$("div1Row" + globalParams.listX + "Cell" + globalParams.listY).style.backgroundImage = "url(images/order/taocan_sel.png)";
+    	    
+    	    if (_num<0){
+    	    	$("div1Row" + globalParams.listX + "Cell" + (globalParams.listY+1)).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    	    }else{
+    	    	$("div1Row" + globalParams.listX + "Cell" + (globalParams.listY-1)).style.backgroundImage = "url(images/order/taocan_nosel.png)";
+    	    }
+	}
+	
+	if (globalParams.areaPos == 6){
+		    document.getElementById("defray0" + "Img" +selectPage.listY).style.visibility = "hidden";
+		    document.getElementById("defray1" + "Img" +selectPage.listY).style.visibility = "visible";
+		    selectPage.listY += _num;
+		    if (selectPage.listY >1){
+		    	selectPage.listY = 0;
+		    }else if (selectPage.listY < 0){
+		    	selectPage.listY = 1;
+		    }
+		    document.getElementById("defray0" + "Img" +selectPage.listY).style.visibility = "visible";
+		    document.getElementById("defray1" + "Img" +selectPage.listY).style.visibility = "hidden";
+	}
+	if (globalParams.areaPos == 7){
+		document.getElementById("payBtn0_" +defrayPage.listY).style.visibility = "hidden";
+		    document.getElementById("payBtn1_" +defrayPage.listY).style.visibility = "visible";
+		    defrayPage.listY += _num;
+		    if (defrayPage.listY >1){
+		    	defrayPage.listY = 0;
+		    }else if (defrayPage.listY < 0){
+		    	defrayPage.listY = 1;
+		    }
+		    document.getElementById("payBtn0_" +defrayPage.listY).style.visibility = "visible";
+		    document.getElementById("payBtn1_" + defrayPage.listY).style.visibility = "hidden";
+	}
+	
+}
+//页面显示函数
+function showSelectPage() {
+	if(globalParams.areaPos == 7) {
+		defrayPage.listY = 0;
+		document.getElementById("selectDefrayModePage").style.display = "block";
+		globalParams.areaPos = 6;
+		document.getElementById("defrayPage").style.display = "none";
+		return
+	} else {
+		document.getElementById("listPage").style.display = "none";
+		document.getElementById("selectDefrayModePage").style.display = "block";
+		globalParams.areaPos = 6;
+
+	}
+}
+
+function showListPage() {
+	globalParams.areaPos = cache.areaPos;
+	document.getElementById("selectDefrayModePage").style.display = "none";
+	document.getElementById("listPage").style.display = "block";
+	selectPage.listX = 0;
+	selectPage.listY = 0;
+}
+
+function showDefrayPage() {
+	globalParams.areaPos = 7;
+	document.getElementById("defrayPage").style.display = "block";
+	document.getElementById("selectDefrayModePage").style.display = "none";
+}
+
+function getPackageInfo() {
+	if(cache.areaPos == 1) {
+		var packageInfo = livePayChengdu[globalParams.listX * 3 + globalParams.listY];
+	}
+	if(cache.areaPos == 3) {
+		var packageInfo = yinheChengdu[globalParams.listX * 3 + globalParams.listY];
+	}
+	if(cache.areaPos == 4) {
+		var packageInfo = zuheChengdu[globalParams.listX * 3 + globalParams.listY];
+	}
+	if(cache.areaPos == 5) {
+		var packageInfo = jiluChengdu[globalParams.listX * 3 + globalParams.listY];
+	}
+}
+//获取服务器时间
+
+function goDefrayPage() {
+	var status = document.getElementById("defray0Img1").style.visibility;
+	if(status == "hidden") {
+		$("defrayLogo").src = "images/order/weixin.png"
+	} else {
+		$("defrayLogo").src = "images/order/zhifubao.png"
+	}
+	defrayPage.listY = 0;
+	globalParams.areaPos = 7;
+	$("defrayPage").style.display = "block";
+	$("selectDefrayModePage").style.display = "none";
+	//	globalParams.defrayPageObj.orderInfo();
+	//payUser payPrice payDate
+	$("payUser").innerText = cache.serialNum;
+	$("payNumber").innerText = cache.stbMac;
+	$("defrayPageTitle").innerText = packageInfo.serviceName;
+	//	$("payPrice").innerText = (packageInfo.price/100)+"元";
+	//	用户序列号和mac地址由cs提供，暂用假数据
+	//	var packageInfo = getPackageInfo();
+	//	var packageInfo = getPackageInfo();
+
+	var time = null;
+	//	此处的时间先鉴权,然后加
+	getTime();
+	
+	var json = isServiceCode(packageInfo.serviceCode);
+	
+	if(json.status == true) {
+		time = json.expireDate
+		xuding = 1;
+//		var date = new Date(json.expireDate);
+	} else {
+		time = TvseeDate.getTime();
+		xuding = 0;
+//		var date = new Date(time);
+	}
+	if(packageInfo.serviceId ==34){
+		var json = getMemberPayStatus(livePayChengduServiceId_0+halfServiceId_70);
+		time = json.expireDate;
+		var date = new Date(time);
+		$("payDate").innerText = date.getFullYear() + "年" + (date.getMonth() + 1) + "月" + date.getDate() + "日";
+		return
+	}
+	var date = new Date(time);
+	date.setMonth(date.getMonth() + packageInfo.periodLength);
+	$("payDate").innerText = date.getFullYear() + "年" + (date.getMonth() + 1) + "月" + date.getDate() + "日";
+	
+//	$("payDate").innerText = (DATA.getFullYear() + packageInfo.periodLength / 12) + "年" + (DATA.getMonth()+1) + "月" + DATA.getDate() + "日";
+//	if(packageInfo.serviceId == 34) {
+//		var json = getMemberPayStatus(livePayChengduServiceId_0);
+//		var DATA = new Date(json.expireDate);
+//		$("payDate").innerText = DATA.getFullYear() + "年" + (DATA.getMonth()+1) + "月" + DATA.getDate() + "日";
+//	}
+}
+//listPage套餐包信息的初始化
+var HOST = "http://";
+if(typeof(location.host) != "undefined") {
+	if(location.host.split(":").length > 1) {
+		HOST += location.host.split(":")[0];
+	}
+}
+HOST = "";
+var AUTH_OR_DED_SERVER = HOST + "/tvseeHandle/";
+//initListPage();
+
+//业务鉴权
+function getTime() {
+	var LIVEEPG_SERVER = HOST + "/liveEPG/jsonp/GetDateInfo.action";
+	var day = 7;
+	jQuery.ajax({
+		type: "get",
+		url: LIVEEPG_SERVER,
+		data: {
+			days: day
+		},
+		success: function(data) {
+			cache.serviceTime = data.timeInfo.timestamp;
+			return 
+			}
+	})
+}
+getPayinfo();
+
+function getPayinfo() {
+	var severUrl = AUTH_OR_DED_SERVER + "vodAuthAction/queryVipOrder";
+	//	var serialNum0 = "010000000000001";
+	//	var cardNo0 = "888888888888888888";
+	getStb();
+	try{
+		var serialNum0 = globalvar.get("ca_stbid");
+	}catch(e){
+		//TODO handle the exception
+		var serialNum0 ="010144101000063"
+	}
+//	var serialNum0 = globalvar.get("ca_stbid");
+	var cardNo0 = "888888888888888888";
+	jQuery.ajax({
+		type: "get",
+		url: severUrl,
+		data: {
+			serialNum: serialNum0,
+			cardNo: cardNo0
+		},
+		success: function(data) {
+			payInfo = data;
+			try{
+				tvsee.eventFrame.globalParams.globalCache.put("payInfo_CACHE", payInfo);
+			}catch(e){
+				//TODO handle the exception
+			}
+			getServiceInfo_1()
+			
+		}
+	})
+}
+function initNav(){
+	var json_0 = getMemberPayStatus(livePayChengduServiceId_0+zanshengji+halfServiceId_70);
+//	var json_9 =isServiceCode()
+	var json_1 = getMemberPayStatus(livePayChengduServiceId_1+livePayChengduServiceId_2+shengjiS + halfServiceId_100);
+	var json_5 = getMemberPayStatus(livePayChengduServiceId_2);
+	var json_3 = getMemberPayStatus(shengjiServiceId);
+	init_1();
+	return
+	if(json_5.status == true){
+		if(json_0.expireDate >json_5.expireDate){
+			if(json_5.expireDate>json_1.expireDate){
+				json_1.expireDate = json_5.expireDate;
+			}
+		}
+	}
+	if(json_3.status == true){
+		if(json_0.expireDate >json_3.expireDate){
+			
+		}else{
+			return
+		}
+	}
+	if(json_1.status == false) {
+		try{
+			json_1.expireDate = TvseeDate.getTime();
+		}catch(e){
+			//TODO handle the exception
+		}
+		
+	}
+	
+	if (json_0.status == true){
+		var data1 = new Date(json_0.expireDate);
+		var data2 = new Date(json_1.expireDate);
+		var data3 = data1.getTime() - data2.getTime();
+		if(json_0.expireDate > json_1.expireDate) {
+			var  test = Math.floor(data3 / (24 * 3600 * 1000));
+			if(test <2){
+				return
+			}
+			var days = Math.floor(data3 / (24 * 3600 * 1000));
+//			cache.price = days * (shengji[0].price);
+			cache.time = days;
+			cache.shengjiStatus = 11;
+			init_1();
+			document.getElementById("nav_zuhe").style.display = "block";
+			document.getElementById("span_yinhe").style.top = "180px";
+			document.getElementById("span_shengji").style.top ="100px";
+			document.getElementById("span_jilu").style.top ="260px";
+			document.getElementById("span_tt").style.top ="342px";
+		}
+	}
+	
+}
+function isServiceCode(_serviceCode) {
+	var json = {
+		status: false,
+		"expireDate": 0,
+		"effectiveDate": 0,
+		"serviceId": -1,
+		"subscriberId": -1,
+		result: -1
+	};
+	if(typeof(_serviceCode) == "undefined") {
+		return json;
+	}
+	//	var payInfo = tvsee.eventFrame.globalParams.globalCache.get("payInfo_CACHE");
+//	console.log(payInfo)
+	if(payInfo != false) {
+		for(var i = 0; i < payInfo.length; i++) {
+			if(_serviceCode == payInfo[i].service_code) {
+				json.status = true;
+				json.expireDate = payInfo[i].expireDate;
+				json.effectiveDate = payInfo[i].effectiveDate;
+				json.serviceId = payInfo[i].serviceId;
+				json.subscriberId = payInfo[i].subscriberId;
+				break
+			}
+			if(json.status == true) {
+				break
+			}
+		}
+	}
+	return json;
+}
+
+function getMemberPayStatus(_serviceId) {
+	json = {
+		status: false,
+		"expireDate": 0,
+		"effectiveDate": 0,
+		"serviceId": -1,
+		"subscriberId": -1,
+		result: -1
+	};
+	if(typeof(_serviceId) == "undefined") {
+		return json;
+	}
+	//	var payInfo = tvsee.eventFrame.globalParams.globalCache.get("payInfo_CACHE");
+	if(payInfo != false) {
+		//payInfo = payInfo.result;
+		if(typeof(payInfo.result) != "object") {
+			//			json.result = payInfo;
+			len = payInfo.length;
+			if(typeof(_serviceId) == "string") {
+				var serviceIdArr = _serviceId.split(",");
+			} else {
+				var serviceIdArr = _serviceId.toString();
+			}
+			var serArrLen = serviceIdArr.length;
+			for(var i = 0; i < len; i++) {
+				for(var j = 0; j < serArrLen; j++) {
+					if(serviceIdArr[j] == payInfo[i].serviceId) {
+						json.status = true;
+						json.expireDate = payInfo[i].expireDate;
+						json.effectiveDate = payInfo[i].effectiveDate;
+						json.serviceId = payInfo[i].serviceId;
+						json.subscriberId = payInfo[i].subscriberId;
+						break;
+					}
+				}
+				if(json.status == true) {
+					break;
+				}
+			}
+		} else {
+			payInfo = payInfo.result;
+			var len = 0;
+			len = payInfo.length;
+			var serviceIdArr = _serviceId.split(",");
+			var serArrLen = serviceIdArr.length;
+			for(var i = 0; i < len; i++) {
+				for(var j = 0; j < serArrLen; j++) {
+					if(serviceIdArr[j] == payInfo[i].serviceId) {
+						json.status = true;
+						json.expireDate = payInfo[i].expireDate;
+						json.effectiveDate = payInfo[i].effectiveDate;
+						json.serviceId = payInfo[i].serviceId;
+						json.subscriberId = payInfo[i].subscriberId;
+						break;
+					}
+				}
+				if(json.status == true) {
+					break;
+				}
+			}
+		}
+	} else {
+		tvsee.eventFrame.getPayInfoResult();
+	}
+	return json;
+}
+
+function initListPage() {
+	var severUrl = AUTH_OR_DED_SERVER + "vodAuthAction/getServiceInfo";
+	var serviceId0 = livePayChengduServiceId;
+	jQuery.ajax({
+		type: "get",
+		url: severUrl,
+		data: {
+			serviceId: serviceId0,
+		},
+		success: function(data) {
+			for(var i = 0; i < data.length; i++) {
+				for(var j = 0; j < livePayChengdu.length; j++) {
+					if(data[i].serviceId == livePayChengdu[j].serviceId) {
+						livePayChengdu[j].price = data[i].price;
+						if(j <= 2) {
+							document.getElementById("titleRow0Cell" + j).innerText = data[i].serviceName;
+						} else {
+							var j = j - 3;
+							document.getElementById("titleRow1Cell" + j).innerText = data[i].serviceName;
+						}
+						document.getElementById("titleRow" + "Cell")
+						livePayChengdu[j].monthLength = data[i].periodLength;
+						livePayChengdu[j].title = data[i].serviceName;
+						livePayChengdu[j].packpageName = data[i].serviceDesc;
+						livePayChengdu[j].serviceName = data[i].serviceName;
+						livePayChengdu[j].serviceCode = data[i].serviceCode;
+					}
+				}
+			}
+
+		}
+	})
+}
+
+function goBack() {
+	if(globalParams.areaPos == 0) {
+//		var name = "status=2";
+//		window.AndroidWeb.showAsJS(name);
+		gotoPageUrl("userManager_kunming.html?fromPage=LAUNCHER")
+	}
+	if(globalParams.areaPos == 2) {
+//		var name = "status=2";
+//		window.AndroidWeb.showAsJS(name);
+		gotoPageUrl("userManager_kunming.html?fromPage=LAUNCHER")
+	}
+	if(globalParams.areaPos == 1) {
+//		var name = "status=2";
+//		window.AndroidWeb.showAsJS(name);
+		gotoPageUrl("userManager_kunming.html?fromPage=LAUNCHER")
+	}
+	if(globalParams.areaPos == 3) {
+//		var name = "status=2";
+//		window.AndroidWeb.showAsJS(name);
+		gotoPageUrl("userManager_kunming.html?fromPage=LAUNCHER")
+	}
+	if(globalParams.areaPos == 4) {
+//		var name = "status=2";
+//		window.AndroidWeb.showAsJS(name);
+		gotoPageUrl("userManager_kunming.html?fromPage=LAUNCHER")
+	}
+	if(globalParams.areaPos == 5) {
+//		var name = "status=2";
+//		window.AndroidWeb.showAsJS(name);
+		gotoPageUrl("userManager_kunming.html?fromPage=LAUNCHER")
+	}
+	if(globalParams.areaPos == 9) {
+//		var name = "status=2";
+//		window.AndroidWeb.showAsJS(name);
+		gotoPageUrl("userManager_kunming.html?fromPage=LAUNCHER")
+	}
+	if(globalParams.areaPos == 6) {
+		showListPage();
+	}
+	if(globalParams.areaPos == 7) {
+		showSelectPage();
+
+	}
+
+}
+
+function doSelect() {
+	if(!globalParams.isStatus) {
+		return;
+	}
+
+	if(globalParams.areaPos == 1) {
+		var obj = livePayChengdu[globalParams.listX * 3 + globalParams.listY];
+		var postion = globalParams.listX * 3 + globalParams.listY;
+		if(postion > 2 && postion < 6) {
+			var json = getMemberPayStatus(livePayChengduServiceId_0);
+//			if(json.status == false) {
+//				//如果失败，弹出对话框
+//				document.getElementById("notice").style.display = "block";
+//				setTimeout(function() {
+//					document.getElementById("notice").style.display = "none";
+//				}, 3000)
+//				return
+//			}
+		}
+		if(postion == 6) {
+
+		}
+		cache.serviceId = obj.serviceId;
+		showSelectPage();
+		globalParams.areaPos = 6;
+		cache.areaPos = 1;
+		selectPage.listX = 0;
+		selectPage.listY = 0;
+	} else if(globalParams.areaPos == 2) {
+		//  	goBack();
+		gotoPageUrl("userManager_kunming.html?fromPage=LAUNCHER")
+//		var name = "status=2";
+//		window.AndroidWeb.showAsJS(name);
+	} else if(globalParams.areaPos == 3) {
+		var obj = yinheChengdu[globalParams.listX * 3 + globalParams.listY];
+		cache.serviceId = obj.serviceId;
+		showSelectPage();
+		globalParams.areaPos = 6;
+		cache.areaPos = 3;
+		selectPage.listX = 0;
+		selectPage.listY = 0;
+	} else if(globalParams.areaPos == 4) {
+		var obj = shengji[globalParams.listX * 3 + globalParams.listY];
+		cache.serviceId = obj.serviceId;
+		showSelectPage();
+		globalParams.areaPos = 6;
+		cache.areaPos = 4;
+		selectPage.listX = 0;
+		selectPage.listY = 0;
+	} else if(globalParams.areaPos == 5) {
+		var obj = jiluChengdu[globalParams.listX * 3 + globalParams.listY];
+		cache.serviceId = obj.serviceId;
+		showSelectPage();
+		globalParams.areaPos = 6;
+		cache.areaPos = 5;
+		selectPage.listX = 0;
+		selectPage.listY = 0;
+	} else if(globalParams.areaPos == 6) {
+		//  	showDefrayPage();
+
+		getPayQrCode();
+		goDefrayPage();
+	} else if(globalParams.areaPos == 7) {
+		var defrayStatus = document.getElementById("payBtn0_0").style.visibility;
+		if(defrayStatus == "" || defrayStatus == "visible") {
+			getPayStatus_0();
+			getPayinfo();
+			//  		var json = getMemberPayStatus(cache.serviceId);
+//			getPayStatus();
+//			setTimeout(function(){
+//				if(cache.payStatus == true) {
+//				var name = "status=1";
+//				window.AndroidWeb.showAsJS(name);
+//			} else {
+//				var name = "status=0";
+//				window.AndroidWeb.showAsJS(name);
+//				$("payRequestTip").innerText = "支付未成功或支付状态未更新，请稍后试...";
+//				globalParams.payTimeout = setTimeout(function() {
+//					$("payRequestTip").innerText = "";
+//				}, 2000);
+//			}
+//			},500)
+			
+		} else {
+			showSelectPage()
+			var name = "status=2";
+//			window.AndroidWeb.showAsJS(name);
+		}
+		//  	if (defrayPage.listY == 0){
+		////  		查询支付状态
+		// 		getPayinfo();
+		// 		var json = getMemberPayStatus(packageInfo.serviceId);
+		// 		if (json.status == true){
+		//// 			成功了
+		//			var name = "chenggong";
+		//			window.AndroidWeb.showAsJS(name);
+		// 		}
+		//  	}else{
+		//  		showSelectPage()
+		//  	}
+	}else if(globalParams.areaPos == 9) {
+		var obj = ttmeijuServiceId[globalParams.listX * 3 + globalParams.listY];
+		cache.serviceId = obj.serviceId;
+		showSelectPage();
+		globalParams.areaPos = 6;
+		cache.areaPos = 9;
+		selectPage.listX = 0;
+		selectPage.listY = 0;
+	}
+}
+//支付后的回调
+function getPayStatus_0(){
+	var severUrl = AUTH_OR_DED_SERVER + "vodAuthAction/queryHistoryVipOrder";
+	getStb();
+	var serialNum0 = cache.serialNum;
+	jQuery.ajax({
+		type: "get",
+		url: severUrl,
+		data: {
+			serialNum: serialNum0
+		},
+		success: function(data) {
+//			console.log(data)
+			var json = isServiceCode(packageInfo.serviceCode);
+			payData = data.result;
+			if(payData.length==0){
+				showTip(0);
+				return
+			}
+			if(xuding == 0){
+				for(var i = 0;i<payData.length;i++){
+					if(payData[i].serviceId == packageInfo.serviceId){
+					showTip(1);
+					}else{
+					showTip(0);
+					}
+				}
+			}else{
+				for(var i = 0;i<payData.length;i++){
+					if(payData[i].serviceId == packageInfo.serviceId){
+						if(payData[i].expireDate>json.expireDate){
+							showTip(1);
+						}else{
+							showTip(0);
+						}
+					}else{
+						showTip(0);
+					}
+				}
+			}
+			
+			}
+		
+	})
+}
+function showTip(_type){
+	if(_type == 1){
+		var name = "status=1";
+					$("payRequestTip").innerText = "支付成功";
+					globalParams.payTimeout = setTimeout(function() {
+					$("payRequestTip").innerText = "";
+//					tvsee.eventFrame.globalParams.focusCache.put("userManager", globalParams);
+					gotoPageUrl("userOrderList.html?fromPage=userManager_kunming");	
+				},2000)
+	}else{
+		var name = "status=0";
+					
+					$("payRequestTip").innerText = "支付成功信息未刷新";
+					globalParams.payTimeout = setTimeout(function() {
+					$("payRequestTip").innerText = "";
+				},2000)
+	}
+	
+}
+function getPayStatus() {
+	cache.payStatus = null;
+	for(i = 0; i < payInfo.length; i++) {
+		if(cache.serviceId == payInfo[i].serviceId) {
+			cache.payStatus = true;
+			return
+		} else {
+			cache.payStatus = false;
+		}
+	}
+}
+
+function getPayQrCode() {
+	if(cache.areaPos == 1) {
+		packageInfo = livePayChengdu[globalParams.listX * 3 + globalParams.listY];
+		var postionNum = globalParams.listX * 3 + globalParams.listY;
+		if(postionNum < 3) {
+			var json = getMemberPayStatus(livePayChengduServiceId_0 + halfServiceId_70);
+		} else if(postionNum > 2) {
+			var zan = ""
+			var json = getMemberPayStatus(zan + livePayChengduServiceId_1 + halfServiceId_100);
+//			if(postionNum == 6) {
+//				packageInfo.price = cache.price;
+//				packageInfo.periodLength = cache.time;
+//			}
+		}
+	}
+	if(cache.areaPos == 3) {
+		packageInfo = yinheChengdu[globalParams.listX * 3 + globalParams.listY];
+		var json = getMemberPayStatus(yinheChengduServiceId);
+	}
+	if(cache.areaPos == 9) {
+		packageInfo = ttmeijuServiceId[globalParams.listX * 3 + globalParams.listY];
+		var json = getMemberPayStatus(ttmeiju);
+	}
+	if(cache.areaPos == 4) {
+		packageInfo = shengji[globalParams.listX * 3 + globalParams.listY];
+//		packageInfo.price = cache.price;
+		packageInfo.periodLength = cache.time;
+		var json = getMemberPayStatus(livePayChengduServiceId_0);
+	}
+	if(cache.areaPos == 5) {
+		packageInfo = jiluChengdu[globalParams.listX * 3 + globalParams.listY];
+		var json = getMemberPayStatus(jiluServiceId);
+	}
+	if(json.status == true) { //json.status == true
+		
+		globalParams.expireDate = json.expireDate;
+		xuding = 1;
+	} else {
+		xuding = 0;
+	}
+	$("defrayPageTitle").innerText = packageInfo.serviceName;
+	if(cacheZan.numB == 0 || cacheZan.numB == null){
+		cacheZan.numB = 1
+	}
+	if(packageInfo.serviceId == 1 ||packageInfo.serviceId == 2 ||packageInfo.serviceId == 3){
+//		$("payPrice").innerText = cacheZan.numB*(packageInfo.price / 100) + "元";
+		var price = cacheZan.numB*(packageInfo.price / 100);
+		var callprice =changeTwoDecimal(price);
+		$("payPrice").innerText = callprice + "元";
+	}else{
+		$("payPrice").innerText = packageInfo.price / 100 + "元";
+	}
+	
+	if(packageInfo.serviceId == 34) {
+//		console.log(cache)
+		var price = cache.time *(packageInfo.price/100);
+		var callprice =changeTwoDecimal(price)
+		$("payPrice").innerText = callprice + "元";
+		xuding = 0;
+	}
+	var status = document.getElementById("defray0Img1").style.visibility;
+	if(status == "hidden") {
+		var payMath = "weixin";
+		if(packageInfo.serviceId == 34) {
+			var price_0 = cache.time *packageInfo.price
+			var imgUrl = getAjaxUrl("payQrCode", "", "", price_0, packageInfo.sessionId, "", packageInfo.serviceId, packageInfo.serviceName, packageInfo.serviceCode, packageInfo.periodLength, payMath, 342, 342, xuding);
+			var name = imgUrl;
+			$("twoDimensionCodeImg").src = imgUrl;
+			return
+		}
+		var imgUrl = getAjaxUrl("payQrCode", "", "", packageInfo.price, packageInfo.sessionId, "", packageInfo.serviceId, packageInfo.serviceName, packageInfo.serviceCode, packageInfo.periodLength, payMath, 342, 342, xuding);
+		var name = imgUrl;
+		$("twoDimensionCodeImg").src = imgUrl;
+		//  	window.AndroidWeb.showAsJS(name);
+	} else {
+		var payMath = "alipay"
+		if(packageInfo.serviceId == 34) {
+			var price_1 = cache.time *packageInfo.price;
+			var imgUrl = getAjaxUrl("payQrCode", "", "", price_1, packageInfo.sessionId, "", packageInfo.serviceId, packageInfo.serviceName, packageInfo.serviceCode, packageInfo.periodLength, payMath, 342, 342, xuding);
+			$("twoDimensionCodeImg").src = imgUrl;
+			var name = imgUrl;
+			return
+		}
+		var imgUrl = getAjaxUrl("payQrCode", "", "", packageInfo.price, packageInfo.sessionId, "", packageInfo.serviceId, packageInfo.serviceName, packageInfo.serviceCode, packageInfo.periodLength, payMath, 342, 342, xuding);
+		$("twoDimensionCodeImg").src = imgUrl;
+		var name = imgUrl;
+		//  	window.AndroidWeb.showAsJS(name);
+	}
+
+	$("twoDimensionCodeTip").innerText = "";
+	$("twoDimensionCodeImg").onerror = function() {
+		if(status == "hidden") {
+			var payMath = "weixin"
+		} else {
+			var payMath = "alipay"
+		}
+		if(globalParams.payQrCodeAjaxObj != null) {
+			globalParams.payQrCodeAjaxObj.requestAbort();
+		}
+		globalParams.payQrCodeAjaxObj = new ajaxClass();
+		globalParams.payQrCodeAjaxObj.frame = window;
+		//		var defrayModeInfo = orderDefrayMode.defrayModesInfo[globalParams.selectDefrayModePageObj.areaPos];
+		globalParams.payQrCodeAjaxObj.url = getAjaxUrl("payQrCode", "", "", packageInfo.price, globalParams.sessionId, "", packageInfo.serviceId, packageInfo.serviceName, packageInfo.serviceCode, packageInfo.periodLength, payMath, 258, 258, globalParams.xuding);
+		//		alert(globalParams.payQrCodeAjaxObj.url)
+		var name = imgUrl;
+		//  	window.AndroidWeb.showAsJS(name);
+		//		globalParams.payQrCodeAjaxObj.successCallback = function(_xmlHttp, _params) {
+		//			$("twoDimensionCodeImg").src = "images/global_tm.gif";
+		//			//eval("var data = (" + _xmlHttp.responseText + ")");
+		//			var data = _xmlHttp.responseText.split("=");
+		//			var flag = data[1];
+		//			alert(flag)
+		//			if(flag == 4){ //能正确生成二维码
+		//				$("twoDimensionCodeTip").innerText = "用户不存在,状态码:" + flag;
+		//			}else if(flag == 9){ //订单生成失败
+		//				$("twoDimensionCodeTip").innerText = "系统发生异常,状态码:" + flag;
+		//			}else if(flag == 3){ //支付网关异常
+		//				$("twoDimensionCodeTip").innerText = "支付网关异常,状态码:" + flag;
+		//			}else if(flag == 2){
+		//				$("twoDimensionCodeTip").innerText = "创建订单失败,状态码:" + flag;
+		//			}else if(flag == 5){
+		//				globalParams.isPayScu = true;
+		//				$("payRequestTip").innerText = "您已支付完成，无需重新支付，按[确认]键退出支付";	
+		//				$("twoDimensionCodeTip").innerText = "用户已经订购该业务，无需重复订购:" + flag;
+		//			}else if(flag == 6){
+		//				$("twoDimensionCodeTip").innerText = "未发现存在的订购信息，无法续订:" + flag;
+		//			}
+		//		};
+	}
+}
+
+var Request = new Object();
+Request = getRequest();
+
+function getStb() {
+	var Request = new Object();
+	Request = getRequest();
+//	console.log(Request)
+	if(Request.serialNum == undefined || Request.serialNum == null) {
+		try{
+			cache.serialNum = globalvar.get("ca_stbid");
+		cache.stbMac = globalvar.get("ca_mac");
+		}catch(e){
+			//TODO handle the exception
+		}
+	} else {
+		cache.serialNum = Request.serialNum;
+		cache.stbMac = Request.Mac;
+	}
+}
+
+function getRequest() {
+	var url = location.search;
+	//	alert(url);
+	var theRequest = new Object();
+	if(url.indexOf("?") != -1) {
+		var str = url.substr(1);
+		strs = str.split("&");
+		for(var i = 0; i < strs.length; i++) {
+			theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]);
+		}
+	}
+	//  getStb();
+
+	return theRequest;
+
+}
+
+function init() {
+	var row = 0;
+	var count = 0;
+	var price = 0;
+	for(var i = 0; i < PAY_WUHAN.data.length; i++) {
+		if(i != 0 && i % 3 == 0) {
+			row++;
+			count = 0;
+		}
+		$("titleRow"+ row + "Cell" + count).innerText = PAY_WUHAN.data[i].title;
+		$("monthRow" + row + "Cell" + count).innerText = PAY_WUHAN.data[i].periodLength + "个月";
+		price = (PAY_WUHAN.data[i].price / 100);
+		$("priceRow" + row + "Cell" + count).innerHTML = price + "<span style='font-size: 26px;'>元</span>";
+		count++;
+	}
+	//	alert(livePayChengdu[6].title
+	var json_0 = getMemberPayStatus(livePayChengduServiceId_0);
+	var json_1 = getMemberPayStatus(livePayChengduServiceId_1);
+	if(json_1.status == false) {
+		json_1.expireDate = new Date();
+	}
+//	if(json_0.status == true) {
+//		var data1 = new Date(json_0.expireDate);
+//		var data2 = new Date(json_1.expireDate);
+//		var data3 = data1.getTime() - data2.getTime();
+//		if(json_0.expireDate > json_1.expireDate) {
+//			var days = Math.floor(data3 / (24 * 3600 * 1000));
+//			$("titleRow2Cell0").innerText = livePayChengdu[6].title;
+//			$("monthRow2Cell0").innerText = days + "天";
+//			cache.price = days * (livePayChengdu[6].price / 100);
+//			cache.time = days;
+//			$("priceRow2Cell0").innerHTML = days * (livePayChengdu[6].price / 100) + "<span style='font-size: 26px;'>元</span>";
+//		} else {
+//			$("titleRow2Cell0").innerText = livePayChengdu[6].title;
+//			$("monthRow2Cell0").innerText = livePayChengdu[6].periodLength + "天";
+//			$("priceRow2Cell0").innerHTML = livePayChengdu[6].price / 100 + "<span style='font-size: 26px;'>元</span>";
+//		}
+//	} else if(json_1.status == false) {
+//		$("titleRow2Cell0").innerText = livePayChengdu[6].title;
+//		$("monthRow2Cell0").innerText = livePayChengdu[6].periodLength + "天";
+//		$("priceRow2Cell0").innerHTML = livePayChengdu[6].price / 100 + "<span style='font-size: 26px;'>元</span>";
+//	}
+
+	var livePayObj = false;
+	if(livePayObj != false) {
+		if(livePayObj.areaPos == 1) {
+			loseBtnFocus();
+			globalParams.areaPos = 1;
+			globalParams.listX = livePayObj.listX;
+			globalParams.listY = livePayObj.listY;
+			getDivFocus();
+		}
+	} else {
+		getBtn1Focus();
+		getServiceInfo_1();
+	}
+}
+changeTwoDecimal= function changeTwoDecimal(floatvar)
+{
+var f_x = parseFloat(floatvar);
+if (isNaN(f_x))
+{
+//alert('function:changeTwoDecimal->parameter error');
+return false;
+}
+var f_x = Math.round(floatvar*100)/100;
+return f_x;
+}
+
+function init_1() {
+	
+	getServiceInfo_2();
+//	for(var i = 0; i < zuheChengdu.length; i++) {
+//
+//		$("titleRow1" + row + "Cell" + count).innerText = zuheChengdu[i].title;
+//		$("monthRow1" + row + "Cell" + count).innerText = zuheChengdu[i].periodLength + "个月";
+//		price = (zuheChengdu[i].price / 100);
+//		$("priceRow1" + row + "Cell" + count).innerHTML = price + "<span style='font-size: 26px;'>元</span>";
+//		count++;
+//	}
+	var json_0 = getMemberPayStatus(livePayChengduServiceId_0+halfServiceId_70);
+	var json_1 = getMemberPayStatus(livePayChengduServiceId_1+halfServiceId_100);
+	if(json_1.status == false) {
+		try{
+			json_1.expireDate = TvseeDate.getTime();
+		}catch(e){
+			//TODO handle the exception
+		}
+		
+	}
+	$("titleRow10Cell0").innerText = shengji[0].title;
+//	$("monthRow10Cell0").innerText = days + "天";
+	if(json_0.status == true){
+		var data1 = new Date(json_0.expireDate);
+		var data2 = new Date(json_1.expireDate);
+		var data3 = data1.getTime() - data2.getTime();
+		if(json_0.expireDate>json_1.expireDate){
+//			var days = Math.floor(data3 / (24 * 3600 * 1000));
+//			$("titleRow10Cell0").innerText = shengji[0].title;
+			$("monthRow10Cell0").innerText = cache.time + "天";
+			var price = cache.time * (shengji[0].price / 100);
+			var callprice = changeTwoDecimal(price)
+//			cache.time = days;
+			$("priceRow10Cell0").innerHTML = callprice + "<span style='font-size: 26px;'>元</span>";
+		}
+	}
+	getServiceInfo_2();
+}
+
+function init_2() {
+	var row = 0;
+	var count = 0;
+	var price = 0;
+	for(var i = 0; i < yinheChengdu.length; i++) {
+		if(i != 0 && i % 3 == 0) {
+			row++;
+			count = 0;
+		}
+		$("titleRow2" + row + "Cell" + count).innerText = yinheChengdu[i].title;
+		$("monthRow2" + row + "Cell" + count).innerText = yinheChengdu[i].periodLength + "个月";
+		var payInfo = tvsee.eventFrame.globalParams.globalCache.get("payInfo_CACHE");
+//		alert(payInfo.result);
+		
+			if(payInfo != false&&payInfo.result != 2 &&payInfo.result != 4 && payInfo.result != 9){
+				if(payInfo.result == "" || payInfo.result == null){
+					cacheZan.numB = 1;
+				}else{
+					var payInfo = payInfo.result;
+					var cacheServiced = new Array();
+					if(payInfo.length!= 0){
+						var chengdugqServiceId = "34,35,36,37,50";
+						var arrObj = chengdugqServiceId.split(",");
+						
+						for(var k = 0; k<payInfo.length;k++){
+							for(var j = 0 ;j<arrObj.length;j++){
+								if(payInfo[k].serviceId == arrObj[j]){
+									cacheServiced.push(payInfo[k].serviceId)
+								}
+							}
+						}
+//						console.log(cacheServiced)
+						if(cacheServiced.length == 0){
+							cacheZan.numB = 1;
+						}else if(cacheServiced.length == 1){
+							if(cacheServiced[0] == 50){
+								cacheZan.numB = 1;
+							}else if(cacheServiced[0] == 37){
+								cacheZan.numB = 0.5;
+								setYuanjia();
+							}else if(cacheServiced[0] == 36){
+								cacheZan.numB = 0.6;
+								setYuanjia();
+							}else if(cacheServiced[0] == 35){
+								cacheZan.numB = 0.7;
+								setYuanjia();
+							}else if(cacheServiced[0] == 34){
+								cacheZan.numB = 0.7;
+								setYuanjia();
+							}
+						}else if(cacheServiced.length >1){
+							cacheServiced.sort(function cat(a,b){return b-a});
+							if(cacheServiced[0] == 50){
+								if(cacheServiced[1] == 37){
+									cacheZan.numB = 0.5;
+									setYuanjia();
+								}else if(cacheServiced[1] == 36){
+									cacheZan.numB = 0.6;
+									setYuanjia();
+								}else if(cacheServiced[1] == 35){
+									cacheZan.numB = 0.7;
+									setYuanjia();
+								}else if(cacheServiced[1] == 34){
+									cacheZan.numB = 0.7;
+									setYuanjia();
+							}
+							}else{
+								if(cacheServiced[0] == 37){
+									cacheZan.numB = 0.5;
+									setYuanjia();
+								}else if(cacheServiced[0] == 36){
+									cacheZan.numB = 0.6;
+									setYuanjia();
+								}else if(cacheServiced[0] == 35){
+									cacheZan.numB = 0.7;
+									setYuanjia();
+								}else if(cacheServiced[0] == 34){
+									cacheZan.numB = 0.7;
+									setYuanjia();
+							}
+							}
+						}
+						
+					}else{
+						cacheZan.numB = 1;
+					}
+				}
+			}
+			if(cacheZan.numB == 0 || cacheZan.numB == null || cacheZan.numB == ""){
+				cacheZan.numB =1;
+			}
+//		price = cacheZan.numB*(yinheChengdu[i].price / 100);
+		if(cacheZan.numB ==1){
+			price = yinheChengdu[i].price / 100;
+		}else{
+			price_0 = cacheZan.numB*yinheChengdu[i].price;
+			price = price_0/100;
+		}
+		$("priceRow2" + row + "Cell" + count).innerHTML = price + "<span style='font-size: 26px;'>元</span>";
+		count++;
+	}
+	getServiceInfo_3();
+}
+function setYuanjia(){
+	for(var z =0;z<yinheChengdu.length;z++){
+		document.getElementById("yuanjiaCow_"+z).style.display = "block";
+		document.getElementById("yuanjiaCow_0_"+z).style.display = "block";
+		
+		document.getElementById("yuanjiaCow_0_"+z).innerHTML = yinheChengdu[z].price / 100;
+	}
+}
+function init_3() {
+	var row = 0;
+	var count = 0;
+	var price = 0;
+	for(var i = 0; i < jiluChengdu.length; i++) {
+
+		$("titleRow3" + row + "Cell" + count).innerText = jiluChengdu[i].title;
+		$("monthRow3" + row + "Cell" + count).innerText = jiluChengdu[i].periodLength + "个月";
+		price = (jiluChengdu[i].price / 100);
+		$("priceRow3" + row + "Cell" + count).innerHTML = price + "<span style='font-size: 26px;'>元</span>";
+		count++;
+	}
+	getServiceInfo_5();
+}
+function getServiceInfo() {
+	$("defautBg").innerText = "";
+	var serviceIds = "";
+	for(var i = 0; i < PAY_WUHAN.data.length; i++) {
+		serviceIds += PAY_WUHAN.data[i].serviceId + ",";
+	}
+	serviceIds = serviceIds.substring(0, serviceIds.length - 1);
+	globalParams.serviceInfoAjax = new ajaxClass();
+	globalParams.serviceInfoAjax.frame = window;
+	globalParams.serviceInfoAjax.url = getAjaxUrl("getServiceInfo", serviceIds);
+	globalParams.serviceInfoAjax.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		globalParams.isStatus = true;
+		for(var i = 0; i < data.length; i++) {
+			for(var j = 0; j < PAY_WUHAN.data.length; j++) {
+				if(data[i].serviceId == PAY_WUHAN.data[j].serviceId) {
+					PAY_WUHAN.data[j].price = data[i].price;
+					PAY_WUHAN.data[j].periodLength = data[i].periodLength;
+					PAY_WUHAN.data[j].title = data[i].serviceName;
+					PAY_WUHAN.data[j].packpageName = data[i].serviceDesc;
+					PAY_WUHAN.data[j].serviceName = data[i].serviceName;
+					PAY_WUHAN.data[j].serviceCode = data[i].serviceCode;
+				}
+			}
+		}
+		$("defautBg").innerText = "";
+		$("defautBg").style.zIndex = -1;
+		
+		init();
+	};
+	globalParams.serviceInfoAjax.failureCallback = function(_xmlHttp, _params) {
+		$("defautBg").innerText = "功能暂不能使用，请稍后再试....";
+	};
+	globalParams.serviceInfoAjax.requestData();
+}
+function getServiceInfo_5() {
+	$("defautBg").innerText = "";
+	var serviceIds = "";
+	for(var i = 0; i < ttmeijuServiceId.length; i++) {
+		serviceIds += ttmeijuServiceId[i].serviceId + ",";
+	}
+	serviceIds = serviceIds.substring(0, serviceIds.length - 1);
+	globalParams.serviceInfoAjax = new ajaxClass();
+	globalParams.serviceInfoAjax.frame = window;
+	globalParams.serviceInfoAjax.url = getAjaxUrl("getServiceInfo", serviceIds);
+	globalParams.serviceInfoAjax.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		globalParams.isStatus = true;
+		for(var i = 0; i < data.length; i++) {
+			for(var j = 0; j < ttmeijuServiceId.length; j++) {
+				if(data[i].serviceId == ttmeijuServiceId[j].serviceId) {
+					ttmeijuServiceId[j].price = data[i].price;
+					ttmeijuServiceId[j].periodLength = data[i].periodLength;
+					ttmeijuServiceId[j].title = data[i].serviceName;
+					ttmeijuServiceId[j].packpageName = data[i].serviceDesc;
+					ttmeijuServiceId[j].serviceName = data[i].serviceName;
+					ttmeijuServiceId[j].serviceCode = data[i].serviceCode;
+				}
+			}
+		}
+		$("defautBg").innerText = "";
+		$("defautBg").style.zIndex = -1;
+		
+		init_5();
+	};
+	globalParams.serviceInfoAjax.failureCallback = function(_xmlHttp, _params) {
+		$("defautBg").innerText = "功能暂不能使用，请稍后再试....";
+	};
+	globalParams.serviceInfoAjax.requestData();
+}
+function init_5(){
+	var row = 0;
+	var count = 0;
+	var price = 0;
+	for(var i = 0; i < ttmeijuServiceId.length; i++) {
+
+		$("titleRow5" + row + "Cell" + count).innerText = ttmeijuServiceId[i].title;
+		$("monthRow5" + row + "Cell" + count).innerText = ttmeijuServiceId[i].periodLength + "个月";
+		price = (ttmeijuServiceId[i].price / 100);
+		$("priceRow5" + row + "Cell" + count).innerHTML = price + "<span style='font-size: 26px;'>元</span>";
+		count++;
+	}
+}
+function getServiceInfo_1() {
+	$("defautBg").innerText = "";
+	var serviceIds = "";
+	for(var i = 0; i < shengji.length; i++) {
+		serviceIds += shengji[i].serviceId + ",";
+	}
+	serviceIds = serviceIds.substring(0, serviceIds.length - 1);
+	globalParams.serviceInfoAjax = new ajaxClass();
+	globalParams.serviceInfoAjax.frame = window;
+	globalParams.serviceInfoAjax.url = getAjaxUrl("getServiceInfo", serviceIds);
+	globalParams.serviceInfoAjax.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		globalParams.isStatus = true;
+		for(var i = 0; i < data.length; i++) {
+			for(var j = 0; j < shengji.length; j++) {
+				if(data[i].serviceId == shengji[j].serviceId) {
+					shengji[j].price = data[i].price;
+					shengji[j].periodLength = data[i].periodLength;
+					shengji[j].title = data[i].serviceName;
+					shengji[j].packpageName = data[i].serviceDesc;
+					shengji[j].serviceName = data[i].serviceName;
+					shengji[j].serviceCode = data[i].serviceCode;
+				}
+			}
+		}
+		initNav();
+		$("defautBg").innerText = "";
+		$("defautBg").style.zIndex = -1;
+	};
+	globalParams.serviceInfoAjax.failureCallback = function(_xmlHttp, _params) {
+		$("defautBg").innerText = "功能暂不能使用，请稍后再试....";
+	};
+	globalParams.serviceInfoAjax.requestData();
+}
+
+function getServiceInfo_3() {
+	$("defautBg").innerText = "";
+	var serviceIds = "";
+	for(var i = 0; i < jiluChengdu.length; i++) {
+		serviceIds += jiluChengdu[i].serviceId + ",";
+	}
+	serviceIds = serviceIds.substring(0, serviceIds.length - 1);
+	globalParams.serviceInfoAjax = new ajaxClass();
+	globalParams.serviceInfoAjax.frame = window;
+	globalParams.serviceInfoAjax.url = getAjaxUrl("getServiceInfo", serviceIds);
+	globalParams.serviceInfoAjax.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		globalParams.isStatus = true;
+		for(var i = 0; i < data.length; i++) {
+			for(var j = 0; j < jiluChengdu.length; j++) {
+				if(data[i].serviceId == jiluChengdu[j].serviceId) {
+					jiluChengdu[j].price = data[i].price;
+					jiluChengdu[j].periodLength = data[i].periodLength;
+					jiluChengdu[j].title = data[i].serviceName;
+					jiluChengdu[j].packpageName = data[i].serviceDesc;
+					jiluChengdu[j].serviceName = data[i].serviceName;
+					jiluChengdu[j].serviceCode = data[i].serviceCode;
+				}
+			}
+		}
+		$("defautBg").innerText = "";
+		$("defautBg").style.zIndex = -1;
+		init_3();
+	};
+	globalParams.serviceInfoAjax.failureCallback = function(_xmlHttp, _params) {
+		$("defautBg").innerText = "功能暂不能使用，请稍后再试....";
+	};
+	globalParams.serviceInfoAjax.requestData();
+}
+function getServiceInfo_2() {
+//	$("defautBg").innerText = "正在加载....";
+	var serviceIds = "";
+	for(var i = 0; i < yinheChengdu.length; i++) {
+		serviceIds += yinheChengdu[i].serviceId + ",";
+	}
+	serviceIds = serviceIds.substring(0, serviceIds.length - 1);
+	globalParams.serviceInfoAjax = new ajaxClass();
+	globalParams.serviceInfoAjax.frame = window;
+	globalParams.serviceInfoAjax.url = getAjaxUrl("getServiceInfo", serviceIds);
+	globalParams.serviceInfoAjax.successCallback = function(_xmlHttp, _params) {
+		eval("var data = (" + _xmlHttp.responseText + ").result");
+		globalParams.isStatus = true;
+		for(var i = 0; i < data.length; i++) {
+			for(var j = 0; j < yinheChengdu.length; j++) {
+				if(data[i].serviceId == yinheChengdu[j].serviceId) {
+					yinheChengdu[j].price = data[i].price;
+					yinheChengdu[j].periodLength = data[i].periodLength;
+					yinheChengdu[j].title = data[i].serviceName;
+					yinheChengdu[j].packpageName = data[i].serviceDesc;
+					yinheChengdu[j].serviceName = data[i].serviceName;
+					yinheChengdu[j].serviceCode = data[i].serviceCode;
+				}
+			}
+		}
+		
+		$("defautBg").innerText = "";
+		$("defautBg").style.zIndex = -1;
+		init_2();
+	};
+	globalParams.serviceInfoAjax.failureCallback = function(_xmlHttp, _params) {
+		$("defautBg").innerText = "功能暂不能使用，请稍后再试....";
+	};
+	globalParams.serviceInfoAjax.requestData();
+}
+window.onload = getServiceInfo; //init;</script>
+</head>
+<body>
+<!--套餐选择页面-->
+<div id="listPage" style="display: block;">
+<div style="position: absolute; width: 1280px; height: 720px; top: 0px; left: 0px; background-image: url(images/user/bg.jpg); z-index: 7; font-size:26px; color: #FFF; line-height: 720px; text-align:center;" id="defautBg"></div>
+<div id="titles" style="position:absolute; width: 1280px; height: 55px; top: 40px; left: 0px; color: #FFF;">
+   <div id="title" style="position:absolute; font-size: 40px; left: 70px; text-align:right;  top: 6px;">直播支付</div>
+	<div id="title_1" style="display: none;position:absolute;  left: 255px;  top: 555px;"><img  src="images/order/border0.png"/></div>
+   <div id="title_word" style="display: none;left: 262px;top: 562px;position: absolute;"><span id="span_0" style="font-family: '黑体';font-size: 28px;color: #FFCE00;font-weight: 500;">高清特权:</span><span id="" class="spanfont">赠送</span><span id="span_num" class="spanfont" style="color: red;font-size: 35px;">1</span><span id="" class="spanfont">个月VIP,</span><span id="span" style="font-family: '黑体';font-size: 28px;color: #FFCE00;font-weight: 500;">并且在有效期内线上</span><span id="span_1" style="font-family: '黑体';font-size: 35px;color: white;font-style: oblique;font-weight: 500;">购买VIP</span><span id="span_2" style="font-family: '黑体';font-size: 38px;color: red;font-style: oblique;font-weight: 500;">  </span><span id="span_3" style="font-family: '黑体';font-size: 35px;color: white;font-style: oblique;font-weight: 500;">折</span></div>  
+  <div id="notice" style="position: absolute;font-size: 40px;height: 50px;width: 500px;top:610px;left: 430px;z-index: 7;display: none;"><span style="color: red;">请您先购买基本标清业务</span></div>
+  <div id="notice_1" style="position: absolute;font-size: 40px;height: 50px;width: 500px;top:610px;left: 430px;z-index: 7;display: none;"><span style="color: red;">您已购买增值高清业务</span></div>
+  <div id="" style="position: absolute;top: 130px;width: 200px;height: 500px;left: 50px;">
+		<div id="nav_zhibo" style="height: 80px;width: 160px;left: 10px;top: 40px;background-image: url(images/order/nav_nosel.png);background-position: center;background-repeat: no-repeat;"><span id="" style="left:50px;top: 20px;font-size: 30px;font-weight: 500;font: '微软雅黑';position: absolute;text-align: center;">直播</span></div>
+		<div id="nav_yinhe" style="height: 80px;width: 160px;left: 10px;top: 150px;background-image: url(images/order/nav_nosel.png);background-position: center;background-repeat: no-repeat;"><span id="span_yinhe" style="left:25px;top: 100px;font-size: 30px;font-weight: 500;font: '微软雅黑';position: absolute;text-align: center;">银河VIP</span></div>
+		<div id="nav_zuhe" style="height: 80px;width: 160px;left: 10px;top: 260px;background-image: url(images/order/nav_nosel.png);background-position: center;background-repeat: no-repeat;display: none;"><span id="span_shengji" style="left:20px;top: 260px;font-size: 30px;font-weight: 500;font: '微软雅黑';position: absolute;text-align: center;">直播升级</span></div>
+		<div id="nav_jilu" style="height: 80px;width: 160px;left: 10px;top: 370px;background-image: url(images/order/nav_nosel.png);background-position: center;background-repeat: no-repeat;"><span id="span_jilu" style="left:22px;top: 180px;font-size: 30px;font-weight: 500;font: '微软雅黑';position: absolute;text-align: center;">精选纪录</span></div>
+		<div id="nav_tt" style="height: 80px;width: 160px;left: 10px;top: 370px;background-image: url(images/order/nav_nosel.png);background-position: center;background-repeat: no-repeat;"><span id="span_tt" style="left:22px;top: 264px;font-size: 30px;font-weight: 500;font: '微软雅黑';position: absolute;text-align: center;">天天美剧</span></div>
+		
+  </div>
+<div style="position:absolute; height: 440px; width: 1100px; top:  100px; left: 80px;">
+    <div id="zhibobag" style="position:absolute; width: 900px; height: 320px; left: 145px;">
+    	<div id="divRow0Cell0" class="divCla">
+    		<!--<div id="" class="zan_inco">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="" class="xiexian">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>-->
+        	<div id="titleRow0Cell0" class="titleCla">基本标清</div>
+            <div id="monthRow0Cell0" class="monthCla">原价198</div>
+            <div id="priceRow0Cell0" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        
+        <!--<div style="top: 165px;" class="divCla" id="divRow1Cell0">
+        
+        	<div id="" style="position: absolute;top: 65px;left: 20px;">
+        		<img src="images/order/oneMonth.png"/>
+        	</div>
+        	<div id="titleRow1Cell0" class="titleCla">增值高清</div>
+            <div id="monthRow1Cell0" class="monthCla">原价298</div>
+            <div id="priceRow1Cell0" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+            
+        </div>-->
+        
+        <div style="left: 330px;"  id="divRow0Cell1" class="divCla">
+        	<!--<div id="" class="zan_inco">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="" class="xiexian">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>-->
+        	<div id="titleRow0Cell1" class="titleCla">基本标清</div>
+            <div id="monthRow0Cell1" class="monthCla">原价358</div>
+            <div id="priceRow0Cell1" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        
+         <!--<div style="top: 165px; left: 330px;"id="divRow1Cell1" class="divCla">
+         	
+         	<div id="" style="position: absolute;top: 65px;left: 20px;">
+        		<img src="images/order/threeMonth.png"/>
+        	</div>
+        	<div id="titleRow1Cell1" class="titleCla">增值高清</div>
+            <div id="monthRow1Cell1" class="monthCla">原价498</div>
+            <div id="priceRow1Cell1" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>-->
+        
+         <div style=" position:absolute; left: 660px;" id="divRow0Cell2" class="divCla">
+         	<!--<div id="" class="zan_inco">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="" class="xiexian">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>-->
+        	<div id="titleRow0Cell2" class="titleCla">基本标清</div>
+            <div id="monthRow0Cell2" class="monthCla">原价498</div>
+            <div id="priceRow0Cell2" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        
+        <!--<div style="left: 660px;  top: 165px;" id="divRow1Cell2" class="divCla">
+        	
+        	<div id="" style="position: absolute;top: 65px;left: 20px;">
+        		<img src="images/order/sixMonth.png"/>
+        	</div>
+        	<div id="titleRow1Cell2" class="titleCla">增值高清</div>
+            <div id="monthRow1Cell2" class="monthCla">原价698</div>
+            <div id="priceRow1Cell2" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>-->
+        
+        <div id="divFocus"  style="background-image:url(images/order/taocan_sel.png); width: 243px; height:156px; position:absolute; visibility:hidden;">
+        	<div id="titleFocus" class="titleCla">直播</div>
+            <div id="monthFocus" class="monthCla">12个月</div>
+            <div id="priceFocus" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        
+        <!--<div id="divRow2Cell0" class="divCla" style="top: 325px;">
+        	<div id="titleRow2Cell0" class="titleCla">标清升级包</div>
+            <div id="monthRow2Cell0" class="monthCla">多少天</div>
+            <div id="priceRow2Cell0" class="priceClass">待定<span style="font-size: 24px;">元</span></div>
+        </div>-->
+    </div>
+    
+     <div id="yinhebag" style="position:absolute; width: 900px; height: 320px; left: 145px;display: none;">
+    	<div id="div1Row0Cell0" class="divCla">
+    		<!--<div id="" class="zan_inco">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="" class="xiexian">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>-->
+    		<div id="yuanjiaCow_0" style="position: absolute;top: 18px;left: 161px;display:none">
+    			<img src="images/order/yuanjiaCow.png"/>
+    		</div>
+    		<div id="yuanjiaCow_0_0" class="yuanjia" style="left: 183px;top: 30px;font-size: 21px;display:none">
+    			<!--<span id="yuanjiaCow_0_0_0" style="font-size: 21px;">-->
+    				19.8
+    			<!--</span>-->
+    		</div>
+        	<div id="titleRow20Cell0" class="titleCla">银河VIP</div>
+            <div id="monthRow20Cell0" class="monthCla">原价19.8</div>
+            <div id="priceRow20Cell0" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        
+        <!--<div style="top: 165px;" class="divCla" id="div1Row1Cell0">
+        	<div id="titleRow21Cell0" class="titleCla">银河VIP</div>
+            <div id="monthRow21Cell0" class="monthCla">24个月</div>
+            <div id="priceRow21Cell0" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+            
+        </div>-->
+        
+        <div style="left: 330px;"  id="div1Row0Cell1" class="divCla">
+        	<!--<div id="" class="zan_inco">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="" class="xiexian">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>-->
+        	<div id="yuanjiaCow_1" style="position: absolute;top: 18px;left: 161px;display:none">
+    			<img src="images/order/yuanjiaCow.png"/>
+    		</div>
+    		<div id="yuanjiaCow_0_1" class="yuanjia" style="left: 183px;top: 30px;font-size: 21px;display:none">
+    			<!--<span id="yuanjiaCow_0_0_1" style="font-size: 21px;">-->
+    				19.8
+    			<!--</span>-->
+    		</div>
+        	<div id="titleRow20Cell1" class="titleCla">银河VIP</div>
+            <div id="monthRow20Cell1" class="monthCla">原价108</div>
+            <div id="priceRow20Cell1" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        
+         <!--<div style="top: 165px; left: 330px;"id="div1Row1Cell1" class="divCla">
+        	<div id="titleRow21Cell1" class="titleCla">银河VIP</div>
+            <div id="monthRow21Cell1" class="monthCla">36个月</div>
+            <div id="priceRow21Cell1" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>-->
+        
+         <div style=" position:absolute; left: 660px;" id="div1Row0Cell2" class="divCla">
+         	<!--<div id="" class="zan_inco">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="" class="xiexian">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>-->
+         	<div id="yuanjiaCow_2" style="position: absolute;top: 18px;left: 161px;display:none;">
+    			<img src="images/order/yuanjiaCow.png"/>
+    		</div>
+    		<div id="yuanjiaCow_0_2" class="yuanjia" style="font-size: 21px;display:none">
+    			<!--<span id="yuanjiaCow_0_0_2" style="font-size: 21px;">-->
+    				19.8
+    			<!--</span>-->
+    		</div>
+        	<div id="titleRow20Cell2" class="titleCla">银河VIP</div>
+            <div id="monthRow20Cell2" class="monthCla">原价198</div>
+            <div id="priceRow20Cell2" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        <div id="" style="position: absolute;top: 267px;">
+        	<span id="" class="word_1">银河VIP</span><span class="word_0">内容包含最新最热</span><span id="" class="word_1">院线大片</span><span class="word_0">，为您提供</span><span id="" class="word_1">更多更优质</span><span id="" class="word_0">的观看内容，让您享受</span><span id="" class="word_1">更清晰、流畅</span> <span id="" class="word_0">的观看体验。内容每周更新超过</span><span id="" class="word_1">40部/集。</span>
+        </div>
+    </div>
+
+    <div id="tthebag" style="position:absolute; width: 900px; height: 320px; left: 145px;display: none;">
+    	<div id="div5Row0Cell0" class="divCla">
+    		<!--<div id="" class="zan_inco">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="" class="xiexian">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>-->
+    		
+    		
+        	<div id="titleRow50Cell0" class="titleCla">银河VIP</div>
+            <div id="monthRow50Cell0" class="monthCla">原价19.8</div>
+            <div id="priceRow50Cell0" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        
+        <!--<div style="top: 165px;" class="divCla" id="div1Row1Cell0">
+        	<div id="titleRow21Cell0" class="titleCla">银河VIP</div>
+            <div id="monthRow21Cell0" class="monthCla">24个月</div>
+            <div id="priceRow21Cell0" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+            
+        </div>-->
+        
+        <div style="left: 330px;"  id="div5Row0Cell1" class="divCla">
+        	<!--<div id="" class="zan_inco">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="" class="xiexian">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>-->
+        	
+    		
+        	<div id="titleRow50Cell1" class="titleCla">银河VIP</div>
+            <div id="monthRow50Cell1" class="monthCla">原价108</div>
+            <div id="priceRow50Cell1" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        
+         <!--<div style="top: 165px; left: 330px;"id="div1Row1Cell1" class="divCla">
+        	<div id="titleRow21Cell1" class="titleCla">银河VIP</div>
+            <div id="monthRow21Cell1" class="monthCla">36个月</div>
+            <div id="priceRow21Cell1" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>-->
+        
+         <div style=" position:absolute; left: 660px;" id="div5Row0Cell2" class="divCla">
+         	<!--<div id="" class="zan_inco">
+    			<img src="images/order/icon_zan.png"/>
+    		</div>
+    		<div id="" class="xiexian">
+    			<img src="images/order/xiexian.png"/>	
+    		</div>-->
+         
+        	<div id="titleRow50Cell2" class="titleCla">银河VIP</div>
+            <div id="monthRow50Cell2" class="monthCla">原价198</div>
+            <div id="priceRow50Cell2" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        <div id="" style="position: absolute;top: 267px;">
+        	<span id="" class="word_1">美剧专属套餐，</span><span class="word_0">美剧迷的福音。套餐独揽</span><span id="" class="word_1">HBO王牌高清</span><span id="" class="word_0">美剧，实现HBO最新美剧</span><span id="" class="word_1">“中美同步”</span> <span id="" class="word_0">播出，为观众带来全方位的</span><span id="" class="word_1">好莱坞式娱乐享受。</span>
+        </div>
+        <div id="" style="position: absolute;top: 339px;left: 215px;">
+        	<span id="" class="word_1">内容每周更新超过20小时!</span>
+        </div>
+    </div>
+    <div id="zuhebag" style="position:absolute; width: 900px; height: 500px; left: 145px;display: none;">
+    	<div id="div2Row0Cell0" class="divCla">
+        	<div id="titleRow10Cell0" class="titleCla">直播高清+银河VIP</div>
+            <div id="monthRow10Cell0" class="monthCla">12个月</div>
+            <div id="priceRow10Cell0" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        <div id="Word" style="top: 261px;left: 47px;position: absolute;"><span id="" class="word_0" style="font-size: 28px;">补齐差价即可将已购买的<span id="" class="word_1" style="font-size: 32px;">直播70+</span>产品升级至<span id="" class="word_1" style="font-size: 32px;">直播100+</span>产品哦~</span><span id="" class="word_0"></span><span id="" class="word_1"></span><span id="" class="word_0"></span></div>
+    	<div id="Word_1" style="top: 315px;left: 58px;position: absolute;"><span id="" class="word_0" style="font-size: 28px;">升级后的产品到期时间与原购买的直播70+产品到期时间相同。</span><span id="" class="word_1"></span><span id="" class="word_0"></span></div>
+    
+<!--        
+        <div style="left: 330px;"  id="div2Row0Cell1" class="divCla">
+        	<div id="titleRow10Cell1" class="titleCla">直播高清+银河VIP</div>
+            <div id="monthRow10Cell1" class="monthCla">24个月</div>
+            <div id="priceRow10Cell1" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        
+        <div style=" position:absolute; left: 660px;" id="div2Row0Cell2" class="divCla">
+        	<div id="titleRow10Cell2" class="titleCla">直播高清+银河VIP</div>
+            <div id="monthRow10Cell2" class="monthCla">36个月</div>
+            <div id="priceRow10Cell2" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>-->
+        
+        
+    </div>
+    
+    <div id="jilubag" style="position:absolute; width: 900px; height: 320px; left: 145px;display: none;">
+    	<div id="div3Row0Cell0" class="divCla">
+        	<div id="titleRow30Cell0" class="titleCla">精选记录</div>
+            <div id="monthRow30Cell0" class="monthCla">6个月</div>
+            <div id="priceRow30Cell0" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+        
+       <div style="left: 330px;"  id="div3Row0Cell1" class="divCla">
+        	<div id="titleRow30Cell1" class="titleCla">精选记录</div>
+            <div id="monthRow30Cell1" class="monthCla">12个月</div>
+            <div id="priceRow30Cell1" class="priceClass">198<span style="font-size: 24px;">元</span></div>
+        </div>
+       <div id="" style="position: absolute;top: 267px;">
+        	<span id="" class="word_1">精选纪录专区</span><span class="word_0">提供各种经典纪录片,包括</span><span id="" class="word_1">KBS、BBC、央视等</span><span id="" class="word_0">优秀的国内外纪录片，是广大纪录片爱好者的乐园。内容每周更新超过</span><span id="" class="word_1">10部/集！</span> 
+        </div>
+    </div>
+    <div id="ggWord" style="top: 410px;left: 359px;position: absolute;"></div>
+    <div id="xuanWord_0" style="top: 320px;left: 295px;position: absolute;"></div>
+    <div id="exitBtn" style="background-image:url(images/order/btn_1.png); top: 450px; left: 980px;" class="btnCla">返回</div>
+</div>
+</div>
+<div id="xuanWord_1" style="top: 508px;left: 285px;position: absolute;"></div>
+
+</div>
+<!--微信支付宝选择页面-->
+	<div id="selectDefrayModePage" class="pagesCla"  style="display:none;" >
+	<div style="position: absolute; width: 1280px; height: 720px; top: 0px; left: 0px; background-image: url(images/user/bg.jpg); z-index: 5; font-size:26px; color: #FFF; line-height: 720px; text-align:center;" id="defautBg"></div>
+	<div id="selectDefraTitle" style="position:absolute; left: 64px; top: 58px; font-size:32px;z-index: 5;">请选择您支付的方式</div>
+    <div id="defray0Img0" style="position:absolute; background-image:url(images/order/defray0Img0.png); width:327px; height: 469px; left:290px; top: 142px;z-index: 5;">
+    	<div style=" position:absolute; text-align:center; line-height: 61px; width:290px; height: 61px; background-image:url(images/order/defrayBg0.png); top: 351px; left: 21px; font-size: 28px;" id="defray0Bg0">
+        	手机扫描，完成支付
+        </div>
+    </div>
+    <div id="defray0Img1" style="position:absolute; background-image:url(images/order/defray0Img1.png); width:296px; height: 425px; left:305px; top: 164px; visibility:hidden;z-index: 5;">
+    	<div style=" position:absolute; text-align:center; line-height: 56px; width:263px; height: 56px; background-image:url(images/order/defrayBg1.png); top: 320px; left: 19px; font-size: 24px;" id="defray0Bg1">
+        	手机扫描，完成支付
+        </div>
+    </div>  
+    
+  <div id="defray1Img0" style="position:absolute; background-image:url(images/order/defray1Img0.png); width:327px; height: 469px; left:660px; top: 142px; visibility:hidden;z-index: 5;">
+    	<div style=" position:absolute; text-align:center; line-height: 61px; width:290px; height: 61px; background-image:url(images/order/defrayBg0.png); top: 351px; left: 21px; font-size: 28px;" id="defray1Bg0">
+        	手机扫描，完成支付
+        </div>
+    </div>
+    <div id="defray1Img1" style="position:absolute; background-image:url(images/order/defray1Img1.png); width:296px; height: 425px; left:675px; top: 164px;z-index: 5;">
+    	<div style=" position:absolute; text-align:center; line-height: 56px; width:263px; height: 56px; background-image:url(images/order/defrayBg1.png); top: 320px; left: 19px; font-size: 24px;" id="defray1Bg1">
+        	手机扫描，完成支付
+        </div>
+    </div> 
+</div>
+<!--扫码支付页面-->
+<div id="defrayPage" class="pagesCla"  style="display:none;">
+	<div style="position: absolute; width: 1280px; height: 720px; top: 0px; left: 0px; background-image: url(images/user/bg.jpg); font-size:26px; color: #FFF; line-height: 720px; text-align:center;" id="defautBg"></div>
+	<div id="defrayPageTitle" style="position:absolute; left: 64px; top: 58px; font-size:32px;">银河VIP影院包月</div>
+    <div style="width: 850px; height: 400px; left: 220px; position:absolute; top: 150px;">
+    	<div style="position:absolute; width: 290px; height: 400px;">
+    		<img src="images/order/zhifubao.png" id="defrayLogo" style="position:absolute; top: 8px; left:80px;" />
+            <div id="defrayLogoName" style="position: absolute; font-size:24px; left:136px; top:32px;">支付</div>
+            <!--<img src="" id="twoDimensionCodeImg" /> width="258" height="258" -->
+            <img  id="twoDimensionCodeImg" style="position:absolute; top: 70px; left:10px;"/>
+            <div id="twoDimensionCodeTip" style="position:absolute; width:258px; height: 258px; top: 70px; left:10px; font-size:22px; color:#FFF" >
+            </div>
+            <div style="position:absolute; width: 258px; top:350px; height: 30px; font-size:19px; text-align:center; left: 10px;">扫描二维码，手机上完成支付</div>
+        </div>
+        <div style="position: absolute; width: 580px; height: 310px; top: 58px; left: 298px;">
+        	<div style="position:absolute; font-size:22px; top: 10px; left: 8px;" id="">购买后有效期至:</div> 
+            <div style="position:absolute; left: 182px; font-size: 30px; top: 2px; color:#FFD100;" id="payDate">2015年11月30日</div>
+            <div style="position:absolute; font-size:22px; top: 50px; left: 8px;">订单金额:</div>
+            <div style="position:absolute; font-size:30px; top: 45px; left: 108px; color:#FFD100;" id="payPrice"></div>
+            <div style="position:absolute; font-size:22px; top: 85px; left: 8px;">默认账户:</div>
+            <div style="position:absolute; font-size:30px; top: 80px; left: 108px;" id="payUser">00:00:00:00:00:00</div>
+			<div style="position:absolute; font-size:22px; top: 120px; left: 8px;">终端编号:</div>
+            <div style="position:absolute; font-size:30px; top: 115px; left: 108px;" id="payNumber">00:00:00:00:00:00</div>
+            <img src="images/order/line.png"  style="position:absolute; top: 150px;"/>
+            <div style="position:absolute; top: 170px; font-size:21px;">温馨提示:订购用户可观看相应付费视频,手机上支付完成后,请按遥控器“OK”键即时生效,退出支付请按“返回”键。</div>
+            <div style="position:absolute; top: 225px; font-size:22px;" id="payRequestTip"></div>
+            <div style="position:absolute; width:187px; height:68px; background-image:url(images/order/defrayBtn_0.png); top: 258px; left: 12px; text-align:center; line-height:68px; font-size:30px;" id="payBtn0_0">已完成支付</div>
+             <div style="position:absolute; width:187px; height:68px; background-image:url(images/order/defrayBtn_1.png); top: 258px; left: 12px; text-align:center; line-height:68px; font-size:30px; visibility:hidden;" id="payBtn0_1">已完成支付</div>
+             <div style="position:absolute; width:207px; height:68px; background-image:url(images/order/otherPayBtn_0.png); top: 258px; left: 242px; text-align:center; line-height:68px; font-size:30px; visibility:hidden;" id="payBtn1_0">其它支付方式</div>
+            <div style="position:absolute; width:207px; height:68px; background-image:url(images/order/otherPayBtn_1.png); top: 258px; left: 242px; text-align:center; line-height:68px; font-size:30px;" id="payBtn1_1">其它支付方式</div>
+        </div>
+    </div>
+    <div id="exitTip" style="position:absolute; background-image:url(images/order/tip_bg.png); visibility:hidden; width:707px; height: 466px; top: 145px; left:280px;">		<div style="position: absolute; font-size: 33px; color:#FFF; width: 500px; left: 103px; height: 40px; line-height: 40px; top: 160px; text-align:center;">确认放弃此次支付</div>
+    	<div style="background-image:url(images/order/btn_0.png);left: 173px;" class="tipBtnCla" id="tipBtn0">确认</div>
+   		<div style="background-image:url(images/order/btn_1.png);left: 393px;" class="tipBtnCla" id="tipBtn1">返回</div>
+    </div>
+</div>
+
+</body>
+</html>

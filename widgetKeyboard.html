@@ -1,0 +1,347 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+td{
+	text-align:center;
+}
+</style>
+<title>搜索软键盘</title>
+<script type="text/javascript" src="common/config.js"></script>
+<script type="text/javascript" src="common/keyEvent.js"></script>
+<script type="text/javascript" src="common/common.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}
+var globalParams = {
+	keyValueArr:[["英符", "a", "b", "c", "d", "e", "f", "g", "h", "i", "@", ".", "1", "2", "3", "小字母", "j", "k", "l", "m", "n", "o", "p", "q", "r", ".com", "0", "4", "5", "6", "Empty", "s", "t", "u", "v", "w", "x", "y", "z", "Del", "完成", "空格", "7", "8", "9"],["英符", "A", "B", "C", "D", "E", "F", "G", "H", "I", "@", ".", "1", "2", "3", "大字母", "J", "K", "L", "M", "N", "O", "P", "Q", "R", ".com", "0", "4", "5", "6", "Empty", "S", "T", "U", "V", "W", "X", "Y", "Z", "Del", "完成", "空格", "7", "8", "9"],["英符", ",", "-", "+", "_", "/", "\\", "~", "!", "#", "@", ".", "1", "2", "3", "小字母", "$", "%", "^", "&", "*", "\"", "\"", ":", ":", "?", "0", "4", "5", "6", "Empty", "{", "}", "[", "]", "<", ">", "(", ")", "Del", "完成", "空格", "7", "8", "9"],["英符", "，", "-", "+", "_", "、", "\\", "~", "！", "#", "@", ".", "1", "2", "3", "小字母", "￥", "%", "^", "&", "*", "“", "”", "：", "；", "?", "0", "4", "5", "6", "Empty", "｛", "｝", "【", "】", "<", ">", "（", "）", "Del", "完成", "空格", "7", "8", "9"]],
+	listX: 0,
+	listY: 0,
+	isCapsLock: false,
+	isEF: true,
+	areaPos: 0, //焦点默认在英符上面  1表示在大小写上面
+	tabObj1: null,
+	tabObj2: null,
+	frame: null
+}
+function showKeyboard(){
+	var keyArr;
+	if(globalParams.isCapsLock == false){
+		keyArr = keyValueArr[0];	
+	}else{
+		keyArr = keyValueArr[1];	
+	}
+}
+
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		goBack();
+	}
+}
+
+function moveUD(_num){
+	loseKeyboardFocus();
+	globalParams.listY += _num;
+	if(globalParams.listY < 0){
+		globalParams.listY = 2;
+	}else if(globalParams.listY > 2){
+		globalParams.listY = 0;	
+	}
+	showKeyboardFocus();
+}
+function moveLR(_num){
+	loseKeyboardFocus();
+	globalParams.listX += _num;
+	if(globalParams.listX < 0){
+		globalParams.listX = 14;	
+	}else if(globalParams.listX > 14){
+		globalParams.listX = 0;	
+	}
+	showKeyboardFocus();
+}
+function doSelect(){
+	if(globalParams.isEF == true && globalParams.listX == 0 && globalParams.listY == 0){
+		globalParams.areaPos = 0;
+		globalParams.isEF = false;
+		showKeyboard();
+	}else if(globalParams.isEF == false && globalParams.listX == 0 && globalParams.listY == 0){
+		globalParams.areaPos = 0;
+		globalParams.isEF = true;
+		showKeyboard();
+	}else if(globalParams.isCapsLock == false && globalParams.listX == 0 && globalParams.listY == 1){
+		globalParams.areaPos = 1;
+		globalParams.isCapsLock = true;
+		showKeyboard();
+	}else if(globalParams.isCapsLock == true && globalParams.listX == 0 && globalParams.listY == 1){
+		globalParams.isCapsLock = false;
+		globalParams.areaPos = 1;
+		showKeyboard();
+	}else{
+		var arr;
+		if(globalParams.areaPos == 0 && globalParams.isEF == false){
+			arr = globalParams.keyValueArr[3];
+		}else if(globalParams.areaPos == 0 && globalParams.isEF == true){
+			arr = globalParams.keyValueArr[2];
+		}else if(globalParams.areaPos == 1 && globalParams.isCapsLock == true){
+			arr = globalParams.keyValueArr[1];
+		}else if(globalParams.areaPos == 1 && globalParams.isCapsLock == false){
+			arr = globalParams.keyValueArr[0];
+		}
+		var pageObj = globalParams.frame;;
+		if(pageObj == null){
+			return;	
+		}
+		if(typeof(pageObj.enterLetter) != "function"){
+			return;	
+		}
+		if(globalParams.listX == 0 && globalParams.listY == 2){ //清空
+			pageObj.enterLetter("Empty");
+		}else if(globalParams.listX == 9 && globalParams.listY == 2){ //删除
+			pageObj.enterLetter("Del");
+		}else{
+			var keyCode = arr[globalParams.listX + globalParams.listY * 15];
+			if(keyCode == "完成"){
+				hideWin();
+				return;
+			}else if(keyCode == "空格"){
+				keyCode = " ";	
+			}
+			pageObj.enterLetter(keyCode);
+		}
+	}
+}
+function goBack(){
+	hideWin();
+}
+function init(){
+	globalParams.tabObj1 = $("tab1");
+	globalParams.tabObj2 = $("tab2");
+	globalParams.areaPos = 1;
+	globalParams.isCapsLock = false;
+	globalParams.isEF = true;
+	showKeyboard();
+}
+function showKeyboard(){
+	var arr;
+	if(globalParams.isEF == true){ // && globalParams.areaPos == 0
+		if(globalParams.areaPos == 0){
+			arr = globalParams.keyValueArr[2];
+		}
+		globalParams.tabObj1.rows[0].cells[0].style.backgroundImage = "url(images/keyboard/yingfu_nosel.png)";
+		$("yingfu0").style.top = "9px";
+		$("yingfu0").style.fontSize = "18px";
+		$("yingfu0").style.left = "8px";
+		$("yingfu1").style.top = "33px";
+		$("yingfu1").style.fontSize = "16px";
+		$("yingfu1").style.left = "35px";
+	}else if(globalParams.isEF == false){
+		if(globalParams.areaPos == 0){
+			arr = globalParams.keyValueArr[3];
+		}
+		globalParams.tabObj1.rows[0].cells[0].style.backgroundImage = "url(images/keyboard/zhongfu_nosel.png)";
+		$("yingfu0").style.top = "8px";
+		$("yingfu0").style.fontSize = "16px";
+		$("yingfu0").style.left = "5px";
+		$("yingfu1").style.top = "27px";
+		$("yingfu1").style.fontSize = "18px";
+		$("yingfu1").style.left = "33px";
+	}
+	if(globalParams.isCapsLock == true){
+		if(globalParams.areaPos == 1){
+			arr = globalParams.keyValueArr[1];
+		}
+		globalParams.tabObj1.rows[1].cells[0].style.backgroundImage = "url(images/keyboard/small_nosel.png)";
+		$("capsLock0").style.top = "60px";
+		$("capsLock0").style.left = "10px";
+		$("capsLock0").style.fontSize = "30px";
+		
+		$("capsLock1").style.top = "82px";
+		$("capsLock1").style.fontSize = "22px";
+		$("capsLock1").style.left = "28px";
+	}else if(globalParams.isCapsLock == false){
+		if(globalParams.areaPos == 1){
+			arr = globalParams.keyValueArr[0];
+		}
+		globalParams.tabObj1.rows[1].cells[0].style.backgroundImage = "url(images/keyboard/long_nosel.png)";
+		$("capsLock0").style.top = "65px";
+		$("capsLock0").style.left = "17px";
+		$("capsLock0").style.fontSize = "22px";
+		
+		$("capsLock1").style.top = "75px";
+		$("capsLock1").style.fontSize = "32px";
+		$("capsLock1").style.left = "33px";
+	}
+	var arrLength = arr.length;
+	var row = 0, cell = 0;
+	for(var j = 0; j < arrLength; j++){
+		console.log("arr["+j+"]:" + arr[j]);	
+	}
+	for(var i = 0; i < arrLength; i++){
+		if((row == 1 && cell == 0) || (row == 2 && cell == 0) || (row == 2 && cell == 9) || (row == 0 && cell == 0)){
+			cell++;
+			continue;	
+		}
+		
+		if(cell <= 10){
+			globalParams.tabObj1.rows[row].cells[cell].innerText = arr[i];
+			globalParams.tabObj1.rows[row].cells[cell].style.backgroundImage = "url(images/keyboard/keyboard_nosel.png)";
+		}else{
+			globalParams.tabObj2.rows[row].cells[cell - 11].innerText = arr[i];
+			globalParams.tabObj2.rows[row].cells[cell - 11].style.backgroundImage = "url(images/keyboard/keyboard_nosel.png)";	
+		}
+		cell++;
+		if(cell == 15){
+			row++;
+			cell = 0;
+		}
+	}
+	globalParams.tabObj1.rows[2].cells[0].style.backgroundImage = "url(images/keyboard/clear_nosel.png)";	
+	globalParams.tabObj1.rows[2].cells[9].style.backgroundImage = "url(images/keyboard/del_nosel.png)";	
+	showKeyboardFocus();
+}
+
+function showKeyboardFocus(){
+	if(globalParams.isEF == true && globalParams.listX == 0 && globalParams.listY == 0){// && globalParams.areaPos == 0
+		globalParams.tabObj1.rows[0].cells[0].style.backgroundImage = "url(images/keyboard/yingfu_sel.png)";
+	}else if(globalParams.isEF == false && globalParams.listX == 0 && globalParams.listY == 0){// && globalParams.areaPos == 0
+		globalParams.tabObj1.rows[0].cells[0].style.backgroundImage = "url(images/keyboard/zhongfu_sel.png)";
+	}else if(globalParams.isCapsLock == true && globalParams.listX == 0 && globalParams.listY == 1){// && globalParams.areaPos == 1
+		globalParams.tabObj1.rows[1].cells[0].style.backgroundImage = "url(images/keyboard/long_sel.png)";
+	}else if(globalParams.isCapsLock == false && globalParams.listX == 0 && globalParams.listY == 1){// && globalParams.areaPos == 1
+		globalParams.tabObj1.rows[1].cells[0].style.backgroundImage = "url(images/keyboard/small_sel.png)";
+	}else{
+		if(globalParams.listX == 0 && globalParams.listY == 2){
+			globalParams.tabObj1.rows[2].cells[0].style.backgroundImage = "url(images/keyboard/clear_sel.png)";
+		}else if(globalParams.listX == 9 && globalParams.listY == 2){
+			globalParams.tabObj1.rows[2].cells[9].style.backgroundImage = "url(images/keyboard/del_sel.png)";
+		}else if(globalParams.listX > 10){
+			globalParams.tabObj2.rows[globalParams.listY].cells[globalParams.listX - 11].style.backgroundImage = "url(images/keyboard/keyboard_sel.png)";
+		}else{
+			globalParams.tabObj1.rows[globalParams.listY].cells[globalParams.listX].style.backgroundImage = "url(images/keyboard/keyboard_sel.png)";	
+		}
+	}
+}
+
+function loseKeyboardFocus(){
+	if(globalParams.isEF == true && globalParams.listX == 0 && globalParams.listY == 0){//&&globalParams.areaPos == 0
+		globalParams.tabObj1.rows[0].cells[0].style.backgroundImage = "url(images/keyboard/yingfu_nosel.png)";
+	}else if(globalParams.isEF == false && globalParams.listX == 0 && globalParams.listY == 0){ //&&globalParams.areaPos == 0
+		globalParams.tabObj1.rows[0].cells[0].style.backgroundImage = "url(images/keyboard/zhongfu_nosel.png)";
+	}else if(globalParams.isCapsLock == true && globalParams.listX == 0 && globalParams.listY == 1){ //&&globalParams.areaPos == 1
+		globalParams.tabObj1.rows[1].cells[0].style.backgroundImage = "url(images/keyboard/long_nosel.png)";
+	}else if(globalParams.isCapsLock == false && globalParams.listX == 0 && globalParams.listY == 1){ //&&globalParams.areaPos == 1
+		globalParams.tabObj1.rows[1].cells[0].style.backgroundImage = "url(images/keyboard/small_nosel.png)";
+	}else{
+		if(globalParams.listX == 0 && globalParams.listY == 2){
+			globalParams.tabObj1.rows[2].cells[0].style.backgroundImage = "url(images/keyboard/clear_nosel.png)";
+		}else if(globalParams.listX == 9 && globalParams.listY == 2){
+			globalParams.tabObj1.rows[2].cells[9].style.backgroundImage = "url(images/keyboard/del_nosel.png)";
+		}else if(globalParams.listX > 10){
+			globalParams.tabObj2.rows[globalParams.listY].cells[globalParams.listX - 11].style.backgroundImage = "url(images/keyboard/keyboard_nosel.png)";
+		}else{
+			globalParams.tabObj1.rows[globalParams.listY].cells[globalParams.listX].style.backgroundImage = "url(images/keyboard/keyboard_nosel.png)";	
+		}
+	}	
+}
+
+function showWin(_frame){
+	globalParams.frame = _frame;
+	tvsee.pageWidgets.getByName("widgetKeyboard").show();	
+}
+function hideWin(){
+	init();
+	tvsee.pageWidgets.getByName("widgetKeyboard").minimize();	
+}
+window.onload = init;
+</script>
+</head>
+<body style="background-color:transparent; width:1280px; height:720px; margin:0px; overflow:hidden;">
+<!--<div style="position:absolute; width: 1280px; height: 720px; background-image:url(images/keyboard/2.jpg); top:0px; left: 0px;"></div>
+background-image:url(images/keyboard/bg.png);  447-->
+<div style="position:absolute;  width: 1280px; height: 273px; top: 447px; color:#FFF; font-size: 20px; background-image:url(images/keyboard/bg.png)" >
+	<table width="649" height="180" style="position:absolute; left:205px; top:55px;" id="tab1">
+    	<tr>
+        	<td width="57" style="background:url(images/keyboard/yingfu_nosel.png) no-repeat center center;">
+           		<div style="position:absolute; top: 11px; font-size: 16px; left: 10px;" id="yingfu0">英符</div>
+            	<div style="position:absolute; top: 33px; font-size: 18px; left: 35px;" id="yingfu1">符</div>
+            </td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+        </tr>
+        <tr>
+        	<td width="57" style="background:url(images/keyboard/small_nosel.png) no-repeat center center;">
+            	<div style="position:absolute; top: 65px; left:17px; font-size:22px;" id="capsLock0">A</div>
+            	<div style="position:absolute; top: 75px; left: 33px; font-size:32px;"  id="capsLock1">a</div>
+            </td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+        </tr>
+        <tr>
+        	<td width="57" style="background:url(images/keyboard/clear_nosel.png) no-repeat center center;"><div style="position:absolute; text-align:center; width: 57px;">Empty</div></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/del_nosel.png) no-repeat center center;"><div style="position:absolute; width:57px; text-align:center;">Del</div></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+        </tr>
+    </table>
+    
+    <table width="236" height="180" style="position:absolute; left: 860px; top:55px;" id="tab2">
+    	<tr>
+        	<td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;">.</td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+        </tr>
+        
+        <tr>
+        	<td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+        </tr>
+        
+        <tr>
+        	<td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+            <td width="57" style="background:url(images/keyboard/keyboard_nosel.png) no-repeat center center;"></td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

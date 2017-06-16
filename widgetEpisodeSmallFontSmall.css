@@ -1,0 +1,47 @@
+@charset "utf-8";
+.sSEpisodeFocusCla{
+	background-image:url(images/selectEpisode/dramaeList_small.png);
+	width: 222px;
+	height:72px;
+	position: absolute;
+	left: 228px;
+	top: 581px;
+	visibility: hidden;
+	font-size: 22px; 
+	color: #FFF;
+	text-align: center;
+	line-height: 72px;
+}
+.sEpisodeFocusCla{
+	background-image:url(images/selectEpisode/dramae_small.png);
+	width: 118px;
+	height:72px;
+	position: absolute;
+	left: 228px;
+	top: 465px;
+	font-size: 22px; 
+	color: #FFF; 
+	text-align: center;
+	line-height: 72px;
+}
+.episodeNameCla{
+	width: 1068px; 
+	height: 30px; 
+	position: absolute; 
+	top: 20px; 
+	left: 59px; 
+	color: #FFF; 
+	line-height: 30px;
+	color: #FFF; 
+	font-size: 22px;
+}
+.episodesCla{
+	position: absolute;
+	left: 173px;
+	top: 70px;
+	color: #FFF;
+	text-align: center;
+	width: 834px;
+	height: 108px;
+	font-size: 22px;
+}

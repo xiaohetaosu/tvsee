@@ -1,0 +1,1187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>直播回看</title>
+<script src="common/config.js"></script>
+<script src="common/liveData.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="common/focusMoveObj.js"></script>
+<link href="watchTv.css" rel="stylesheet" type="text/css"/>
+</head>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) { 
+	parent.jsExtendedInterface(window);
+}else{
+	eval("tvsee={}");
+	tvsee = {debug:function(){}}; 
+}
+/*
+ * 全局变量定义
+ * @gcurObjId 当前焦点id
+ * @scrollObj 滚动条对象
+ * @menuObj 左侧菜单对象
+ * @channelObj 右侧频道列表对象
+ * @movieObj 右侧节目单对象
+ * @areaPos 焦点区域位置 0:左侧频道分类 1：右侧频道列表 2：节目单列表 3：直播频道 4：更多频道
+ * @pagePos 页面位置 0频道列表页 1节目列表页 2首页历史记录频道进入
+ * @gcatalogid 首页传进来频道id
+ * @liveMovie 直播节目
+ * @movieTimeOut 节目单定时器
+ * @timeOutFocus 频道列表定时器
+ */
+var globalParams = {
+	gcurObjId:'',
+	scrollObj:null,
+	menuObj:null,
+	channelObj:null,
+	movieObj:null,
+	areaPos: 0,
+	pagePos: 0,
+	gcatalogid: '',
+	liveMovie:null,
+	curChannel:[],
+	movieTimeOut:-1,
+	timeOutFocus:-1
+};
+window.onload = init;
+function init(){
+	$("count").style.color = FOCUS_STYLE.COLOR;
+	globalParams.scrollObj = new scrollBarClass("scroll", "scrollBar", window);
+	globalParams.menuObj = new showMenus();
+	globalParams.channelObj = new showChannels();
+	globalParams.movieObj = new showMovieList();
+	var value = tvsee.eventFrame.globalParams.focusCache.get("backWatchTvListParams");
+	if(value != false){//详情页返回处理
+		globalParams.areaPos = value.areaPos;
+		globalParams.pagePos = value.pagePos;
+		globalParams.gcatalogid = value.gcatalogid;
+		globalParams.liveMovie = value.liveMovie;
+		globalParams.menuObj.pos = value.menuObj.pos;
+		globalParams.menuObj.selTvPos = value.menuObj.selTvPos;
+		globalParams.menuObj.selDatePos = value.menuObj.selDatePos;
+		globalParams.menuObj.dateData = value.menuObj.dateData;
+		globalParams.menuObj.channelData = value.menuObj.channelData;
+		globalParams.channelObj.pos = value.channelObj.pos;
+		globalParams.channelObj.inx = value.channelObj.inx;
+		globalParams.channelObj.rowPos = value.channelObj.rowPos;
+		globalParams.channelObj.cellPos = value.channelObj.cellPos;
+		globalParams.channelObj.arrListRow = value.channelObj.arrListRow;
+		globalParams.movieObj.dataPos = value.movieObj.dataPos;
+		globalParams.movieObj.minx = value.movieObj.minx;
+		globalParams.movieObj.movieData = value.movieObj.movieData;
+		showTopLiveMovie();
+	}else{
+		if(cid=="all"){
+			globalParams.pagePos = 0;
+		}else{
+			globalParams.gcatalogid = cid;
+			globalParams.areaPos = 3;
+			globalParams.pagePos = 2;
+		}
+	}
+	if(globalParams.pagePos == 0){
+		hashtable.put("pageName", 50);
+		hashtable.put("operateObjType", 50);
+		hashtable.put("operateObjName", 0);
+		tvsee.eventFrame.saveLogUserActioncontent();
+		//显示频道列表
+		globalParams.menuObj.showClassfiy();
+	}else{
+		/*hashtable.put("pageName", 51);
+		hashtable.put("operateObjType", 51)
+		hashtable.put("catalogId", globalParams.gcatalogid);
+		hashtable.put("operateObjName", globalParams.gcatalogid);
+		tvsee.eventFrame.saveLogUserActioncontent();*/
+		//显示节目单列表
+		globalParams.menuObj.showDate();
+	}
+	window.focus();
+}
+function eventHandler(_eventObj){
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);	
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);	
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect(); 
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_BACK"){
+		goBack();
+	}
+}
+/*节目列表页面默认焦点*/
+function movieListFocus(){
+	if(globalParams.areaPos==0)return;
+	lostFocusStyle();
+	setFocusMoveParams({isMoveAnimate:false});
+	$("menu"+globalParams.menuObj.selDatePos).className = "wtmenu wtMenuSelCla";
+	$("menu"+globalParams.menuObj.selDatePos).style.color = FOCUS_STYLE.COLOR;
+	if(globalParams.areaPos==3){
+		setFocusMoveParams({left:309,top:50,width:421,height:40});
+		globalParams.gcurObjId="liveMovieId";
+	}else if(globalParams.areaPos==2){
+		globalParams.gcurObjId="movieList"+globalParams.movieObj.dataPos;
+		globalParams.movieObj.pageCode();
+	}
+	setFocusStyle();
+	getFocusStyle();
+	getFocus(globalParams.gcurObjId);
+	showFrame();
+}
+
+/*左侧导航菜单*/
+function showMenus(){
+	this.pos = 0;//焦点位置
+	this.channelData = [];//所有频道
+	this.dateData = [];//一周日期
+	this.selDatePos = 0;//日期菜单选中位置
+	this.selTvPos = 0;//频道分类选中位置
+	this.showClassfiy = function(){//频道分类
+		getAllChannel(null, function(params, data){
+			var j=0;
+			globalParams.menuObj.channelData = data;
+		    globalParams.menuObj.clearData();
+			for(var i=0;i<data.length;i++){
+				if(j<11){
+					$("menu"+i).className = "wtmenu wtMenuNoSelCla";
+					$("menu"+i).style.color = "#FFF";
+					$("mname"+j).innerText = data[i].catalogname;
+				}
+				j++;
+			}
+			globalParams.channelObj.showData();
+			globalParams.menuObj.getMenuFocus();
+		});
+	}
+	this.showDate = function(){//日期
+		var j=0;
+   	 	this.clearData();
+		this.dateData = TvseeDate.getWeek();
+		for(var i=0;i<this.dateData.length;i++){
+			if(j<11){
+				$("menu"+i).className = "wtmenu wtMenuNoSelCla";
+				$("menu"+i).style.color = "#FFF";
+				if(i==0){
+					$("mname"+j).innerText = "今天";
+				}else if(i==1){
+					$("mname"+j).innerText = "昨天";
+				}else{
+					$("mname"+j).innerText = this.dateData[i][1];
+				}
+			}
+			j++;
+		}
+		getChannelMovieList();
+	}
+	this.getMenuFocus = function(){
+		this.pos = this.selTvPos;
+		setFocusMoveParams({isMoveAnimate:false,left:0,top:104});
+		setFocusStyle();
+		getFocusStyle();
+		getFocus("menu"+this.pos);
+	}
+	this.clearData = function(){
+		for(var i=0;i<11;i++){
+			$("menu"+i).className = "menuCla defCla";
+		}
+	}
+}
+
+/*频道列表*/
+function showChannels(){
+	this.data = [];//频道数据
+	this.pos = 0;//焦点位置
+	this.inx = 0;//记录索引
+	this.rowPos = 0;//行位置
+	this.cellPos = 0;//列位置
+	this.totalRows = 0;//总行数
+	this.arrListRow = [[0,-288],[1,10],[2,198],[3,386],[4,574],[5,762]];
+	this.showData = function(){
+	    var j = 0;
+	    var row = 1;
+		var cinx = 0;
+		this.channelPageBG();
+	    this.data = globalParams.menuObj.channelData[globalParams.menuObj.selTvPos].secondChannel;
+		if(this.rowPos>0){
+			row = 0;
+			cinx = (this.rowPos-1)*6;
+		}
+		this.totalRows = Math.ceil(this.data.length / 6);
+		for(var i=cinx;i<this.data.length;i++){
+			if(row < 6){
+				$("chImgRow" + this.arrListRow[row][0] + "Cell" + j).style.backgroundImage = "url("+getChannelLogoPicUrl(this.data[i].catalogpicurl)+")";
+				$("chNameRow" + this.arrListRow[row][0] + "Cell" + j).innerText =  rollTextObj.disStr(this.data[i].catalogname,watchTvPageStrLen.channelNameLen,"...");
+				$("chRows" + this.arrListRow[row][0] + "Cell" + j).style.display = "block";
+				$("chRows" + this.arrListRow[row][0]).style.top = this.arrListRow[row][1]+"px";
+				if(j !=0 && j % 5 == 0){
+					row++;	
+					j = 0;
+				}else{	
+					j++;
+				}
+			}	
+		}
+		this.pageCode();
+	}
+	//预读一行数据
+	this.getRowData = function(_num){
+		var j = 0;
+		var row = 0;
+		if(_num == -1){
+			row = this.arrListRow[0][0];
+			if(this.rowPos == 0){
+				this.inx = 0;
+			}else{
+				this.inx = (this.rowPos-1)*6;
+			}
+		}else{
+			row = this.arrListRow[5][0];
+			this.inx = (this.rowPos+4)*6;
+		}
+		for(var i=this.inx;i<this.data.length;i++){
+			if(j < 6){
+				$("chImgRow" + row + "Cell" + j).style.backgroundImage = "url("+getChannelLogoPicUrl(this.data[i].catalogpicurl)+")";
+				$("chNameRow" + row + "Cell" + j).innerText =  rollTextObj.disStr(this.data[i].catalogname,watchTvPageStrLen.channelNameLen,"...");
+				$("chRows" + row + "Cell" + j).style.display = "block";
+				j++;
+			}	
+		}
+		//清空最后一行操作
+		if(_num == 1){
+			if((this.inx+6) > this.data.length){
+				var a = this.data.length - this.inx;
+				if(a<=0 || a>5){
+					a = 0;
+				}
+				for(var i=a;i<6;i++){
+					$("chRows" + row + "Cell" + i).style.display =  "none";
+				}
+			}
+		}
+	}
+	this.channelPageBG = function(){
+		//$("pageBg").style.backgroundImage = "url(images/watchtv/channelListBg.png)";
+		chaOrProBgCutover(0);
+		$("pageLogo").style.backgroundImage = "url(images/watchtv/channelTitle.png)";
+		$("movieList").style.display = "none";
+		$("channelList").style.display = "block";
+	}
+	this.pageCode = function(){
+		if(globalParams.areaPos == 1){
+			$("count").innerText = this.rowPos * 6 + this.cellPos + 1;
+		}else{
+			$("count").innerText = 0;
+		}
+		$("totalCount").innerText = "/" + this.data.length + "个";
+		initScrollTip(this.totalRows,this.rowPos);
+	}
+	this.clearData = function(){
+		this.data = [];
+		this.pos = 0;
+		this.rowPos = 0;
+		this.cellPos = 0;
+		this.arrListRow = [[0,-288],[1,10],[2,198],[3,386],[4,574],[5,762]];
+		$("chFocusBg").style.display = "none";
+		for(var i=0;i<6;i++){
+			$("chRows" + i).className = "chRowsCla chRowsCla"+i;
+			$("chRows" + i).style.webkitTransitionDuration = "0ms";
+			for(var j=0;j<6;j++){
+				$("chRows" + i + "Cell" + j).style.display =  "none";
+			}
+		}
+	}
+}
+function setFontStyle(color,str){
+	return "<font color='"+color+"'>"+str+"</font>";
+}
+/*根据日期查询节目单*/
+function getChannelMovieList(){
+	$("channelAndDate").innerHTML = "";
+	$("channelList").style.display = "none";
+	$("pageLogo").style.backgroundImage = "url(images/watchtv/programTitle.png)";
+	$("movieList").style.display = "block";
+	if(globalParams.pagePos==1){
+		var inx = globalParams.channelObj.rowPos * 6 + globalParams.channelObj.cellPos;
+		globalParams.curChannel = globalParams.menuObj.channelData[globalParams.menuObj.selTvPos].secondChannel[inx];
+		globalParams.gcatalogid = globalParams.curChannel.catalogid;
+	}
+	var curDate = globalParams.menuObj.dateData[globalParams.menuObj.selDatePos][0];
+	hashtable.put("operateObjType", 51)
+	hashtable.put("operateObjName", curDate);
+	hashtable.put("pid", curDate);
+	hashtable.put("catalogId", globalParams.curChannel.catalogid);
+	tvsee.eventFrame.saveLogUserActioncontent();
+	
+	
+	var params = {'catalogid':globalParams.gcatalogid, 'date':curDate};
+	getMovieListByDate(params, function(params, data){
+		globalParams.movieObj.movieData = data.movie;
+		globalParams.movieObj.liveMovieInx();
+		globalParams.movieObj.showMovieListData();
+		//alert(globalParams.movieObj.movieData.length);
+		if(globalParams.movieObj.movieData.length == 0){
+			showCurrPlay();	
+		}
+	});
+}
+/*节目单列表*/
+function showMovieList(){
+	this.movieData = [];//频道数据
+	this.dataPos = 0;//焦点位置
+	this.minx = 0;//记录索引位置
+	this.size = 24;//每页显示记录数
+	//显示节目列表
+	this.showMovieListData = function(){
+		var j=0;
+		this.moviePageBG();
+		for(var i=this.minx;i<this.movieData.length;i++){
+			if(j>=this.size)break;
+			var status = this.movieData[i].status;
+			if(status == 1){//直播
+				$("movieIcon"+j).className = "icon liveSelCla";
+				globalParams.liveMovie = {'movie' : this.movieData[i], 'moviePos' : (i + 1), 'count' : this.movieData.length};
+				var moObj = globalParams.liveMovie;
+				$("movieName"+j).innerHTML = setFontStyle(FOCUS_STYLE.COLOR, rollTextObj.disStr("正在播放：" + moObj.movie.moviename, watchTvPageStrLen.liveNameLen,"...") + " " + moObj.moviePos) + setFontStyle("#FFFFFF","/" + moObj.count);
+				$("liveMovieName").innerHTML = setFontStyle(FOCUS_STYLE.COLOR, rollTextObj.disStr("正在播放：" + moObj.movie.moviename, watchTvPageStrLen.liveNameLen,"...") + "  " + moObj.moviePos) + setFontStyle("#FFFFFF","/" + moObj.count);
+			}else if(status == 2){//未上线
+				$("movieIcon"+j).className = "icon noOnLineCla";
+				$("movieName"+j).innerHTML = setFontStyle("#C5C5C5",rollTextObj.disStr(this.movieData[i].stratTime+" "+this.movieData[i].moviename,watchTvPageStrLen.movieNameLen,"..."));
+			}else{//回看
+				$("movieIcon"+j).className = "icon wtNoselCla";
+				$("movieName"+j).innerHTML = setFontStyle("#FFFFFF",rollTextObj.disStr(this.movieData[i].stratTime+" "+this.movieData[i].moviename,watchTvPageStrLen.movieNameLen,"..."));
+			}
+			$("movieIcon"+j).style.display = "block";
+			$("movieLine"+j).style.display = "block";
+			j++;
+		}
+		movieListFocus();
+		this.pageCode();
+	}
+	//默认进入节目单列表始终展示当前直播节目位置
+	this.liveMovieInx = function(){
+		for(var i=0;i<this.movieData.length;i++){
+			if(this.movieData[i].status == 1){
+				if(i>18)this.minx=i-18;
+			}
+		}
+	}
+	this.moviePageBG = function(){
+		var strDate = globalParams.menuObj.dateData[globalParams.menuObj.selDatePos][1];
+		getAllChannel({'catalogid':globalParams.gcatalogid}, function(param, data){
+			globalParams.curChannel = getChannelById(param.catalogid, data);
+			if(globalParams.curChannel != null){
+				$("channelAndDate").innerHTML = strDate +"&nbsp;"+globalParams.curChannel.catalogname;
+			}else{
+				$("channelAndDate").innerHTML = "";
+			}
+			chaOrProBgCutover(1);
+		});
+	}
+	this.pageCode = function(){
+		if(globalParams.areaPos == 2){
+			$("count").innerText = this.minx+this.dataPos+1;
+		}else{
+			$("count").innerText = 0;
+		}
+		$("totalCount").innerText = "/" + this.movieData.length + "个";
+		initScrollTip(this.movieData.length,(this.minx+this.dataPos));
+	}
+	this.clearData = function(){
+		this.movieData = [];
+		this.dataPos = 0;
+		this.minx = 0;
+		for(var i=0;i<this.size;i++){
+			$("movieName"+i).innerHTML = "";
+			$("movieIcon"+i).className = "icon wtNoselCla";
+			$("movieIcon"+i).style.display = "none";
+			$("movieLine"+i).style.display = "none";
+		}
+	}
+}
+/*播放*/
+function tvPlay(_isAuth){
+	var movie = [];
+	var date = globalParams.menuObj.dateData[globalParams.menuObj.selDatePos][0];
+	if(globalParams.areaPos == 2){
+		movie = globalParams.movieObj.movieData[globalParams.movieObj.minx+globalParams.movieObj.dataPos];
+	}else if(globalParams.areaPos == 3){
+		if(globalParams.liveMovie == null && IS_ADD_LIVE_FUNCTION == true){
+			movie = {status: 1, mid: '', moviename: ''};
+		}else{
+			movie = globalParams.liveMovie.movie;
+		}
+		date = globalParams.menuObj.dateData[0][0];
+	}
+	if(movie.status == 2){
+		return;
+	}
+	var ppvid = "";
+	var type = movie.status;
+	if(type == 1 && IS_ADD_LIVE_FUNCTION == false){
+		return;	
+	}
+	var catalogid = globalParams.curChannel.catalogid;
+	var catalogname = globalParams.curChannel.catalogname;
+	if(type == 1){//直播价签
+		ppvid = globalParams.curChannel.spname;
+	}else{//回看价签
+		ppvid = globalParams.curChannel.spid;
+	}
+	//业务认证
+	if(_isAuth == true && ISAAA == true){
+		var widgetAuthOrDed = tvsee.pageWidgets.getByName("widgetAuthOrDed");
+		widgetAuthOrDed.show();
+		var winObj = tvsee.pageWidgets.getByName("mainFrame");
+		var callMethod = "tvPlay(false)";
+		widgetAuthOrDed.initData({guid: catalogid, ppvid: ppvid, movieName: catalogname, pirceType:type}, callMethod, winObj, "watchtvPage");
+		return;
+	}
+	
+	saveLastWatchTvChannel(movie);//保存频道观看历史记录
+	//setCacheData("backWatchTvListParams",globalParams);
+	tvsee.eventFrame.globalParams.focusCache.put("backWatchTvListParams", globalParams);
+	var mid = movie.mid;
+	var playUrl = "";
+	var timelength = 0;
+	var url = "vodPlay.html?fromPage=WATCHTVLIST&mid="+mid+"&type="+type+"&date="+date+"&cid="+catalogid+"&playUrl="+playUrl+"&timelength="+timelength+"&episode=0&movieName=" + movie.moviename + " &isHttp=true&moviePic=";
+	gotoPageUrl(url);
+}
+
+function gotoPlay(_movie){
+	if(_movie == null){
+		
+	}
+}
+/*保存最近观看频道*/
+function saveLastWatchTvChannel(movie){
+	var tvObj = [];
+	for(var i=0;i<globalParams.menuObj.channelData.length;i++){
+		if(globalParams.menuObj.channelData[i].catalogid==globalParams.curChannel.parentid){
+			tvObj = globalParams.menuObj.channelData[i];
+			break;
+		}
+	}
+	var liveChannelObj={
+		'tvId':tvObj.catalogid,
+		'tvName':tvObj.catalogname,
+		'channelId':globalParams.curChannel.catalogid,
+		'channelName':globalParams.curChannel.catalogname,
+		'picUrl':globalParams.curChannel.catalogpicurl,
+		'updateDate':TvseeDate.getDate(),
+		'watchCount':1,
+	};
+	//tvsee.eventFrame.globalCache.liveObj.push(liveChannelObj);
+	tvsee.eventFrame.globalCache.liveObj.add(liveChannelObj);
+}
+/*确认键处理*/
+function doSelect(){
+	if(globalParams.areaPos == 0){//左侧导航菜单
+		if(globalParams.pagePos == 0){
+			$("menu"+globalParams.menuObj.selTvPos).className = "wtmenu wtMenuNoSelCla";
+			$("menu"+globalParams.menuObj.selTvPos).style.color = "#FFF";
+			globalParams.menuObj.selTvPos = globalParams.menuObj.pos;
+			$("menu"+globalParams.menuObj.selTvPos).className = "wtmenu wtMenuMoveCla";
+			globalParams.channelObj.clearData();
+			globalParams.channelObj.showData();
+		}else{
+			window.clearTimeout(globalParams.movieTimeOut);
+			tvsee.eventFrame.globalParams.focusCache.remove("backWatchTvListParams");
+			$("menu"+globalParams.menuObj.selDatePos).className = "wtmenu wtMenuNoSelCla";
+			$("menu"+globalParams.menuObj.selDatePos).style.color = "#FFF";
+			globalParams.menuObj.selDatePos = globalParams.menuObj.pos;
+			$("menu"+globalParams.menuObj.selDatePos).className = "wtmenu wtMenuMoveCla";
+			globalParams.movieObj.clearData();
+			getChannelMovieList();
+		}
+	}else if(globalParams.areaPos == 1){//频道列表
+		$("liveMovieName").innerHTML = "";
+		window.clearTimeout(globalParams.timeOutFocus);
+		lostFocusStyle();
+		globalParams.areaPos = 3;
+		globalParams.menuObj.pos = 0;
+		globalParams.menuObj.selDatePos = 0;
+		globalParams.movieObj.clearData();
+		globalParams.pagePos = 1;
+		hideFrame();
+		globalParams.liveMovie = null;
+		globalParams.menuObj.showDate();
+	}else if(globalParams.areaPos == 2){//节目单列表
+		tvPlay(true);
+	}else if(globalParams.areaPos == 3){//正在播放节目
+		tvPlay(true);
+	}else if(globalParams.areaPos == 4){//更多频道
+		window.clearTimeout(globalParams.movieTimeOut);
+		tvsee.eventFrame.globalParams.focusCache.remove("backWatchTvListParams");
+		getAllChannel(null, function(params, data){
+			globalParams.menuObj.channelData = data;
+			globalParams.menuObj.showClassfiy();
+			if(globalParams.pagePos==1){
+				lostFocusStyle();
+				setFocusMoveParams({isMoveAnimate:false});
+				$("menu"+globalParams.menuObj.selTvPos).className = "wtmenu wtMenuSelCla";
+				$("menu"+globalParams.menuObj.selTvPos).style.color = FOCUS_STYLE.COLOR;
+				globalParams.areaPos = 1;
+				globalParams.pagePos = 0;
+				setFocusStyle();
+				getFocusStyle();
+				return;
+			}else if(globalParams.pagePos==2){
+				lostFocusStyle();
+				globalParams.areaPos = 0;
+				globalParams.pagePos = 0;
+				setFocusMoveParams({isMoveAnimate:false,left:0,top:104});
+				setFocusStyle();
+				getFocusStyle();
+				getFocus("menu"+globalParams.menuObj.selTvPos);
+			}
+		});
+	}
+}
+
+/*失去焦点样式*/
+function lostFocusStyle(){
+	if(globalParams.areaPos == 0){//左侧导航菜单
+		$("menu"+globalParams.menuObj.pos).className = "wtmenu wtMenuNoSelCla";
+		$("menu"+globalParams.menuObj.pos).style.color = "#FFF";
+		var selPos = "";
+		if(globalParams.pagePos==0){
+			$("menu"+globalParams.menuObj.selTvPos).className = "wtmenu wtMenuSelCla";
+			$("menu"+globalParams.menuObj.selTvPos).style.color = FOCUS_STYLE.COLOR;
+		}else{
+			$("menu"+globalParams.menuObj.selDatePos).className = "wtmenu wtMenuSelCla";
+			$("menu"+globalParams.menuObj.selDatePos).style.color = FOCUS_STYLE.COLOR;
+		}
+	}else if(globalParams.areaPos == 1){//频道列表
+		rollTextObj.removeRoll();
+		$("chRows"+globalParams.channelObj.arrListRow[1][0]+"Cell"+globalParams.channelObj.cellPos).style.webkitTransform = "scale(1)";
+		var cname = globalParams.channelObj.data[globalParams.channelObj.rowPos * 6 + globalParams.channelObj.cellPos].catalogname;
+		$("chNameRow"+globalParams.channelObj.arrListRow[1][0]+"Cell"+globalParams.channelObj.cellPos).innerText = rollTextObj.disStr(cname,watchTvPageStrLen.channelNameLen,"...");
+	}else if(globalParams.areaPos == 2){//节目单列表
+		rollTextObj.removeRoll();
+		var minx = globalParams.movieObj.minx;
+		var dataPos = globalParams.movieObj.dataPos;
+		var movieIconId = "movieIcon"+dataPos;
+		var movieNameId = "movieName"+dataPos;
+		var movie = globalParams.movieObj.movieData[minx+dataPos];
+		var status = movie.status;
+		if(status == 1){
+			$(movieIconId).className = "icon liveSelCla";
+			var moObj = globalParams.liveMovie;
+			if(moObj != null){
+				$(movieNameId).innerHTML = setFontStyle(FOCUS_STYLE.COLOR,rollTextObj.disStr("正在播放：" + moObj.movie.moviename, watchTvPageStrLen.liveNameLen, "...") + " " + moObj.moviePos) + setFontStyle("#FFFFFF", "/" + moObj.count);
+			}else{
+				$(movieNameId).innerHTML = "";
+			}
+			return;
+		}else if(status == 2){
+			$(movieIconId).className = "icon noOnLineCla";
+			$(movieNameId).innerHTML = setFontStyle("#C5C5C5",rollTextObj.disStr(movie.stratTime+" "+movie.moviename,watchTvPageStrLen.movieNameLen,"..."));
+		}else if(status == 0){
+			$(movieIconId).className = "icon wtNoselCla";
+			$(movieNameId).innerHTML = setFontStyle("#FFFFFF",rollTextObj.disStr(movie.stratTime+" "+movie.moviename,watchTvPageStrLen.movieNameLen,"..."));
+		}
+	}else if(globalParams.areaPos == 3){//正在播放节目
+		rollTextObj.removeRoll();
+		var moObj = globalParams.liveMovie;
+		if(moObj != null){
+			$("liveMovieName").innerHTML = setFontStyle(FOCUS_STYLE.COLOR,rollTextObj.disStr("正在播放：" + moObj.movie.moviename,watchTvPageStrLen.liveNameLen,"...") + "  " + moObj.moviePos )+setFontStyle("#FFFFFF","/" + moObj.count);
+		}else{
+			//$("liveMovieName").innerHTML = "";
+		}
+		$("liveIcon").src = "images/watchtv/zhiboIcon.png";
+	}else if(globalParams.areaPos == 4){//更多频道
+		return;
+	}
+}
+
+/*获得焦点样式*/
+function getFocusStyle(){
+	if(globalParams.areaPos == 0){//左侧导航菜单
+		$("menu"+globalParams.menuObj.pos).className = "wtmenu wtMenuMoveCla";
+		$("menu"+globalParams.menuObj.pos).style.color = "#FFF";
+	}else if(globalParams.areaPos == 1){//频道列表
+		var curRow = globalParams.channelObj.rowPos;
+		var curCell = globalParams.channelObj.cellPos;
+		var _rowPos = globalParams.channelObj.arrListRow[1][0];
+		var obj = $("chRows"+_rowPos+"Cell"+curCell);
+		$("chFocusBg").style.display = "block";
+		$("chFocusBg").style.left = (obj.offsetLeft-20)+"px";
+		$("chFocusBg").style.top = (obj.offsetTop-24)+"px";				
+		setFocusMoveParams({left:(200+obj.offsetLeft),top:(27+obj.offsetTop)});		
+		var cname = globalParams.channelObj.data[curRow * 6 + curCell].catalogname;
+		globalParams.channelObj.pageCode();
+		window.clearTimeout(globalParams.timeOutFocus);
+		globalParams.timeOutFocus = setTimeout(function(){
+			rollTextObj.setRoll("chNameRow"+_rowPos+"Cell"+curCell, cname, watchTvPageStrLen.channelNameLen, "...");
+			obj.style.webkitTransform = "scale(1.1)";
+		}, 200);
+	}else if(globalParams.areaPos == 2){//节目单列表
+		var movieName = "";
+		var movieLen = watchTvPageStrLen.movieNameLen;
+		var minx = globalParams.movieObj.minx;
+		var dataPos = globalParams.movieObj.dataPos;
+		var movieIconId = "movieIcon"+dataPos;
+		var movieNameId = "movieName"+dataPos;
+		var movie = globalParams.movieObj.movieData[minx+dataPos];
+		var status = movie.status;
+		if(status == 1){
+			$(movieNameId).style.color="#FFFFFF";
+			$(movieIconId).className = "icon liveNoselCla";
+			window.clearTimeout(globalParams.movieTimeOut);
+			globalParams.movieTimeOut = setTimeout(function(){
+				var moObj = globalParams.liveMovie;
+				if(moObj != null){
+					rollTextObj.setRoll(movieNameId, "正在播放：" + moObj.movie.moviename + " " + moObj.moviePos + "/" + moObj.count, watchTvPageStrLen.liveNameLen, "...");
+				}else{
+					//$(movieNameId).innerHTML = "";
+				}
+			}, 50);
+			globalParams.movieObj.pageCode();
+			return;
+		}else if(status == 2){
+			$(movieNameId).style.color="#C5C5C5";
+			$(movieIconId).className = "icon noOnLineCla";
+			movieName = movie.stratTime+" "+movie.moviename;
+		}else if(status == 0){
+			$(movieNameId).style.color="#FFFFFF";
+			$(movieIconId).className = "icon wtSelCla";
+			movieName = movie.stratTime+" "+movie.moviename;
+		}
+		window.clearTimeout(globalParams.movieTimeOut);
+		globalParams.movieTimeOut = setTimeout(function(){
+			rollTextObj.setRoll(movieNameId, movieName, movieLen, "...");
+		}, 50);
+		globalParams.movieObj.pageCode();
+	}else if(globalParams.areaPos == 3){//正在播放节目
+		var moObj = globalParams.liveMovie;
+		if(moObj != null){
+			var movieName = "正在播放：" + moObj.movie.moviename + "  " + moObj.moviePos +"/" + moObj.count;
+			rollTextObj.setRoll("liveMovieName", movieName, watchTvPageStrLen.liveNameLen, "...");
+		}else{
+			showCurrPlay();	
+		}
+		$("liveIcon").src = "images/watchtv/zhiboIconSel.png";
+	}
+}
+
+/*设置焦点框样式*/
+function setFocusStyle(){
+	if(globalParams.areaPos == 0){
+		setFocusMoveParams({isBorder:false,backgroundImage:"images/watchtv/meun_focus.png",width:208,height:59});
+	}else if(globalParams.areaPos == 1){
+		setFocusMoveParams({isBorder:true,borderSelected:FOCUS_STYLE.BORDER,width:161,height:161});
+	}else if(globalParams.areaPos == 2){
+		var minx = globalParams.movieObj.minx;
+		var dataPos = globalParams.movieObj.dataPos;
+		var movie = globalParams.movieObj.movieData[minx+dataPos];
+		var status = movie.status;
+		if(status == 1 || status == 0){
+			setFocusMoveParams({isBorder:false,backgroundImage:"images/watchtv/programFocus.png",width:444,height:34});
+		}else if(status == 2){
+			setFocusMoveParams({isBorder:true,borderSelected:FOCUS_STYLE.BORDER,width:444,height:34});
+		}
+	}else if(globalParams.areaPos == 3){
+		setFocusMoveParams({isBorder:false,backgroundImage:"images/watchtv/zhiboFocus.png",width:421,height:40});
+	}else if(globalParams.areaPos == 4){
+		setFocusMoveParams({isBorder:false,backgroundImage:"images/watchtv/moreTvSel.png",width:173,height:55});
+	}
+}
+/*左右键处理*/
+function moveLR(_num){
+	if(globalParams.areaPos == 0){//左侧导航菜单
+		if(_num == -1)return;
+		var len = 0;
+		if(globalParams.pagePos == 0){
+			if(globalParams.channelObj.data == null){
+				return;	
+			}
+			len = globalParams.channelObj.data.length;
+			if(len == 0)return;
+			lostFocusStyle();
+			globalParams.areaPos = 1;
+			globalParams.gcurObjId = "";
+		}else{
+			len = globalParams.movieObj.movieData.length;
+			lostFocusStyle();
+			if(len == 0){
+				globalParams.areaPos = 3;
+				globalParams.gcurObjId = "liveMovieId";
+			}else{
+				globalParams.areaPos = 2;
+				if(globalParams.movieObj.dataPos>11){
+					globalParams.movieObj.dataPos = 0;
+				}
+				globalParams.gcurObjId = "movieList"+globalParams.movieObj.dataPos;
+			}
+		}
+		setFocusMoveParams({isMoveAnimate:false});
+	}else if(globalParams.areaPos == 1){//频道列表
+		var curCell = globalParams.channelObj.cellPos + _num;
+		var curRecord = globalParams.channelObj.rowPos * 6 + globalParams.channelObj.cellPos+1;
+		var len = globalParams.channelObj.data.length;
+		if(curCell < 0){
+			window.clearTimeout(globalParams.timeOutFocus);
+			curCell = 0;
+			lostFocusStyle();
+			$("chFocusBg").style.display = "none";
+			globalParams.areaPos = 0;
+			globalParams.channelObj.pageCode();
+			globalParams.menuObj.pos = globalParams.menuObj.selTvPos;
+			globalParams.gcurObjId = "menu"+globalParams.menuObj.selTvPos;
+			setFocusMoveParams({isMoveAnimate:false});
+			setFocusStyle();
+			getFocusStyle();
+			getFocus(globalParams.gcurObjId);
+			return;
+		}else if(curCell == 6){
+			curCell = 5;
+			return;
+		}else if(curRecord==len && _num==1){
+			return;
+		}
+		lostFocusStyle();
+		globalParams.channelObj.cellPos = curCell;
+		setFocusMoveParams({isMoveAnimate:true});
+		getFocusStyle();
+		return;
+	}else if(globalParams.areaPos == 2){//节目单列表
+		var totalCount = globalParams.movieObj.movieData.length;
+		var dataPos = globalParams.movieObj.dataPos;
+		if(_num == -1){
+			dataPos -= 12;
+		}else{
+			dataPos += 12;
+		}
+		if(dataPos>=(totalCount-globalParams.movieObj.minx)){
+			dataPos = totalCount-globalParams.movieObj.minx-1;
+		}
+		if(dataPos<0){
+			dataPos += 12;
+			lostFocusStyle();
+			globalParams.areaPos = 0;
+			globalParams.gcurObjId = "menu"+globalParams.menuObj.pos;
+			setFocusMoveParams({isMoveAnimate:false});
+			globalParams.movieObj.pageCode();
+		}else if(dataPos>23){
+			dataPos -= 12;
+			return;
+		}else{
+			lostFocusStyle();
+			globalParams.movieObj.dataPos = dataPos;
+			globalParams.gcurObjId = "movieList"+globalParams.movieObj.dataPos;
+			setFocusMoveParams({isMoveAnimate:true});
+		}
+	}else if(globalParams.areaPos == 3){//正在播放节目
+		lostFocusStyle();
+		globalParams.areaPos = 4;
+		globalParams.gcurObjId = "moreTvSel";
+		if(_num == -1){
+			globalParams.areaPos = 0;
+			globalParams.gcurObjId = "menu"+globalParams.menuObj.pos;
+		}
+	}else if(globalParams.areaPos == 4){//更多频道
+		if(_num == 1)return;
+		globalParams.areaPos = 3;
+		globalParams.gcurObjId = "liveMovieId";
+	}
+	setFocusStyle();
+	getFocusStyle();
+	getFocus(globalParams.gcurObjId);
+}
+/*上下键处理*/
+function moveUD(_num){
+	if(globalParams.areaPos == 0){//左侧导航菜单
+		var len = globalParams.menuObj.channelData.length;
+		if(globalParams.pagePos!=0){
+			len = globalParams.menuObj.dateData.length;
+		}
+		var pos = globalParams.menuObj.pos + _num;
+		if(pos < 0){
+			pos = 0;
+			return;
+		}else if(pos == len){
+			pos = len-1;
+			return;
+		}
+		lostFocusStyle();
+		setFocusMoveParams({isMoveAnimate:true});
+		globalParams.menuObj.pos = pos;
+		globalParams.gcurObjId = "menu"+pos;
+	}else if(globalParams.areaPos == 1){//频道列表
+		var curRow = globalParams.channelObj.rowPos + _num;
+		var curCell = globalParams.channelObj.cellPos;
+		var len = globalParams.channelObj.data.length;
+		var totalRow = globalParams.channelObj.totalRows;
+		if(curRow < 0){
+			curRow = 0;
+			return;
+		}else if(curRow == totalRow){
+			curRow = totalRow-1;
+			return;
+		}
+		lostFocusStyle();
+		channelListRowMove(_num);
+		globalParams.channelObj.rowPos = curRow;
+		globalParams.channelObj.getRowData(_num);
+		setFocusMoveParams({isMoveAnimate:true});
+		globalParams.channelObj.pageCode();
+		var curRecord = globalParams.channelObj.rowPos * 6 + globalParams.channelObj.cellPos+1;
+		if(curRow == (totalRow-1) && curRecord>len){
+			globalParams.channelObj.cellPos = len-(totalRow-1)*6-1;
+		}
+		getFocusStyle();
+		return;
+	}else if(globalParams.areaPos == 2){//节目单
+		var totalCount = globalParams.movieObj.movieData.length;
+		var minx = globalParams.movieObj.minx;
+		var dataPos = globalParams.movieObj.dataPos+_num;
+		var minx = globalParams.movieObj.minx;
+		var size = globalParams.movieObj.size;
+		if(dataPos<0){
+			dataPos = 0;
+			if(minx>0){
+				lostFocusStyle();
+				globalParams.movieObj.minx--;
+				globalParams.movieObj.showMovieListData();
+				setFocusStyle();
+			}else{
+				window.clearTimeout(globalParams.movieTimeOut);
+				lostFocusStyle();
+				globalParams.areaPos = 3;
+				setFocusMoveParams({isMoveAnimate:false,left:515,top:50});
+				setFocusStyle();
+				globalParams.movieObj.pageCode();
+				globalParams.gcurObjId = "liveMovieId";
+			}
+		}else if(dataPos == size){
+			dataPos = size-1;
+			if((minx+size)==totalCount)return;
+			lostFocusStyle();
+			globalParams.movieObj.minx++;
+			globalParams.movieObj.showMovieListData();
+			setFocusStyle();
+		}else if((minx+dataPos)==totalCount){
+			return;
+		}else{
+			lostFocusStyle();
+			globalParams.movieObj.dataPos = dataPos;
+			globalParams.gcurObjId = "movieList"+globalParams.movieObj.dataPos;
+			setFocusMoveParams({isMoveAnimate:true});
+			globalParams.movieObj.pageCode();
+			setFocusStyle();
+		}
+	}else if(globalParams.areaPos == 3 || globalParams.areaPos == 4){//正在播放节目 更多频道
+		if(_num == -1 || globalParams.movieObj.movieData.length == 0){
+			return;
+		}
+		lostFocusStyle();
+		globalParams.areaPos = 2;
+		setFocusStyle();
+		globalParams.gcurObjId = "movieList"+globalParams.movieObj.dataPos;
+	}
+	getFocusStyle();
+	getFocus(globalParams.gcurObjId);
+}
+/*频道列表滑动效果*/
+function channelListRowMove(_num){
+	var listRows = [[0,-288],[1,10],[2,198],[3,386],[4,574],[5,762]];
+	var listRowsTmp = [];
+	var r = 5,c = 0;
+	var duration = "200ms";
+	var top = 0;
+	if(_num == 1){r = 0;c = 5;}
+	for(var i=0;i<=5;i++){
+		if(i==r){
+			top = globalParams.channelObj.arrListRow[c][1];
+			listRows[i][1] = top;
+			duration = "0ms";
+		}else{
+			if(_num == 1){
+				listRows[i][1] = globalParams.channelObj.arrListRow[(i-1)][1];
+			}else if(_num == -1){
+				listRows[i][1] = globalParams.channelObj.arrListRow[(i+1)][1];
+			}
+			duration = "200ms";
+		}
+		listRows[i][0] = globalParams.channelObj.arrListRow[i][0];
+		$("chRows"+globalParams.channelObj.arrListRow[i][0]).style.top = listRows[i][1]+"px";
+		$("chRows"+globalParams.channelObj.arrListRow[i][0]).style.webkitTransitionDuration = duration;
+		
+	}
+	for(var i=0;i<=5;i++){
+		if(i == c){
+			listRowsTmp[i] = listRows[r];
+		}else{
+			if(_num == 1){
+				listRowsTmp[i] = listRows[i+1];
+			}else if(_num == -1){
+				listRowsTmp[i] = listRows[i-1];
+			}
+		}
+	}
+	globalParams.channelObj.arrListRow = listRowsTmp;
+}
+/*页面返回处理*/
+function goBack(){
+	window.clearTimeout(globalParams.movieTimeOut);
+	tvsee.eventFrame.globalParams.focusCache.remove("backWatchTvListParams");
+	$("liveMovieName").innerHTML = "";
+	lostFocusStyle();
+	if(globalParams.pagePos==1){
+		globalParams.menuObj.showClassfiy();
+		globalParams.pagePos = 0;
+		lostFocusStyle();
+		setFocusMoveParams({isMoveAnimate:false});
+		$("menu"+globalParams.menuObj.selTvPos).className = "wtmenu wtMenuSelCla";
+		$("menu"+globalParams.menuObj.selTvPos).style.color = FOCUS_STYLE.COLOR;
+		globalParams.areaPos = 1;
+		setFocusStyle();
+		getFocusStyle();
+	}else{
+		tvsee.mainFrame.location.href = "about:blank";
+		tvsee.pageWidgets.getByName("widgetMenu").setBackHomeParams({cid: globalParams.gcatalogid});
+		tvsee.pageWidgets.getByName("widgetMenu").showWin();
+	}
+}
+//显示TOP直播节目
+function showTopLiveMovie(){
+	var params = {
+		'catalogid' : globalParams.gcatalogid,
+		'date' : TvseeDate.getWeek()[0][0]
+	}
+	getLiveMovieList(params, function(params, data){
+		if(data.movie != null && data.movie.length > 0){
+			for(var i = 0; i < data.movie.length; i++){
+				if(data.movie[i].status == 1){
+					globalParams.liveMovie = {'movie' : data.movie[i], 'moviePos' : (i + 1), 'count' : data.movie.length};
+					$("liveMovieName").innerHTML = setFontStyle(FOCUS_STYLE.COLOR,rollTextObj.disStr("正在播放："+data.movie[i].moviename,watchTvPageStrLen.liveNameLen,"...")+"  "+(i + 1))+setFontStyle("#FFFFFF","/"+data.movie.length);
+					break;
+				}
+			}
+		}else{
+			//$("liveMovieName").innerHTML = "正在播放";
+			showCurrPlay();
+		}
+	});
+}
+
+function showCurrPlay(){
+	$("liveMovieName").innerHTML = "正在播放";
+	$("liveMovieName").style.color = FOCUS_STYLE.COLOR;
+}
+/*自动刷新直播节目单*/
+function autoRefreshMovieList(){
+	if(globalParams.liveMovie != null){
+		var times = globalParams.liveMovie.movie.endMillisecond - TvseeDate.getTime();
+		if(times <= 0){
+			showTopLiveMovie();
+			if(globalParams.menuObj.selDatePos == 0){
+				getChannelMovieList();
+			}
+			if(TvseeDate.getDate("yyyy-MM-dd") != globalParams.liveMovie.movie.endDate){ 
+				globalParams.menuObj.pos = 0;
+				globalParams.menuObj.selDatePos = 0;
+				globalParams.menuObj.clearData();
+				globalParams.movieObj.clearData();
+				init();
+			}
+		}
+	}
+}
+
+//滑动条移动
+function initScrollTip(dataPosCount,curPos){
+	globalParams.scrollObj.init(dataPosCount, 1, 574, 73, "h");
+	globalParams.scrollObj.scroll(curPos);
+}
+function getFocus(objId){
+	if($(objId) != null){
+		drawFrame(objId);
+	}
+}
+
+function chaOrProBgCutover(_type){
+	if(_type == 0){
+		$("pageBg").style.display = "block";
+		$("listBg").style.display = "none";
+	}else if(_type == 1){
+		$("pageBg").style.display = "none";
+		$("listBg").style.display = "block";	
+	}
+}
+</script>
+<body>
+	<!--class="watchTvBgCla" style="background-image:url(images/watchtv/channelListBg.png);" -->
+	<div id="pageBg" class="watchTvBgCla" style="background-image:url(images/watchtv/channelListBg.png);"></div>
+  	<div id="listBg" class="watchTvBgCla" style="background-image:url(images/watchtv/programListBg.png); display: none;"></div>
+	<div id="pageLogo"></div>
+	<div id="count" class="wtCountCla">0</div>
+	<div id="totalCount" class="wtTotalCountCla">/0个</div>
+	<!-- 左侧导航菜单 -->
+	<div id="menuList">
+		<div id="menu0" style="top:0px;" class="wtmenu defCla"><div id="mname0" class="mnameCla"></div></div>
+		<div id="menu1" style="top:53px;" class="wtmenu defCla"><div id="mname1" class="mnameCla"></div></div>
+		<div id="menu2" style="top:106px;" class="wtmenu defCla"><div id="mname2" class="mnameCla"></div></div>
+		<div id="menu3" style="top:159px;" class="wtmenu defCla"><div id="mname3" class="mnameCla"></div></div>
+		<div id="menu4" style="top:212px;" class="wtmenu defCla"><div id="mname4" class="mnameCla"></div></div>
+		<div id="menu5" style="top:265px;" class="wtmenu defCla"><div id="mname5" class="mnameCla"></div></div>
+		<div id="menu6" style="top:318px;" class="wtmenu defCla"><div id="mname6" class="mnameCla"></div></div>
+		<div id="menu7" style="top:371px;" class="wtmenu defCla"><div id="mname7" class="mnameCla"></div></div>
+		<div id="menu8" style="top:424px;" class="wtmenu defCla"><div id="mname8" class="mnameCla"></div></div>
+		<div id="menu9" style="top:477px;" class="wtmenu defCla"><div id="mname9" class="mnameCla"></div></div>
+		<div id="menu10" style="top:530px;" class="wtmenu defCla"><div id="mname10" class="mnameCla"></div></div>
+	</div> 
+	<!-- 滑动条 -->
+	<div style="width:19px;position:absolute;left:1200px;top:73px;">
+		<img src="images/scrollBg0.png" width="19" height="9" /><br />
+	    <img src="images/scrollBg1.png" width="19" height="574" />
+	    <img src="images/scrollBg2.png" width="19" height="12" />
+	</div>
+	<div style="width:19px; position:absolute;left:1200px;top:73px;" id="scroll">
+		<img src="images/scrollFocus0.png" width="19" height="9" /><br />
+	    <img src="images/scrollFocus1.png" width="19" height="20" id="scrollBar" />
+	    <img src="images/scrollFocus2.png" width="19" height="12" />
+	</div>
+	<!-- 频道列表 -->
+	<div id="channelList">
+		<div id="chFocusBg"></div>
+		<div id="chRows0" class="chRowsCla chRowsCla0">
+			<div id="chRows0Cell0" style="left:0px;" class="chCla"><div id="chImgRow0Cell0" class="chImgCla"></div><div id="chNameRow0Cell0" class="chNameCla"></div></div>
+			<div id="chRows0Cell1" style="left:164px" class="chCla"><div id="chImgRow0Cell1" class="chImgCla"></div><div id="chNameRow0Cell1" class="chNameCla"></div></div>
+			<div id="chRows0Cell2" style="left:328px;" class="chCla"><div id="chImgRow0Cell2" class="chImgCla"></div><div id="chNameRow0Cell2" class="chNameCla"></div></div>
+			<div id="chRows0Cell3" style="left:492px;" class="chCla"><div id="chImgRow0Cell3" class="chImgCla"></div><div id="chNameRow0Cell3" class="chNameCla"></div></div>
+			<div id="chRows0Cell4" style="left:656px;" class="chCla"><div id="chImgRow0Cell4" class="chImgCla"></div><div id="chNameRow0Cell4" class="chNameCla"></div></div>
+			<div id="chRows0Cell5" style="left:820px;" class="chCla"><div id="chImgRow0Cell5" class="chImgCla"></div><div id="chNameRow0Cell5" class="chNameCla"></div></div>
+		</div>
+		<div id="chRows1" class="chRowsCla chRowsCla1">
+			<div id="chRows1Cell0" style="left:0px;" class="chCla"><div id="chImgRow1Cell0" class="chImgCla"></div><div id="chNameRow1Cell0" class="chNameCla"></div></div>
+			<div id="chRows1Cell1" style="left:164px" class="chCla"><div id="chImgRow1Cell1" class="chImgCla"></div><div id="chNameRow1Cell1" class="chNameCla"></div></div>
+			<div id="chRows1Cell2" style="left:328px;" class="chCla"><div id="chImgRow1Cell2" class="chImgCla"></div><div id="chNameRow1Cell2" class="chNameCla"></div></div>
+			<div id="chRows1Cell3" style="left:492px;" class="chCla"><div id="chImgRow1Cell3" class="chImgCla"></div><div id="chNameRow1Cell3" class="chNameCla"></div></div>
+			<div id="chRows1Cell4" style="left:656px;" class="chCla"><div id="chImgRow1Cell4" class="chImgCla"></div><div id="chNameRow1Cell4" class="chNameCla"></div></div>
+			<div id="chRows1Cell5" style="left:820px;" class="chCla"><div id="chImgRow1Cell5" class="chImgCla"></div><div id="chNameRow1Cell5" class="chNameCla"></div></div>
+		</div>
+		<div id="chRows2" class="chRowsCla chRowsCla2">
+			<div id="chRows2Cell0" style="left:0px;" class="chCla"><div id="chImgRow2Cell0" class="chImgCla"></div><div id="chNameRow2Cell0" class="chNameCla"></div></div>
+			<div id="chRows2Cell1" style="left:164px" class="chCla"><div id="chImgRow2Cell1" class="chImgCla"></div><div id="chNameRow2Cell1" class="chNameCla"></div></div>
+			<div id="chRows2Cell2" style="left:328px;" class="chCla"><div id="chImgRow2Cell2" class="chImgCla"></div><div id="chNameRow2Cell2" class="chNameCla"></div></div>
+			<div id="chRows2Cell3" style="left:492px;" class="chCla"><div id="chImgRow2Cell3" class="chImgCla"></div><div id="chNameRow2Cell3" class="chNameCla"></div></div>
+			<div id="chRows2Cell4" style="left:656px;" class="chCla"><div id="chImgRow2Cell4" class="chImgCla"></div><div id="chNameRow2Cell4" class="chNameCla"></div></div>
+			<div id="chRows2Cell5" style="left:820px;" class="chCla"><div id="chImgRow2Cell5" class="chImgCla"></div><div id="chNameRow2Cell5" class="chNameCla"></div></div>
+		</div>
+		<div id="chRows3" class="chRowsCla chRowsCla3">
+			<div id="chRows3Cell0" style="left:0px;" class="chCla"><div id="chImgRow3Cell0" class="chImgCla"></div><div id="chNameRow3Cell0" class="chNameCla"></div></div>
+			<div id="chRows3Cell1" style="left:164px" class="chCla"><div id="chImgRow3Cell1" class="chImgCla"></div><div id="chNameRow3Cell1" class="chNameCla"></div></div>
+			<div id="chRows3Cell2" style="left:328px;" class="chCla"><div id="chImgRow3Cell2" class="chImgCla"></div><div id="chNameRow3Cell2" class="chNameCla"></div></div>
+			<div id="chRows3Cell3" style="left:492px;" class="chCla"><div id="chImgRow3Cell3" class="chImgCla"></div><div id="chNameRow3Cell3" class="chNameCla"></div></div>
+			<div id="chRows3Cell4" style="left:656px;" class="chCla"><div id="chImgRow3Cell4" class="chImgCla"></div><div id="chNameRow3Cell4" class="chNameCla"></div></div>
+			<div id="chRows3Cell5" style="left:820px;" class="chCla"><div id="chImgRow3Cell5" class="chImgCla"></div><div id="chNameRow3Cell5" class="chNameCla"></div></div>
+		</div>
+		<div id="chRows4" class="chRowsCla chRowsCla4">
+			<div id="chRows4Cell0" style="left:0px;" class="chCla"><div id="chImgRow4Cell0" class="chImgCla"></div><div id="chNameRow4Cell0" class="chNameCla"></div></div>
+			<div id="chRows4Cell1" style="left:164px" class="chCla"><div id="chImgRow4Cell1" class="chImgCla"></div><div id="chNameRow4Cell1" class="chNameCla"></div></div>
+			<div id="chRows4Cell2" style="left:328px;" class="chCla"><div id="chImgRow4Cell2" class="chImgCla"></div><div id="chNameRow4Cell2" class="chNameCla"></div></div>
+			<div id="chRows4Cell3" style="left:492px;" class="chCla"><div id="chImgRow4Cell3" class="chImgCla"></div><div id="chNameRow4Cell3" class="chNameCla"></div></div>
+			<div id="chRows4Cell4" style="left:656px;" class="chCla"><div id="chImgRow4Cell4" class="chImgCla"></div><div id="chNameRow4Cell4" class="chNameCla"></div></div>
+			<div id="chRows4Cell5" style="left:820px;" class="chCla"><div id="chImgRow4Cell5" class="chImgCla"></div><div id="chNameRow4Cell5" class="chNameCla"></div></div>
+		</div>
+		<div id="chRows5" class="chRowsCla chRowsCla5">
+			<div id="chRows5Cell0" style="left:0px;" class="chCla"><div id="chImgRow5Cell0" class="chImgCla"></div><div id="chNameRow5Cell0" class="chNameCla"></div></div>
+			<div id="chRows5Cell1" style="left:164px" class="chCla"><div id="chImgRow5Cell1" class="chImgCla"></div><div id="chNameRow5Cell1" class="chNameCla"></div></div>
+			<div id="chRows5Cell2" style="left:328px;" class="chCla"><div id="chImgRow5Cell2" class="chImgCla"></div><div id="chNameRow5Cell2" class="chNameCla"></div></div>
+			<div id="chRows5Cell3" style="left:492px;" class="chCla"><div id="chImgRow5Cell3" class="chImgCla"></div><div id="chNameRow5Cell3" class="chNameCla"></div></div>
+			<div id="chRows5Cell4" style="left:656px;" class="chCla"><div id="chImgRow5Cell4" class="chImgCla"></div><div id="chNameRow5Cell4" class="chNameCla"></div></div>
+			<div id="chRows5Cell5" style="left:820px;" class="chCla"><div id="chImgRow5Cell5" class="chImgCla"></div><div id="chNameRow5Cell5" class="chNameCla"></div></div>
+		</div>
+	</div>
+	<!-- 节目单列表 -->
+	<div id="movieList">
+		<div id="channelAndDate"></div> 
+		<div id="liveMovieId">
+			<img id="liveIcon" src="images/watchtv/zhiboIcon.png"/>
+			<div id="liveMovieName"></div>
+		</div>
+		<div id="moreTvSel">更多电视台</div>
+		<div id="movieListId">
+			<div id="movieList0" style="left:35px;top:10px;" class="movieListCla">
+				<div id="movieName0" class="movieNameCla"></div><div id="movieIcon0" class="icon wtNoselCla"></div><div id="movieLine0" class="movieLineCla"></div>
+			</div>
+			<div id="movieList1" style="left:35px;top:60px;" class="movieListCla">
+				<div id="movieName1" class="movieNameCla"></div><div id="movieIcon1" class="icon wtNoselCla"></div><div id="movieLine1" class="movieLineCla"></div>
+			</div>
+			<div id="movieList2" style="left:35px;top:110px;" class="movieListCla">
+				<div id="movieName2" class="movieNameCla"></div><div id="movieIcon2" class="icon wtNoselCla"></div><div id="movieLine2" class="movieLineCla"></div>
+			</div>
+			<div id="movieList3" style="left:35px;top:160px;" class="movieListCla">
+				<div id="movieName3" class="movieNameCla"></div><div id="movieIcon3" class="icon wtNoselCla"></div><div id="movieLine3" class="movieLineCla"></div>
+			</div>
+			<div id="movieList4" style="left:35px;top:210px;" class="movieListCla">
+				<div id="movieName4" class="movieNameCla"></div><div id="movieIcon4" class="icon wtNoselCla"></div><div id="movieLine4" class="movieLineCla"></div>
+			</div>
+			<div id="movieList5" style="left:35px;top:260px;" class="movieListCla">
+				<div id="movieName5" class="movieNameCla"></div><div id="movieIcon5" class="icon wtNoselCla"></div><div id="movieLine5" class="movieLineCla"></div>
+			</div>
+			<div id="movieList6" style="left:35px;top:310px;" class="movieListCla">
+				<div id="movieName6" class="movieNameCla"></div><div id="movieIcon6" class="icon wtNoselCla"></div><div id="movieLine6" class="movieLineCla"></div>
+			</div>
+			<div id="movieList7" style="left:35px;top:360px;" class="movieListCla">
+				<div id="movieName7" class="movieNameCla"></div><div id="movieIcon7" class="icon wtNoselCla"></div><div id="movieLine7" class="movieLineCla"></div>
+			</div>
+			<div id="movieList8" style="left:35px;top:410px;" class="movieListCla">
+				<div id="movieName8" class="movieNameCla"></div><div id="movieIcon8" class="icon wtNoselCla"></div><div id="movieLine8" class="movieLineCla"></div>
+			</div>
+			<div id="movieList9" style="left:35px;top:460px;" class="movieListCla">
+				<div id="movieName9" class="movieNameCla"></div><div id="movieIcon9" class="icon wtNoselCla"></div><div id="movieLine9" class="movieLineCla"></div>
+			</div>
+			<div id="movieList10" style="left:35px;top:510px;" class="movieListCla">
+				<div id="movieName10" class="movieNameCla"></div><div id="movieIcon10" class="icon wtNoselCla"></div><div id="movieLine10" class="movieLineCla"></div>
+			</div>
+			<div id="movieList11" style="left:35px;top:560px;" class="movieListCla">
+				<div id="movieName11" class="movieNameCla"></div><div id="movieIcon11" class="icon wtNoselCla"></div><div id="movieLine11" class="movieLineCla"></div>
+			</div>
+			<div id="movieList12" style="left:480px;top:10px;" class="movieListCla">
+				<div id="movieName12" class="movieNameCla"></div><div id="movieIcon12" class="icon wtNoselCla"></div><div id="movieLine12" class="movieLineCla"></div>
+			</div>
+			<div id="movieList13" style="left:480px;top:60px;" class="movieListCla">
+				<div id="movieName13" class="movieNameCla"></div><div id="movieIcon13" class="icon wtNoselCla"></div><div id="movieLine13" class="movieLineCla"></div>
+			</div>
+			<div id="movieList14" style="left:480px;top:110px;" class="movieListCla">
+				<div id="movieName14" class="movieNameCla"></div><div id="movieIcon14" class="icon wtNoselCla"></div><div id="movieLine14" class="movieLineCla"></div>
+			</div>
+			<div id="movieList15" style="left:480px;top:160px;" class="movieListCla">
+				<div id="movieName15" class="movieNameCla"></div><div id="movieIcon15" class="icon wtNoselCla"></div><div id="movieLine15" class="movieLineCla"></div>
+			</div>
+			<div id="movieList16" style="left:480px;top:210px;" class="movieListCla">
+				<div id="movieName16" class="movieNameCla"></div><div id="movieIcon16" class="icon wtNoselCla"></div><div id="movieLine16" class="movieLineCla"></div>
+			</div>
+			<div id="movieList17" style="left:480px;top:260px;" class="movieListCla">
+				<div id="movieName17" class="movieNameCla"></div><div id="movieIcon17" class="icon wtNoselCla"></div><div id="movieLine17" class="movieLineCla"></div>
+			</div>
+			<div id="movieList18" style="left:480px;top:310px;" class="movieListCla">
+				<div id="movieName18" class="movieNameCla"></div><div id="movieIcon18" class="icon wtNoselCla"></div><div id="movieLine18" class="movieLineCla"></div>
+			</div>
+			<div id="movieList19" style="left:480px;top:360px;" class="movieListCla">
+				<div id="movieName19" class="movieNameCla"></div><div id="movieIcon19" class="icon wtNoselCla"></div><div id="movieLine19" class="movieLineCla"></div>
+			</div>
+			<div id="movieList20" style="left:480px;top:410px;" class="movieListCla">
+				<div id="movieName20" class="movieNameCla"></div><div id="movieIcon20" class="icon wtNoselCla"></div><div id="movieLine20" class="movieLineCla"></div>
+			</div>
+			<div id="movieList21" style="left:480px;top:460px;" class="movieListCla">
+				<div id="movieName21" class="movieNameCla"></div><div id="movieIcon21" class="icon wtNoselCla"></div><div id="movieLine21" class="movieLineCla"></div>
+			</div>
+			<div id="movieList22" style="left:480px;top:510px;" class="movieListCla">
+				<div id="movieName22" class="movieNameCla"></div><div id="movieIcon22" class="icon wtNoselCla"></div><div id="movieLine22" class="movieLineCla"></div>
+			</div>
+			<div id="movieList23" style="left:480px;top:560px;" class="movieListCla">
+				<div id="movieName23" class="movieNameCla"></div><div id="movieIcon23" class="icon wtNoselCla"></div><div id="movieLine23" class="movieLineCla"></div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

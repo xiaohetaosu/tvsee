@@ -1,0 +1,1992 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>重磅推荐列表页</title>
+<style>
+.catalogNameCla{
+	position:absolute;
+	width: 174px; 
+	height: 60px; 
+	line-height: 60px; 
+	color: #FFF; 
+	font-size: 30px; 
+	text-align: center; 
+}
+.listCountPageCla{
+	 position:absolute; 
+	 top:51px; 
+	 left:547px; 
+	 width:140px; 
+	 height:22px; 
+	 line-height:22px; 
+	 font-size:22px; 
+	 color:#FFF;
+}
+.pInfoCla{
+	position: absolute; 
+	width: 178px;	
+	top: 17px;
+	height: 272px;
+}
+.pImgCla{
+	width: 176px;
+	height: 244px;
+	/*border: 1px solid #FFF;*/
+	position: absolute; 
+	top: 0px; 
+	left: 0px;
+}
+.HDMarkCla{
+	background-image: url(images/list/hdMark.png); 
+	width: 100px;
+	height: 97px; 
+	position: absolute; 
+	top: -16px;
+	left: 95px;
+	visibility: hidden;
+}
+.listPNamePageCla{
+	position: absolute; 
+	top: 244px; 
+	height: 30px; 
+	width: 100%; 
+	text-align: center; 
+	line-height: 30px;
+	font-size: 20px;
+	color: #A6A29D;	
+	/*color: #FFFFFF;*/
+}
+.rowsCla{
+	position: absolute;
+	width: 100%;
+	height: 295px;
+}
+.oneMenuDivCla{
+	height: 106px;
+	position: absolute;
+	width: 210px;
+}
+.oneMenuBgCla{
+	background-image:url(images/list/menuBg.png);
+	width: 106px;
+	height: 106px;
+	position: absolute;
+}
+.menuImgCla{
+	width: 96px;
+	height: 96px;
+	position: absolute;
+	top: 5px;
+	left: 5px
+}
+.menuNameCla{
+	color:#FFF;
+	position: absolute;
+	top: 70px; 
+	font-size: 16px; 
+	left: 5px;
+	color: #FFF; 
+	text-align:center; 
+	line-height: 15px; 
+	width: 90%;
+}
+.recMovieName{
+	position: absolute; 
+	text-align: center; 
+	height: 36px; 
+	line-height: 36px; 
+	width: 100%; 
+	color:#FFF; 
+	font-size: 30px;
+	overflow:hidden;
+}
+.recMovieDesc{
+	position: absolute; 
+	top: 38px; 
+	width:100%; 
+	color: #FFF; 
+	font-size: 20px; 
+	height: 22px; 
+	line-height:22px;
+	text-align: center;
+}
+.moveRecPageNumCla{
+	width: 27px; 
+	height: 27px;  
+	position:absolute;
+}
+.scoreBgCla{
+	position:absolute;
+	width: 104px; 
+	height:63px; 
+	background-image:url(images/list/score_bg.png); 
+	text-align:center; 
+	line-height: 63px;
+	font-size: 26px;
+	color: #FFC900;
+}
+.movieScoreCla{
+	width:107px;
+	height:103px;
+	background-image:url(images/list/score_corner_selected.png);
+	position:absolute;
+	right: -22px;
+	bottom: 8px;
+	color: #fff;
+	font-size: 26px;
+	text-align:center;
+	line-height: 133px;
+	visibility:hidden;
+}
+.halation{
+
+     -webkit-box-shadow:0 0 40px 18px black;
+
+	 box-shadow:0 0 40px 18px black;
+
+}
+.focusOne{
+	
+}
+</style>
+<script src="common/config.js"></script>
+<script src="common/keyEvent.js"></script>
+<script src="common/common.js"></script>
+<script src="common/listMenuData.js"></script>
+<script src="common/showList2d.js"></script>
+<script type="text/javascript">
+initPage(window, false);
+if(parent != self) {
+	parent.jsExtendedInterface(window);
+}else{
+	eval("tvsee={};");
+	var hashtable = {
+		put:function(){}	
+	}
+	tvsee = {debug:function(){},eventFrame: {saveLogUserActioncontent: function(){}}};
+}
+function eventHandler(_eventObj){
+		
+	if(_eventObj.code == "KEY_DOWN"){
+		moveUD(1);	
+	}else if(_eventObj.code == "KEY_UP"){
+		moveUD(-1);	
+	}else if(_eventObj.code == "KEY_SELECT"){
+		doSelect();
+	}else if(_eventObj.code == "KEY_LEFT"){
+		moveLR(-1);
+	}else if(_eventObj.code == "KEY_RIGHT"){
+		moveLR(1);
+	}else if(_eventObj.code == "KEY_PAGE_UP"){
+		showPrePage();
+	}else if(_eventObj.code == "KEY_PAGE_DOWN"){
+		showNextPage();
+	}else if(_eventObj.code == "KEY_BACK"){
+		goBack();
+	}else if(_eventObj.code == "KEY_MENU"){
+		var data = globalParams.catalogData[globalParams.catalogListObj.dataPos];
+	if(data.title == "全部"){
+		showMovieType();
+	}
+	}
+		
+	return _eventObj.args.type;
+}
+
+var globalParams = {
+	areaPos: 0,
+	scrollObj: null,
+	ajaxObjList: null,
+	lineNumber: 5,
+	currPage: 1,
+	pageSize: 10,
+	programDataArr: [],
+	isPageAction: false ,// true翻页查询 false变换条件查
+	recDataAjaxObj: null,
+	recData: [],
+	recMovieObj: null,
+	catalogAjaxObj:null,
+	catalogListObj: null,
+	catalogData: [],
+	catalogTimeout: -1,
+	listX: 0,
+	listY: 0,
+	pageTimeout: -1,
+	cid: 0,
+	oneMenuListX: 0,
+	recData: [],
+	recAjaxObj: null
+}
+var recData1 = {
+	
+}
+var recDataNum = new Array();
+var recData = {
+	isStatus : null
+}
+var cache = {
+}
+function moveLR(_num){
+	if(globalParams.areaPos == 3){
+		if(globalParams.programDataArr.length == 0){
+			return;	
+		}
+		
+		if(globalParams.listX  == 0 && _num < 0){
+			beforeLoseFocus(globalParams.programDataArr[globalParams.listY * globalParams.lineNumber + globalParams.listX].programname, globalParams.listY, globalParams.listX);
+			$("menuFocus").style.visibility = "visible";
+			globalParams.areaPos = 0;
+			if(globalParams.catalogListObj.dataPos >8){
+			var dataPos = globalParams.catalogListObj.dataPos - 9;
+			document.getElementById("menuName"+dataPos).style.color = "white"
+		}else{
+			document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "white"
+		}
+			
+			lostListFocus();
+			return;
+		}else if(globalParams.listX == globalParams.lineNumber - 1 && _num > 0){
+			
+			return;	
+		}
+		var backListX = globalParams.listX;
+		var backListY = globalParams.listY;
+		globalParams.listX += _num;
+		if(globalParams.programDataArr.length > globalParams.lineNumber){
+			if(globalParams.listY * globalParams.lineNumber + globalParams.listX >= globalParams.programDataArr.length){
+				globalParams.listX--;
+				return;
+			}	
+		}else{
+			if(globalParams.listX == globalParams.programDataArr.length){
+				globalParams.listX--;
+				return;	
+			}
+		}
+		beforeLoseFocus(globalParams.programDataArr[backListY * globalParams.lineNumber + backListX].programname, backListY, backListX);
+		selectedListFocusStyle();
+	}else if(globalParams.areaPos == 2){
+		var dataPosCount = Math.ceil(globalParams.oneMenuDataArr.length / 2) - 1;
+		if((globalParams.oneMenuListX == 1 && _num > 0) || (globalParams.oneMenuListX == 0 && _num < 0) || (globalParams.oneMenuListObj.dataPos == dataPosCount  && globalParams.oneMenuDataArr.length % 2 == 1)){
+			globalParams.areaPos = globalParams.backAreaPos;
+			$("homeMenu").style.display = "none";	
+			$("oneMenuFocus").style.visibility = "hidden";
+			$("oneMenuFocus").style.webkitTransitionDuration = "0ms";
+			return;	
+		}
+		$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.webkitTransitionDuration = "0ms";
+		$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.webkitTransform = "scale(1)";
+		$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.zIndex = 0;
+		globalParams.oneMenuListX += _num;
+		oneMenuFocusSelect();
+	}else if(globalParams.areaPos == 0){
+		if(_num < 0){
+			
+			return;	
+		}
+		window.clearTimeout(globalParams.catalogTimeout);
+		
+		var title = globalParams.catalogData[globalParams.catalogListObj.dataPos].title;
+		if(title == "重磅推荐"){
+//			document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "greenyellow"
+			if($("recMovie").style.display == "none"){
+				globalParams.areaPos = 3;
+				getListFocus();
+				selectedListFocusStyle();	
+				return;	
+			}
+			$("vodList").style.display = "none";
+			globalParams.areaPos = 1;
+			globalParams.recMovieObj.getFocus();
+		}else{
+			if(globalParams.programDataArr.length == 0){
+				return;	
+			}
+//			document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "greenyellow"
+			if($("recMovie").style.visibility == "block"){
+				globalParams.areaPos = 1;
+				globalParams.recMovieObj.getFocus();
+				return;	
+			}
+			globalParams.recMovieObj.hideRecMovie();
+			globalParams.areaPos = 3;
+			getListFocus();
+			selectedListFocusStyle();
+		}
+		$("menuFocus").style.visibility = "hidden";
+		if(globalParams.catalogListObj.dataPos >8){
+			var dataPos = globalParams.catalogListObj.dataPos - 9;
+			document.getElementById("menuName"+dataPos).style.color = "greenyellow"
+		}else{
+			document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "greenyellow"
+		}
+	}else if(globalParams.areaPos == 1){
+		globalParams.recMovieObj.moveLR(_num);
+	}else if(globalParams.areaPos == 2){
+		
+	}
+}
+
+function oneMenuFocusSelect(){
+	$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.webkitTransitionDuration = "200ms";
+	$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.webkitTransform = "scale(1.15)";
+	$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.zIndex = 1;
+	$("oneMenuFocus").style.left = (globalParams.oneMenuListX * 102 + 42) + "px";
+	
+}
+
+function requestListData(){
+	var data = globalParams.catalogData[globalParams.catalogListObj.dataPos];
+	if(data.title == "重磅推荐"){
+		$("vodList").style.display = "none";
+		globalParams.recMovieObj.focusId = "recMovie0";
+//			globalParams.recMovieObj.page = "0";
+				$(globalParams.recMovieObj.recMoviePages[globalParams.recMovieObj.page]).style.visibility = "hidden";
+				globalParams.recMovieObj.page = 0;
+				$(globalParams.recMovieObj.recMoviePages[globalParams.recMovieObj.page]).style.visibility = "visible";
+		globalParams.recMovieObj.showRecMovie();
+	}else{
+		$("vodList").style.display = "block";
+		globalParams.currPage = 1;
+		globalParams.listX = 0;
+		globalParams.listY = 0;
+		globalParams.recMovieObj.hideRecMovie();
+		globalParams.programDataArr = [];
+		globalParams.cid = data.id;
+		initProgram(0,data.id);
+	}			
+}
+function initAroPos(_type){
+	var title = globalParams.catalogData[globalParams.catalogListObj.dataPos].title;
+	if(_type == 0){
+			globalParams.recMovieObj.loseFocus(globalParams.recMovieObj.focusId);
+			globalParams.recMovieObj.focusId = "recMovie0";
+//			globalParams.recMovieObj.page = "0";
+				$(globalParams.recMovieObj.recMoviePages[globalParams.recMovieObj.page]).style.visibility = "hidden";
+				globalParams.recMovieObj.page = 0;
+				$(globalParams.recMovieObj.recMoviePages[globalParams.recMovieObj.page]).style.visibility = "visible";
+		}else if(_type == 1){
+			globalParams.recMovieObj.loseFocus(globalParams.recMovieObj.focusId);
+			globalParams.recMovieObj.focusId = "recMovie0";
+//			globalParams.recMovieObj.page = "0";
+				$(globalParams.recMovieObj.recMoviePages[globalParams.recMovieObj.page]).style.visibility = "hidden";
+				globalParams.recMovieObj.page = 0;
+				$(globalParams.recMovieObj.recMoviePages[globalParams.recMovieObj.page]).style.visibility = "visible";
+				
+		}else if(_type == 2){
+			globalParams.recMovieObj.loseFocus(globalParams.recMovieObj.focusId);
+			globalParams.recMovieObj.focusId = "recMovie0";
+//			globalParams.recMovieObj.page = "0";
+				$(globalParams.recMovieObj.recMoviePages[globalParams.recMovieObj.page]).style.visibility = "hidden";
+				globalParams.recMovieObj.page = 0;
+				$(globalParams.recMovieObj.recMoviePages[globalParams.recMovieObj.page]).style.visibility = "visible";
+		}
+	}
+		
+
+function moveUD(_num){
+	if(globalParams.areaPos == 0){
+		initAroPos(3);
+		globalParams.catalogListObj.changeList(_num);
+		showCatalogArrow();
+		window.clearTimeout(globalParams.catalogTimeout);
+		globalParams.catalogTimeout = setTimeout(function(){
+			requestListData();			  
+		},500);
+	}else if(globalParams.areaPos == 1){
+		globalParams.recMovieObj.moveUD(_num);
+	}else if(globalParams.areaPos == 2){
+		var dataPosCount = Math.ceil(globalParams.oneMenuDataArr.length / 2) - 1;
+		if((globalParams.oneMenuListObj.dataPos == dataPosCount && _num > 0) || (globalParams.oneMenuListObj.dataPos == 0 && _num < 0)){
+			return;	
+		}
+		
+		$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.zIndex = 0;
+		$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.webkitTransitionDuration = "0ms";
+		$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.webkitTransform = "scale(1)";
+		if(_num > 0){
+				var totalRecord = (globalParams.oneMenuListObj.dataPos + 1) * 2 + (globalParams.oneMenuListX + 1);
+				if(totalRecord > globalParams.oneMenuDataArr.length){
+						globalParams.oneMenuListX -= 1;
+				}
+		}
+		globalParams.oneMenuListObj.changeList(_num);
+		if(globalParams.oneMenuListObj.dataPos == dataPosCount){
+			if(globalParams.oneMenuDataArr % 2 == 1 && globalParams.oneMenuListX == 1){
+				globalParams.oneMenuListX = 0;	
+			}	
+		}
+		oneMenuFocusSelect();
+	}else if(globalParams.areaPos == 3){
+		if(globalParams.programDataArr.length == 0){
+			return;	
+		}
+		if(globalParams.listY == 1 && _num > 0){//下一页
+			showNextPage();
+			return;	
+		}else if(globalParams.listY == 0 && _num < 0){//上一页
+			showPrePage();
+			return;
+		}
+		var backListX = globalParams.listX;
+		var backListY = globalParams.listY;
+		globalParams.listY += _num;
+		if(globalParams.currPage == globalParams.totalPage){
+			if(globalParams.lineNumber * globalParams.listY + globalParams.listX >= globalParams.programDataArr.length){
+				if(globalParams.lineNumber >= globalParams.programDataArr.length){
+					globalParams.listY--;
+					return;
+				}else{
+					globalParams.listX = globalParams.programDataArr.length - globalParams.lineNumber - 1;	
+				}	
+			}
+		}
+		beforeLoseFocus(globalParams.programDataArr[backListY * globalParams.lineNumber + backListX].programname, backListY, backListX);
+		selectedListFocusStyle();
+	}
+}
+function initMenu(_cateId, _cateName, _fromPage){
+	
+	$("pInfoRow" + globalParams.listY + "Cell" + globalParams.listX).style.webkitTransform = "scale(1)";
+	if(globalParams.marqueeObj != null){
+		globalParams.marqueeObj.removeScroll();
+		globalParams.marqueeObj = null;
+	}
+	globalParams.fromPage = _fromPage;
+	globalParams.currPage = 1;
+	globalParams.cid = _cateId;
+	clearRecMovieData();
+	getRecMovie(0, globalParams.cid);
+    hashtable.put("ratingsSource", 1)
+	hashtable.put("catalogId", _cateId);
+	hashtable.put("operateObjType", 1);
+	hashtable.put("operateObjName", _cateId);
+	hashtable.put("pageName", 2);
+	tvsee.eventFrame.saveLogUserActioncontent();
+	/*if(typeof(_cateName) != "undefined" && getCharByte(_cateName) > listPageStrLen.menuNameLen){
+		_cateName = subStr(_cateName, listPageStrLen.menuNameLen, ".");	
+	}
+	if(_cateName == '骄阳剧场'){
+		$("typeName").innerHTML = "";
+	}else{
+		$("typeName").innerHTML = "全部";
+	}
+	$("title").innerText = _cateName;*/
+	
+	clearPageInfoText();
+	initGlobalParams();
+	globalParams.isPageAction = false;
+	//initProgram(1, {'cid': _cateId,'types':''});//调用搜索接口查询
+	getCatalogData(_cateId);
+}
+
+function initGlobalParams(){
+	if(globalParams.areaPos == 2){
+		listLoseFocusStyle();
+	}
+	clearCatalogData();
+	if(globalParams.recMovieObj != null){
+		if(globalParams.recMovieObj.focusId != null){
+			globalParams.recMovieObj.loseFocus(globalParams.recMovieObj.focusId);
+		}
+		globalParams.recMovieObj.hideRecMovie();
+	}
+	$("menuFocus").style.visibility = "visible";
+//	document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "white"
+	$("vodList").style.display = "none";
+	globalParams.areaPos = 0;
+	$("homeMenu").style.display = "none";
+	if(globalParams.oneMenuListObj != null){
+		$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.webkitTransitionDuration = "0ms";
+		$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.webkitTransform = "scale(1)";
+		$("oneMFRow" + globalParams.oneMenuListObj.dataPos +"Cell" + globalParams.oneMenuListX).style.zIndex = 0;
+		for(var i = 0; i < 7; i++){
+			$("oneMenuDiv" + i).style.top = (i * 103) + "px";	
+		}
+		globalParams.oneMenuListX = 0;
+		globalParams.oneMenuListObj.changeData(Math.ceil(globalParams.oneMenuDataArr.length / 2), 0);
+	}
+}
+
+function doSelect(){
+	var blo = tvsee.eventFrame.globalParams.globalCache.get("isSaverStatus");
+	if (blo === 0){
+		return;
+	}
+	
+	if(globalParams.areaPos == 3){
+		var movieObj = globalParams.programDataArr[globalParams.listY * globalParams.lineNumber + globalParams.listX];
+		var pid = movieObj.pid;
+		if(pid == ""){
+			return;	
+		}
+		var movietype = movieObj.movietype;
+		var cateid = movieObj.cateid;
+		var widgetObj = null;
+		if(getMovieTypeDetail(movietype) == "vodVarietyDetail"){//综艺或者新闻
+			 widgetObj = tvsee.pageWidgets.getByName("widgetVodVarietyDetail");
+		}else if(getMovieTypeDetail(movietype) == "vodVarietyDetailNew"){
+			widgetObj = tvsee.pageWidgets.getByName("widgetVodVarietyDetailNew");
+		}else{
+			widgetObj = tvsee.pageWidgets.getByName("widgetVodDetail");
+		}
+		widgetObj.setFromPage("RECLIST");
+		if(widgetObj != null){
+			widgetObj.show();
+			widgetObj.initData(pid, 11);
+		}
+	}else if(globalParams.areaPos == 2){
+		try{
+			if(globalParams.catalogListObj.dataPos >8){
+			var dataPos = globalParams.catalogListObj.dataPos - 9;
+			document.getElementById("menuName"+dataPos).style.color = "white"
+		}else{
+			document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "white"
+		}
+		}catch(e){
+			//TODO handle the exception
+		}
+		initAroPos(1);
+		var index = globalParams.oneMenuListX + globalParams.oneMenuListObj.dataPos * 2;
+		var actionType = globalParams.oneMenuDataArr[index].actionType;
+		var actionValue = globalParams.oneMenuDataArr[index].actionValue;
+		var title = globalParams.oneMenuDataArr[index].title;
+		if(actionType == "menu"){ //菜单
+			/*var widgetMovieType = tvsee.pageWidgets.getByName("widgetMovieType");
+			if(widgetMovieType != null){
+				widgetMovieType.clearGlobalParams();
+			}*/
+			if(getMovieListByCid(actionValue) == "widgetRecVodList"){
+//				document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "white"
+				if(globalParams.catalogListObj.dataPos >8){
+			var dataPos = globalParams.catalogListObj.dataPos - 9;
+			document.getElementById("menuName"+dataPos).style.color = "white"
+		}else{
+			document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "white"
+		}
+				initMenu(actionValue, title);
+			}else if(getMovieListByCid(actionValue) == "widgetVodList"){
+				tvsee.pageWidgets.getByName("widgetRecVodList").minimize();
+				var widgetVodList = tvsee.pageWidgets.getByName("widgetVodList");
+				widgetVodList.initMenu(actionValue, title);
+				widgetVodList.show();
+			}else if(getMovieListByCid(actionValue) == "widgetnewVodList"){
+				tvsee.pageWidgets.getByName("widgetRecVodList").minimize();
+				var widgetVodList = tvsee.pageWidgets.getByName("widgetnewVodList");
+				widgetVodList.initMenu(actionValue, title);
+				widgetVodList.show();
+			}
+			$("oneMenuFocus").style.visibility = "hidden";
+			$("oneMenuFocus").style.webkitTransitionDuration = "0ms";
+			return;
+		}
+		tvsee.pageWidgets.getByName("widgetVodList").minimize();
+		var url = "";
+		if(actionType == "search"){ //搜索
+			url = "search.html?fromPage=RECLIST";	
+		}else if(actionType == "addTv"){ //追剧
+			url = "addTVList.html?fromPage=RECLIST";	
+		}else if(actionType == "favorite"){ //收藏
+			url = "favoriteList.html?fromPage=RECLIST";		
+		}else if(actionType == "record"){ //记录
+			url = "recordList.html?fromPage=RECLIST";		
+		}
+		if(url == ""){
+			return;	
+		}
+		gotoPageUrl(url);
+	}else if(globalParams.areaPos == 1){
+		globalParams.recMovieObj.doSelect();	
+	}	
+}
+
+function showMovieType(){
+		var widgetMovieType = tvsee.pageWidgets.getByName("widgetMovieType");
+		if(widgetMovieType != null){
+			widgetMovieType.show();
+			var winObj = tvsee.pageWidgets.getByName("widgetRecVodList");
+			
+			widgetMovieType.initData(globalParams.cid, winObj);
+		}
+}
+function goBack(){
+	if(globalParams.areaPos == 2){//返回首页
+//		document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "white"
+		try{
+			if(globalParams.catalogListObj.dataPos >8){
+			var dataPos = globalParams.catalogListObj.dataPos - 9;
+			document.getElementById("menuName"+dataPos).style.color = "white"
+		}else{
+			document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "white"
+		}
+		}catch(e){
+			//TODO handle the exception
+		}
+		initAroPos(1);
+		if(globalParams.fromPage != null && globalParams.fromPage == "OTHER_APP"){
+			exitAppTip();
+			return;
+		}
+		if(globalParams.marqueeObj != null){
+			globalParams.marqueeObj.removeScroll();
+			globalParams.marqueeObj = null;
+		}
+		globalParams.areaPos = 3;
+		var widgetVodList = tvsee.pageWidgets.getByName("widgetRecVodList");
+		if(widgetVodList != null){
+			widgetVodList.minimize();
+		}
+		try{
+			if(globalParams.catalogListObj.dataPos >8){
+			var dataPos = globalParams.catalogListObj.dataPos - 9;
+			document.getElementById("menuName"+dataPos).style.color = "white"
+		}else{
+			document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "white"
+		}
+		}catch(e){
+			//TODO handle the exception
+		}
+		
+		$("oneMenuFocus").style.visibility = "hidden";
+		if(globalParams.fromPage == undefined || globalParams.fromPage == "LAUNCHER"){
+			tvsee.pageWidgets.getByName("widgetMenu").showWin();	
+		}else{
+			tvsee.pageWidgets.getByName("widgetMenu").showWin();	
+		}
+		globalParams.fromPage = null;
+	}else{
+		globalParams.backAreaPos = globalParams.areaPos;
+		globalParams.areaPos = 2;
+		$("homeMenu").style.display = "block";	
+		$("oneMenuFocus").style.visibility = "visible";
+		$("oneMenuFocus").style.webkitTransitionDuration = "200ms";
+		oneMenuFocusSelect();
+	}	
+}
+function init(){
+	$("listFocus").style.border = FOCUS_STYLE.BORDER;
+	$("oneMenuFocus").style.border = FOCUS_STYLE.BORDER;
+	globalParams.scrollObj = new scrollBarClass("scroll", "scrollBar", window);
+	globalParams.recMovieObj = new recMovieClass();
+	initOneMenuList();
+	initMenu(100005, "");
+	
+}
+function clearColor(){
+	for(var i = 0;i<9;i++){
+		
+		document.getElementById("menuName"+i).style.color = "white"
+	}
+}
+function getRecMovie(count, cid){
+	if(cid != SPEC_CATALOG_ID.VIP_YH_CATEID){
+		return;	
+	}
+	if(count == 0){
+		globalParams.recData = [];	
+	}
+	if(globalParams.recAjaxObj != null){
+		globalParams.recAjaxObj.requestAbort();	
+	}
+	globalParams.recAjaxObj = new ajaxClass();
+	globalParams.recAjaxObj.frame = window;
+	globalParams.recAjaxObj.url = getAjaxUrl("listRecMovie", count);
+	globalParams.recAjaxObj.callbackParams = [count, cid];
+	globalParams.recAjaxObj.successCallback = function(_xmlHttp, _params) {
+		if(_params[0] == 0){
+			eval("globalParams.recData = (" + _xmlHttp.responseText + ").moduleContent");
+//			console.log(globalParams.recData)
+			recData1 = globalParams.recData;
+			getRecMovie(++_params[0], _params[1]);
+		}else{
+			if(_params[0] < 3){
+				eval("var data = (" + _xmlHttp.responseText + ").moduleContent");
+				if(_params[0] == 1){
+					recData2 = data;
+				}
+				if(_params[0] == 2){
+					recData3 = data;
+				}
+				inserRecMovieData(data);
+//				console.log(data)
+				if(_params[0] != 2){
+					getRecMovie(++_params[0], _params[1]);
+				}else{
+					initRecMovieData();	
+//					moveRec();
+				}
+			}
+		}
+	}
+	globalParams.recAjaxObj.failureCallback = function(_xmlHttp, _params) {
+		
+	}
+	globalParams.recAjaxObj.requestData();	
+}
+
+function inserRecMovieData(_data){
+	for(var i = 0;i < _data.length; i++){
+		globalParams.recData.push(_data[i]);
+	}
+}
+function clearRecMovieData(){
+	globalParams.recData = [];
+	for(var i = 0; i < 10; i++){
+		$("score" + i).innerText = "";
+		$("recMovieName" + i).innerHTML = "";
+		$("recMovieDesc" + i).innerText =  "";
+		$("recMovie" + i).setAttribute("action", null);
+		$("recMovie" + i).style.backgroundImage = "url(images/global_tm.gif)";	
+	}
+}
+function initRecMovieData(){
+	
+	var data = null; 
+	var listData = null;
+	for(var i = 0; i < 10; i++){
+		data = globalParams.recData[i];
+//		if(recDataNum.length == 0){
+//			listData = data.datas.list[0];
+//			$("recMovie" + i).style.backgroundImage = "url(" + PREPARE_PATH + data.icon + ")";
+//		}else{
+//			for(var j = 0;j<recDataNum.length;j++){
+//			if(i == recDataNum[j]){
+//				listData = data.datas.list[recCount];
+//				var add = listData.fileNames.toString();
+//				var address =add.split("../..")
+//				$("recMovie" + i).style.backgroundImage = "url(" + PREPARE_PATH + address[1] + ")";
+//			}else{
+//				listData = data.datas.list[0];
+//				$("recMovie" + i).style.backgroundImage = "url(" + PREPARE_PATH + data.icon + ")";
+//			}
+//		}
+//		}
+        var px = "px" 
+		listData = data.datas.list[0];
+		$("recMovie" + i).style.backgroundImage = "url(" + PREPARE_PATH + data.icon + ")";
+		$("score" + i).innerText = listData.grade + "分";
+		console.log(typeof(listData.subheadfont))
+		 listData.subheadfont += "px";
+		 listData.descrifont += "px";
+		 data.recomfont += "px";
+		if(i == 3){
+			$("recMovieName" + i).innerHTML = data.title + " <div style='font-size: " + listData.subheadfont +  "; color: " + listData.subheadcolor + " '>" + listData.subhead + "</div>";
+		}else{
+			$("recMovieName" + i).innerHTML = data.title + " - <span style='font-size: " + listData.subheadfont + "; color: " + listData.subheadcolor + " '>" + listData.subhead + "</span>";
+		}
+		$("recMovieName" + i).style.color = data.recomcolor;
+		$("recMovieName" + i).style.fontSize = data.recomfont;
+		$("recMovieDesc" + i).innerText = listData.describe;
+		$("recMovieDesc" + i).style.color = listData.descricolor;
+		$("recMovieDesc" + i).style.fontSize  =  listData.descrifont ;
+		$("recMovie" + i).setAttribute("action", i);
+		
+//		console.log("title:" + data.title + ", recomcolor:" + data.recomcolor + ", recomfont:" + data.recomfont + ",describe:" + listData.describe + ", descricolor:" + listData.descricolor + ",descrifont:" + listData.descrifont);
+	}	
+}
+//轮动
+var recCount = 0;
+
+function moveRec(){
+	console.log(recData1);
+	recDataNum.splice(0,recDataNum.length);
+	for(var i = 0;i<recData1.length;i++){
+		var len = recData1[i].datas.list.length;
+		if(len>1){
+			recDataNum.push(i);
+			
+		}
+	}
+	console.log(recDataNum)
+	if(recDataNum.length== 0){
+		return
+	}else{
+		setInterval(function(){
+			var len = recData1[recDataNum[0]].datas.list.length;
+			var data = recData1[recDataNum[0]].datas.list
+			if(recCount <len){
+				recCount++;
+			}
+			if(recCount == len){
+				recCount =0;
+			}
+			initRecMovieData();
+		},8000)
+	}
+}
+function initOneMenuList(){
+	//oneMFRow0Cell
+	globalParams.oneMenuDataArr = listMenuData.menus;
+	globalParams.oneMenuListObj = new showList2D({
+		dataLength: Math.ceil(globalParams.oneMenuDataArr.length / 2),
+		listSize: 6,
+		focusDiv: "oneMenuFocus",
+		listHigh: 103,
+		startPlace: 103,
+		dataPos: 0,
+		showFlag: 1,
+		duration: "200ms",
+		frame: window,
+		foausPos: 0,
+		arrayList: ["oneMenuDiv0", "oneMenuDiv1", "oneMenuDiv2", "oneMenuDiv3", "oneMenuDiv4", "oneMenuDiv5", "oneMenuDiv6"],
+		posInfo: {
+			firstPos: {
+				top: "0px",
+				left: "0px"
+			},
+			lastPos: {
+				top: "514px",
+				left: "0px"
+			},
+			firstStatus: {
+				top: "-103px",
+				left: "0px"
+			},
+			endStatus: {
+				top: "617px",
+				left: "0px"
+			}
+		},
+		haveData: function(_listInfo) {
+			for(var i = 0; i < 2; i++){
+				if (typeof(globalParams.oneMenuDataArr[_listInfo.dataPos * 2 + i]) != "undefined") {
+					var data = globalParams.oneMenuDataArr[_listInfo.dataPos * 2 + i];
+					$("oneMIRow" + _listInfo.idPos + "Cell" + i).style.backgroundImage = "url(" + data.img + ")";
+					var title = data.title;
+					if(getCharByte(title,listPageStrLen.menuNameLen) == true){
+						title = subStr(title, listPageStrLen.menuNameLen, ".")	
+					}
+					$("oneMNRow" + _listInfo.idPos + "Cell" + i).innerText = title;
+					$("oneMFRow" +  _listInfo.idPos +"Cell" + i).style.visibility = "visible";
+				}else{
+					$("oneMIRow" + _listInfo.idPos + "Cell" + i).style.backgroundImage = "url(images/global_tm.gif)";
+					$("oneMNRow" + _listInfo.idPos + "Cell" + i).innerText = "";	
+					$("oneMFRow" +  _listInfo.idPos +"Cell" + i).style.visibility = "hidden";
+				}
+			}
+		},
+		noData: function(_listInfo) {
+			for (var i = 0; i < 2; i++) {
+				$("oneMIRow" + _listInfo.idPos + "Cell" + i).style.backgroundImages = "url(images/global_tm.gif)";
+				$("oneMNRow" + _listInfo.idPos + "Cell" + i).innerText = "";	
+				$("oneMFRow" + _listInfo.idPos +"Cell" + i).style.visibility = "hidden";
+			}
+		}
+	});
+	globalParams.oneMenuListObj.startShow();
+	if(globalParams.areaPos == 2){
+		oneMenuFocusSelect();
+	}
+}
+
+
+function getCatalogData(_cid){
+	globalParams.catalogData = [];
+	if(globalParams.catalogAjaxObj != null){
+		globalParams.catalogAjaxObj.requestAbort();
+	}	
+	globalParams.catalogAjaxObj = new ajaxClass();
+	globalParams.catalogAjaxObj.frame = window;
+	globalParams.catalogAjaxObj.url = getAjaxUrl("menu2List", _cid);
+	globalParams.catalogAjaxObj.callbackParams = [_cid];
+	globalParams.catalogAjaxObj.successCallback = function(_xmlHttp, _params) {
+		eval("globalParams.catalogData = (" + _xmlHttp.responseText + ").menus");
+		if(_params[0] == SPEC_CATALOG_ID.VIP_YH_CATEID){
+			globalParams.catalogData.splice(1,0,{"actionUrl":null,"catalogcode":"0","catalogpicurl":"","id":1,"ifleaf":1,"ifprevue":0,"listType":null,"parentId":0,"sortnumber":1,"title":"重磅推荐"});
+		}
+		globalParams.recMovieObj.showRecMovie();
+		initCatalogData(_params[0]);
+		if(_params[0] == SPEC_CATALOG_ID.VIP_YH_CATEID){
+			globalParams.recMovieObj.showRecMovie();
+		}else{
+			requestListData();
+		}
+	}
+	globalParams.catalogAjaxObj.failureCallback = function(_xmlHttp, _params) { 
+		
+	}
+	globalParams.catalogAjaxObj.requestData();	
+}
+
+function initCatalogData(_cid){
+	//menuName0 0px 75px 525px
+	globalParams.catalogListObj = new showList2D({
+		dataLength: globalParams.catalogData.length,
+		listSize: 8,
+		focusDiv: "menuFocus",
+		listHigh: 75,
+		startPlace: 43,
+		dataPos: (_cid == SPEC_CATALOG_ID.VIP_YH_CATEID ? 1 : 0),
+		showFlag: 1,
+		duration: "200ms",
+		frame: window,
+		foausPos: 0,
+		arrayList: ["menuName0", "menuName1", "menuName2", "menuName3", "menuName4", "menuName5", "menuName6", "menuName7", "menuName8"],
+		posInfo: {
+			firstPos: {
+				top: "0px",
+				left: "0px"
+			},
+			lastPos: {
+				top: "525px",
+				left: "0px"
+			},
+			firstStatus: {
+				top: "-75px",
+				left: "0px"
+			},
+			endStatus: {
+				top: "590px",
+				left: "0px"
+			}
+		},
+		haveData: function(_listInfo) {
+			$("menuName" + _listInfo.idPos).innerText = globalParams.catalogData[_listInfo.dataPos].title;
+		},
+		noData: function(_listInfo) {
+			$("menuName" + _listInfo.idPos).innerText = "";
+		}
+	});
+	globalParams.catalogListObj.startShow();		
+	showCatalogArrow();
+	
+}
+
+function clearCatalogData(){
+	for(var i = 0; i < 9; i++){
+		$("menuName" + i).style.top = (i * 75) + "px";	
+	}	
+}
+
+function showCatalogArrow(){
+	if(globalParams.catalogListObj.dataPos == 0){
+		$("catalogArrowUp").style.visibility = "hidden";
+	}else{
+		$("catalogArrowUp").style.visibility = "visible";	
+	}
+	if(globalParams.catalogListObj.dataPos == globalParams.catalogListObj.dataLength -1){
+		$("catalogArrowdown").style.visibility = "hidden";
+	}else{
+		$("catalogArrowdown").style.visibility = "visible";	
+	}
+}
+function getDataRecMovie(){
+	if(globalParams.recDataAjaxObj != null){
+		if(globalParams.recDataAjaxObj != null){
+			globalParams.recDataAjaxObj.requestAbort();
+		}
+	}
+	globalParams.recDataAjaxObj = new ajaxClass();
+	globalParams.recDataAjaxObj.frame = window;
+	globalParams.recDataAjaxObj.url = getAjaxUrl("menu2List", cid);
+	globalParams.recDataAjaxObj.successCallback = function(_xmlHttp, _params) {
+		eval("globalParams.recData = (" + _xmlHttp.responseText + ")");
+		initRecData();
+	}
+	globalParams.recDataAjaxObj.failureCallback = function(_xmlHttp, _params) {
+		
+	}
+	globalParams.recDataAjaxObj.requestData();
+}
+
+function initRecData(){
+		
+}
+
+
+function initProgram(_type, _params){
+	listLoseFocusStyle();
+	if(globalParams.ajaxObjList != null){
+		globalParams.ajaxObjList.requestAbort();	
+	}
+	if(typeof(_params) != Object){
+		globalParams.cid = _params
+	}else{
+		globalParams = _params.cid;
+	}
+	
+	clearListData();
+	globalParams.ajaxObjList = new ajaxClass();
+	globalParams.ajaxObjList.frame = window;
+	globalParams.programDataArr = [];
+//	globalParams.ajaxObjList.url = getAjaxUrl("mediaList", _cid, globalParams.currPage, globalParams.pageSize);
+//	globalParams.ajaxObjList.callbackParams = [_cid];
+	if(_type == 0){
+		globalParams.ajaxObjList.url = getAjaxUrl("mediaList", globalParams.cid, globalParams.currPage, globalParams.pageSize);
+		globalParams.ajaxObjList.callbackParams = [_type, _params.cid];
+	}else if(_type == 1){
+		globalParams.ajaxObjList.url =	getAjaxUrl("searchProgramByClass", globalParams.cid.cid, _params.types, "", globalParams.currPage, globalParams.pageSize);
+		globalParams.ajaxObjList.callbackParams = [_type, _params.cid, _params.types];
+	}
+	globalParams.ajaxObjList.successCallback = function(_xmlHttp, _params) {
+		eval("var data= (" + _xmlHttp.responseText + ")");
+		if(_type == 0){
+			globalParams.programDataArr  = data.programs;
+			cache = data;
+		}else{
+			globalParams.programDataArr  = data.movieInfoProxy.programs;
+			cache = data;
+			
+		}
+//		globalParams.programDataArr  = data.programs;
+		globalParams.totalPage = data.totalPage;
+		globalParams.totalCount = data.totalCount;
+		initProgramList();
+	}
+	globalParams.ajaxObjList.failureCallback = function(_xmlHttp, _params) {
+		
+	}
+	globalParams.ajaxObjList.requestData();	
+}
+
+function initProgramList(){
+	
+	if(globalParams.programDataArr.length == 0){
+		clearPageInfoText();
+		return;	
+	}
+	var size = globalParams.programDataArr.length;
+	var row = 0;
+	var cell = 0;
+	for(var i = 0; i < size; i++){
+		var data = globalParams.programDataArr[i];
+		if(data.definition  == SPEC_ID.DEFINITION){
+			$("markRow" + row + "Cell" + cell).style.visibility = "visible";
+		}else{
+			$("markRow" + row + "Cell" + cell).style.visibility = "hidden";
+		}
+		if(typeof(data.grade) != "undefined"){
+			var f = data.grade / 10;
+			var dd = toDecimal(f);
+			$("scoreRow" + row + "Cell" + cell).innerHTML = "&nbsp" + dd;
+			$("scoreRow" + row + "Cell" + cell).style.visibility = "visible";
+		}else{
+			$("scoreRow" + row + "Cell" + cell).style.visibility = "hidden";	
+		}
+		//$("imgRow" + row + "Cell" + i).src = "images/defaultImg.png";
+		$("imgRow" + row + "Cell" + cell).src = PICURL + data.picurl;
+		//tvsee.debug("data.picurl:" + (PICURL + data.picurl));
+		$("imgRow" + row + "Cell" + cell).style.visibility = "visible";
+		/*$("imgRow" + row + "Cell" + cell).onload = function(){
+			this.removeAttribute("style");
+			fImageSizeToDiv(this);	
+		}*/
+		var programName = data.programname;
+		if(programName != ""){
+			if(getCharByte(programName, 12)  == true){
+				programName = subStr(programName, 12, "...");	
+			}
+		}
+		$("pNameRow" + row + "Cell" + cell).innerText = programName;
+		$("pInfoRow" + row + "Cell" + cell).style.visibility = "visible";
+		cell++;
+		if(i == (globalParams.lineNumber - 1)){
+			row++;	
+			cell = 0;
+		}
+	}
+	if(size < globalParams.lineNumber){
+		row = 0;	
+	}else{
+		row = 1;	
+	}
+	for(var i = size; i < globalParams.lineNumber * 2; i++){
+		$("imgRow" + row + "Cell" + cell).src = "images/defaultImg.png";
+		$("imgRow" + row + "Cell" + cell).style.visibility = "hidden";
+		$("pNameRow" + row + "Cell" + cell).innerText = "";
+		$("markRow" + row + "Cell" + cell).style.visibility = "hidden";
+		$("pInfoRow" + row + "Cell" + cell).style.visibility = "hidden";
+		$("scoreRow" + row + "Cell" + cell).style.visibility = "hidden";	
+		if(row != 1 && i == globalParams.lineNumber - 1){
+			cell = 0;
+			row++;	
+		}else{
+			cell++;	
+		}
+	}
+	/*if(!globalParams.isPageAction){
+		getListFocus();
+	}*/
+	
+	lastPageFocusPos();
+	showPageInfo();
+	if(globalParams.areaPos == 3){
+		getListFocus();
+		selectedListFocusStyle();
+	}
+}
+function toDecimal(x) { 
+var f = parseFloat(x); 
+if (isNaN(f)) { 
+return false; 
+} 
+var f = Math.round(x*100)/100; 
+var s = f.toString(); 
+var rs = s.indexOf('.'); 
+if (rs < 0) { 
+rs = s.length; 
+ s += '.'; 
+} 
+while (s.length <= rs + 1) { 
+s += '0'; 
+} 
+return s; 
+} 
+
+function showPrePage(){
+	if(globalParams.currPage == 1){
+		return;
+	}
+	if(globalParams.marqueeObj != null){
+		globalParams.marqueeObj.removeScroll();
+		globalParams.marqueeObj = null;
+	}
+	globalParams.currPage--;
+	globalParams.isPageAction = true;
+	window.clearTimeout(globalParams.pageTimeout);
+	
+	if(globalParams.currPage == 1){
+		initProgram(0,globalParams.cid);
+	}else{
+		globalParams.pageTimeout = setTimeout(function(){
+			initProgram(0,globalParams.cid);										   
+		}, 500);	
+	}
+	showPageInfo();
+}
+function showNextPage(){
+	if(globalParams.currPage == globalParams.totalPage){
+		return;	
+	}
+	if(globalParams.marqueeObj != null){
+		globalParams.marqueeObj.removeScroll();
+		globalParams.marqueeObj = null;
+	}
+	if(cache.programs != undefined){
+		globalParams.currPage++;
+		globalParams.isPageAction = true;
+		window.clearTimeout(globalParams.pageTimeout);
+	
+		if(globalParams.currPage == globalParams.totalPage){
+				initProgram(0,globalParams.cid);
+		}else{
+				globalParams.pageTimeout = setTimeout(function(){
+				initProgram(0,globalParams.cid);										   
+		}, 500);	
+	}
+	}else{
+		globalParams.currPage++;
+		globalParams.isPageAction = true;
+		window.clearTimeout(globalParams.pageTimeout);
+	
+		if(globalParams.currPage == globalParams.totalPage){
+				initProgram(1,globalParams.cid);
+		}else{
+				globalParams.pageTimeout = setTimeout(function(){
+				initProgram(1,globalParams.cid);										   
+		}, 500);	
+	}
+	}
+	
+	showPageInfo();
+}
+
+function lastPageFocusPos(){
+	if(globalParams.currPage == globalParams.totalPage){
+		var curRecordPos = (globalParams.currPage - 1) * globalParams.pageSize + globalParams.listY * globalParams.lineNumber + globalParams.listX + 1;
+		var count = globalParams.totalCount - (globalParams.currPage - 1) * globalParams.pageSize;
+		if((curRecordPos - globalParams.totalCount) > 0 && count > globalParams.lineNumber){
+			beforeLoseFocus("", globalParams.listY, globalParams.listX);
+			globalParams.listX = count % globalParams.lineNumber - 1;
+			selectedListFocusStyle();
+		}else if((curRecordPos - globalParams.totalCount) > 0 && count <= globalParams.lineNumber){
+			beforeLoseFocus("", globalParams.listY, globalParams.listX);
+			globalParams.listY = 0;
+			if(globalParams.listX > (count - 1)){
+				globalParams.listX = count - 1;
+			}
+			selectedListFocusStyle();
+		}
+	}
+}
+
+function selectedListFocusStyle(){
+	window.clearTimeout(globalParams.showTextListTimeout);
+	$("listFocus").style.left = (5 + globalParams.listX * 196) + "px";
+	$("listFocus").style.top = (globalParams.listY * 293) + "px";
+	$("listFocus").style.width = "194px";
+	$("listFocus").style.height = "269px";
+	$("listFocusBg").style.left = (-14 + globalParams.listX * 196) + "px";	
+	$("listFocusBg").style.top = (-14 + globalParams.listY * 293) + "px";	
+	//$("listFocusBg").style.webkitTransform = "scale(1.1)";
+	//$("listFocusBg").style.display = "block";
+	$("pInfoRow" + globalParams.listY + "Cell" + globalParams.listX).style.webkitTransform = "scale(1.1)";
+	globalParams.showTextListTimeout = setTimeout(function(){
+		showProgramNameText();
+		showPageInfo();
+		//listFocusStyle(true);
+	}, 200);	
+}
+
+
+function getListFocus(){
+	$("listFocus").style.visibility = "visible";
+	$("listFocus").style.left = "16px";
+	$("listFocus").style.top = "15px";
+	$("listFocusBg").style.left = "-14px";	
+	showProgramNameText();
+	showPageInfo();
+}
+
+function showProgramNameText(){
+	var row = globalParams.listY;
+	if(globalParams.programDataArr.length == 0){
+		return;	
+	}
+	tvsee.debug("globalParams.programDataArr.length:" + globalParams.programDataArr.length  +  "==count:" + (globalParams.listY * globalParams.lineNumber + globalParams.listX));
+	var programName = globalParams.programDataArr[globalParams.listY * globalParams.lineNumber + globalParams.listX].programname;
+	if(getCharByte(programName) > 12){
+		if(globalParams.marqueeObj != null){
+			globalParams.marqueeObj.removeScroll();
+			globalParams.marqueeObj = null;
+		}
+		globalParams.marqueeObj = new marqueeClass("pNameRow" + row + "Cell" + globalParams.listX, programName);
+		globalParams.marqueeObj.scroll();
+	}
+}
+
+function showPageInfo(){
+	globalParams.scrollObj.init(globalParams.totalPage, 1, 574, 90, "h");
+	globalParams.scrollObj.scroll(globalParams.currPage - 1);
+	$("pageInfo").innerHTML = globalParams.currPage + "/" + globalParams.totalPage;
+	$("totalCount").innerText = "/" + globalParams.totalCount;
+	$("count").innerText = (globalParams.currPage - 1) * globalParams.pageSize + globalParams.listY * globalParams.lineNumber + globalParams.listX + 1;
+}
+
+function clearPageInfoText(){
+	$("pageInfo").innerText = "0/0";
+	$("totalCount").innerText = "/0";
+	$("count").innerText = "0";
+}
+
+function listLoseFocusStyle(){
+	var programName = "";
+	if(globalParams.programDataArr != null && globalParams.programDataArr.length > 0){
+			programName = globalParams.programDataArr[globalParams.listY * globalParams.lineNumber + globalParams.listX].programname;
+	}
+	beforeLoseFocus(programName, globalParams.listY, globalParams.listX);
+}
+
+function beforeLoseFocus(_programName, _row, _cell){
+	$("pInfoRow" + _row + "Cell" + _cell).style.webkitTransitionDuration = "0ms";
+	$("pInfoRow" + _row + "Cell" + _cell).style.webkitTransform = "scale(1)";
+	if(globalParams.marqueeObj != null){
+		globalParams.marqueeObj.removeScroll();
+		globalParams.marqueeObj = null;
+	}
+	if(getCharByte(_programName) > 12){
+		_programName = subStr(_programName, 12, "...");	
+		$("pNameRow" + _row + "Cell" + _cell).innerText = _programName;
+	}
+}
+
+function clearListData(){
+	globalParams.programDataArr = [];
+	var row = 0;
+	var cell = 0;
+	for(var i = 0; i < globalParams.lineNumber * 2; i++){
+		$("markRow" + row + "Cell" + cell).style.visibility = "hidden";
+		$("imgRow" + row + "Cell" + cell).src = "images/defaultImg.png";
+		$("imgRow" + row + "Cell" + cell).style.visibility = "hidden";
+		$("pNameRow" + row + "Cell" + cell).innerText = "";
+		$("scoreRow" + row + "Cell" + cell).style.visibility = "hidden";
+		$("pInfoRow" + row + "Cell" + cell).style.visibility = "hidden";
+		if(i == (globalParams.lineNumber - 1)){
+			row++;	
+			cell = 0;
+		}else{
+			cell++;
+		}
+	}
+	if(!globalParams.isPageAction){
+		globalParams.totalPage = 1;
+		globalParams.listX = 0;
+		globalParams.listY = 0;
+		lostListFocus();
+	}
+}
+function lostListFocus(){
+	$("listFocus").style.visibility = "hidden";
+	$("listFocus").style.left = "16px";
+	$("listFocus").style.top = "15px";
+	$("listFocusBg").style.left = "-14px";	
+	$("listFocusBg").style.top = "-14px";	
+}
+
+function recMovieClass(){
+	this.page = 0;
+	this.focusId = "recMovie0";
+	this.recMoviePages = ["recMoviePage0", "recMoviePage1", "recMoviePage2"];
+	this.recMovies = ["recMovie0", "recMovie1", "recMovie2", "recMovie3", "recMovie4", "recMovie5", "recMovie6", "recMovie7", "recMovie8", "recMovie9"];
+	this.recMovieNames = ["recMovieName0", "recMovieName1", "recMovieName2", "recMovieName3", "recMovieName4", "recMovieName5", "recMovieName6", "recMovieName7", "recMovieName8", "recMovieName9"];
+	this.recMovieDescs = ["recMovieDesc0", "recMovieDesc1", "recMovieDesc2", "recMovieDesc3", "recMovieDesc4", "recMovieDesc5", "recMovieDesc6", "recMovieDesc7", "recMovieDesc8", "recMovieDesc9"];
+	//recMovie6  recMoviePage2  recMovieName6 recMovieDesc6
+	this.initData = function(){
+		for(var i = 0; i < this.recMovies.length; i++){
+			$("recMovieName" + i).innerText = "";
+			$("recMovieDesc" + i).innerText = "";
+		}
+	}
+	this.showRecMovie = function(){
+		$("recMovie").style.display = "block";		
+	}
+	this.hideRecMovie = function(){
+		$("recMovie").style.display = "none";		
+	}
+	this.moveLR = function(_num){
+		var value = "leftmove";
+		var loseName = this.focusId;
+		if(_num > 0){
+			value = "rightmove";
+		}
+		var arrName = $(this.focusId).getAttribute(value);
+		if(arrName == "catalog"){//回到主菜单
+			this.loseFocus(loseName);
+			$("menuFocus").style.visibility = "visible";
+			if(globalParams.catalogListObj.dataPos >8){
+			var dataPos = globalParams.catalogListObj.dataPos - 9;
+			document.getElementById("menuName"+dataPos).style.color = "white"
+		}else{
+			document.getElementById("menuName"+globalParams.catalogListObj.dataPos).style.color = "white"
+		}
+			globalParams.areaPos = 0;
+			return;
+		}else if(arrName == "#"){
+			return;	
+		}else{ //焦点切换
+			this.focusId = arrName;	
+		}
+		this.loseFocus(loseName);
+		this.getFocus();
+		//$("" + this.focusId).style.border = "";
+	}
+	this.moveUD = function(_num){
+		var value = "upmove";
+		if(_num > 0){
+			value = "downmove";	
+		}
+		
+		var loseName = this.focusId;
+		var arrName = $(this.focusId).getAttribute(value);
+		if(arrName == "uppage"){
+			$(this.recMoviePages[this.page]).style.visibility = "hidden";
+			this.page--;
+			$(this.recMoviePages[this.page]).style.visibility = "visible";
+			this.showPageNum();
+			if(this.page == 0){
+				this.focusId = this.recMovies[1];	
+			}else if(this.page == 1){
+				this.focusId = this.recMovies[3];	
+			}
+			this.getFocus();
+		}else if(arrName == "nextpage"){
+			$(this.recMoviePages[this.page]).style.visibility = "hidden";
+			this.page++;
+			$(this.recMoviePages[this.page]).style.visibility = "visible";
+			if(this.page == 1){
+				this.focusId = this.recMovies[3];	
+			}else if(this.page == 2){
+				this.focusId = this.recMovies[6];		
+			}
+			this.showPageNum();
+		}else if(arrName == "#"){
+			return;	
+		}else{
+			this.focusId = arrName;
+		}
+		this.loseFocus(loseName);
+		this.getFocus();
+	}
+	this.getFocus = function(){
+		var a = this.focusId
+		$(this.focusId).style.border = FOCUS_STYLE.BORDER;
+		if(a=="recMovie0"){
+			document.getElementById("recMovie0").style.height = "360px";
+			document.getElementById("recMovie0").style.width = "994px";
+			document.getElementById("recMovie0").style.top ="0px";
+			document.getElementById("score0").style.left ="615px";
+			document.getElementById("recMovie0").style.left ="-7px";
+			document.getElementById("recMovie0").style.zIndex ="9999";
+			document.getElementById("recMovie0").style.webkitBoxShadow ="0 0 40px 18px black"
+		}
+		if(a=="recMovie1"){
+			document.getElementById("recMovieBg1").style.display = "block";
+			document.getElementById("recMovie1").style.height = "280px";
+			document.getElementById("recMovie1").style.width = "510px";
+			document.getElementById("recMovie1").style.top ="353px";
+			document.getElementById("recMovie1").style.left ="-4px";
+			document.getElementById("recMovie1").style.zIndex ="9999";
+			document.getElementById("recMovie1").style.webkitBoxShadow ="0 0 40px 18px black"
+		}
+		if(a=="recMovie2"){
+			document.getElementById("recMovieBg2").style.display = "block"
+			document.getElementById("recMovie2").style.height = "280px";
+			document.getElementById("recMovie2").style.width = "510px";
+			document.getElementById("recMovie2").style.top ="353px";
+			document.getElementById("recMovie2").style.left ="485px";
+			document.getElementById("recMovie2").style.zIndex ="9999";
+			document.getElementById("recMovie2").style.webkitBoxShadow ="0 0 40px 18px black"
+		}
+		if(a=="recMovie3"){
+			document.getElementById("recMovieBg3").style.display = "block"
+			document.getElementById("recMovie3").style.height = "615px";
+			document.getElementById("recMovie3").style.width = "494px";
+			document.getElementById("recMovie3").style.top ="-2px";
+			document.getElementById("recMovie3").style.left ="8px";
+			document.getElementById("recMovie3").style.zIndex ="9999";
+			document.getElementById("recMovie3").style.webkitBoxShadow ="0 0 40px 18px black"
+		}
+		if(a=="recMovie4"){
+			document.getElementById("recMovieBg4").style.display = "block"
+			document.getElementById("recMovie4").style.height = "310px";
+			document.getElementById("recMovie4").style.width = "510px";
+			document.getElementById("recMovie4").style.top ="-1px";
+			document.getElementById("recMovie4").style.left ="485px";
+			document.getElementById("recMovie4").style.zIndex ="9999";
+			document.getElementById("recMovie4").style.webkitBoxShadow ="0 0 40px 18px black"
+		}
+		if(a=="recMovie5"){
+			document.getElementById("recMovieBg5").style.display = "block"
+			document.getElementById("recMovie5").style.height = "310px";
+			document.getElementById("recMovie5").style.width = "500px";
+			document.getElementById("recMovie5").style.top ="300px";
+			document.getElementById("recMovie5").style.left ="485px";
+			document.getElementById("recMovie5").style.zIndex ="9999";
+			document.getElementById("recMovie5").style.webkitBoxShadow ="0 0 40px 18px black"
+		}
+		if(a=="recMovie6"){
+			document.getElementById("recMovieBg6").style.display = "block"
+			document.getElementById("recMovie6").style.height = "310px";
+			document.getElementById("recMovie6").style.width = "500px";
+			document.getElementById("recMovie6").style.top ="1px";
+			document.getElementById("recMovie6").style.left ="-1px";
+			document.getElementById("recMovie6").style.zIndex ="9999";
+			document.getElementById("recMovie6").style.webkitBoxShadow ="0 0 40px 18px black"
+		}
+		if(a=="recMovie7"){
+			document.getElementById("recMovieBg7").style.display = "block"
+			document.getElementById("recMovie7").style.height = "310px";
+			document.getElementById("recMovie7").style.width = "500px";
+			document.getElementById("recMovie7").style.top ="1px";
+			document.getElementById("recMovie7").style.left ="485px";
+			document.getElementById("recMovie7").style.zIndex ="9999";
+			document.getElementById("recMovie7").style.webkitBoxShadow ="0 0 40px 18px black"
+		}
+		if(a=="recMovie8"){
+			document.getElementById("recMovieBg8").style.display = "block"
+			document.getElementById("recMovie8").style.height = "310px";
+			document.getElementById("recMovie8").style.width = "500px";
+			document.getElementById("recMovie8").style.top ="298px";
+			document.getElementById("recMovie8").style.left ="-1px";
+			document.getElementById("recMovie8").style.zIndex ="9999";
+			document.getElementById("recMovie8").style.webkitBoxShadow ="0 0 40px 18px black"
+		}
+		if(a=="recMovie9"){
+			document.getElementById("recMovieBg9").style.display = "block"
+			document.getElementById("recMovie9").style.height = "310px";
+			document.getElementById("recMovie9").style.width = "500px";
+			document.getElementById("recMovie9").style.top ="298px";
+			document.getElementById("recMovie9").style.left ="485px";
+			document.getElementById("recMovie9").style.zIndex ="9999";
+			document.getElementById("recMovie9").style.webkitBoxShadow ="0 0 40px 18px black"
+		}
+	}
+	this.loseFocus = function(_name){
+		var b = _name;
+		$(this.focusId).className = "";
+		if(b=="recMovie0"){
+			document.getElementById("recMovie0").style.height = "348px";
+			document.getElementById("recMovie0").style.width = "979px";
+			document.getElementById("recMovie0").style.top ="9px";
+			document.getElementById("recMovie0").style.left ="8px";
+			document.getElementById("score0").style.left ="604px";
+			document.getElementById("recMovie0").style.zIndex ="0";
+			document.getElementById("recMovie0").style.webkitBoxShadow =""
+		}
+		if(b=="recMovie1"){
+			document.getElementById("recMovieBg1").style.display = "none"
+			document.getElementById("recMovie1").style.height = "235px";
+			document.getElementById("recMovie1").style.width = "483px";
+			document.getElementById("recMovie1").style.top ="368px";
+			document.getElementById("recMovie1").style.left ="6px";
+			document.getElementById("recMovie1").style.zIndex ="0";
+			document.getElementById("recMovie1").style.webkitBoxShadow =""
+		}
+		if(b=="recMovie2"){
+			document.getElementById("recMovieBg2").style.display = "none"
+			document.getElementById("recMovie2").style.height = "235px";
+			document.getElementById("recMovie2").style.width = "483px";
+			document.getElementById("recMovie2").style.top ="368px";
+			document.getElementById("recMovie2").style.left ="503px";
+			document.getElementById("recMovie2").style.zIndex ="0";
+			document.getElementById("recMovie2").style.webkitBoxShadow =""
+		}
+		if(b=="recMovie3"){
+			document.getElementById("recMovieBg3").style.display = "none"
+			document.getElementById("recMovie3").style.height = "592px";
+			document.getElementById("recMovie3").style.width = "483px";
+			document.getElementById("recMovie3").style.top ="9px";
+			document.getElementById("recMovie3").style.left ="8px";
+			document.getElementById("recMovie3").style.zIndex ="0";
+			document.getElementById("recMovie3").style.webkitBoxShadow =""
+		}
+		if(b=="recMovie4"){
+			document.getElementById("recMovieBg4").style.display = "none"
+			document.getElementById("recMovie4").style.height = "290px";
+			document.getElementById("recMovie4").style.width = "483px";
+			document.getElementById("recMovie4").style.top ="9px";
+			document.getElementById("recMovie4").style.left ="503px";
+			document.getElementById("recMovie4").style.zIndex ="0";
+			document.getElementById("recMovie4").style.webkitBoxShadow =""
+		}
+		if(b=="recMovie5"){
+			document.getElementById("recMovieBg5").style.display = "none"
+			document.getElementById("recMovie5").style.height = "290px";
+			document.getElementById("recMovie5").style.width = "483px";
+			document.getElementById("recMovie5").style.top ="312px";
+			document.getElementById("recMovie5").style.left ="503px";
+			document.getElementById("recMovie5").style.zIndex ="0";
+			document.getElementById("recMovie5").style.webkitBoxShadow =""
+		}
+		if(b=="recMovie6"){
+			document.getElementById("recMovieBg6").style.display = "none"
+			document.getElementById("recMovie6").style.height = "290px";
+			document.getElementById("recMovie6").style.width = "483px";
+			document.getElementById("recMovie6").style.top ="9px";
+			document.getElementById("recMovie6").style.left ="8px";
+			document.getElementById("recMovie6").style.zIndex ="0";
+			document.getElementById("recMovie6").style.webkitBoxShadow =""
+		}
+		if(b=="recMovie7"){
+			document.getElementById("recMovieBg7").style.display = "none"
+			document.getElementById("recMovie7").style.height = "290px";
+			document.getElementById("recMovie7").style.width = "483px";
+			document.getElementById("recMovie7").style.top ="9px";
+			document.getElementById("recMovie7").style.left ="503px";
+			document.getElementById("recMovie7").style.zIndex ="0";
+			document.getElementById("recMovie7").style.webkitBoxShadow =""
+		}
+		if(b=="recMovie8"){
+			document.getElementById("recMovieBg8").style.display = "none"
+			document.getElementById("recMovie8").style.height = "290px";
+			document.getElementById("recMovie8").style.width = "483px";
+			document.getElementById("recMovie8").style.top ="312px";
+			document.getElementById("recMovie8").style.left ="8px";
+			document.getElementById("recMovie8").style.zIndex ="0";
+			document.getElementById("recMovie8").style.webkitBoxShadow =""
+		}
+		if(b=="recMovie9"){
+			document.getElementById("recMovieBg9").style.display = "none"
+			document.getElementById("recMovie9").style.height = "290px";
+			document.getElementById("recMovie9").style.width = "483px";
+			document.getElementById("recMovie9").style.top ="312px";
+			document.getElementById("recMovie9").style.left ="503px";
+			document.getElementById("recMovie9").style.zIndex ="0";
+			document.getElementById("recMovie9").style.webkitBoxShadow =""
+		}
+		$(_name).style.border = "";
+	}
+	this.doSelect = function(){
+		var index = $(this.focusId).getAttribute("action");
+		if(globalParams.recData.length == 0){
+			return;	
+		}
+		var data = globalParams.recData[index].datas.list[0];
+		var pid = data.params.pid
+		var operateType = data.operateType;
+		var widgetObj = null;
+		var isDetail = true;
+		if(operateType == "variety"){
+			widgetObj = tvsee.pageWidgets.getByName("widgetVodVarietyDetailNew");
+		}else if(operateType == "otherDetail"){
+			widgetObj = tvsee.pageWidgets.getByName("widgetVodVarietyDetail");
+		}else if(operateType == "detailed"){
+			widgetObj = tvsee.pageWidgets.getByName("widgetVodDetail");		
+		}else if(operateType == "column"){
+			isDetail = false;
+		}
+		if(isDetail == true){
+			widgetObj.setFromPage("RECLIST");
+			if(widgetObj != null){
+				widgetObj.show();
+				widgetObj.initData(pid, 11);
+			}
+		}else{
+			var cid = data.params.cid;
+			var title = data.params.colName;
+			var widgetName = getMovieListByCid(cid);
+			if(widgetName == "widgetRecVodList"){
+				initMenu(cid, title);
+			}else{
+				tvsee.pageWidgets.getByName("widgetRecVodList").minimize();
+				var widgetRecVodList = tvsee.pageWidgets.getByName(widgetName);
+				widgetRecVodList.initMenu(cid, title);
+				widgetRecVodList.show();	
+			}
+				
+		}
+		
+	}
+	this.nextPage = function(){
+		this.nextPage();	
+	}
+	this.upPage = function(){
+		this.showPageNum();
+	}
+	this.showPageNum = function(){
+		for(var i = 0; i < 3; i++){
+			if(this.page == i){
+				$("moveRecPageNum" + i).style.backgroundImage = "url(images/list/page_focus_green.png)";
+			}else{
+				$("moveRecPageNum" + i).style.backgroundImage = "url(images/list/page_not_selected.png)";
+			}
+		}
+	}
+}
+
+
+window.onload = init;	
+
+</script>
+</head>
+
+<body>
+<div style="position:absolute; width: 1280px; height: 720px; background-image:url(images/list/bg.png); top: 0px; left: 0px;">
+    <!--<div style="font-size:24px; position:absolute; top: 26px; left: 1090px; width: 100px; height: 30px; line-height: 30px; color: #FFF;">
+        搜索
+    </div>-->
+    
+    <div style="position:absolute; width: 209px; height: 101px; background-image:url(images/list/meun_Focus_green.png); left: 9px; top: 43px;" id="menuFocus"></div>
+    <div id="catalogArrowUp" style="position:absolute; width: 34px; height: 21px; background-image:url(images/list/up_arrow.png); left: 98px; top: 30px;"></div>
+    <div id="catalogArrowdown" style="position:absolute; width: 34px; height: 21px; background-image:url(images/list/down_arrow.png); left: 98px; top: 650px;"></div>
+    <div style="position: absolute; width: 200px; height: 640px; top: 50px; left: 20px;">
+       <!--<div style="position:absolute; top: 13px; width: 171px; height: 59px; line-height: 60px; left: 8px; color: #FFF; font-size: 30px; text-align: center; background-image:url(images/list/meun_all_bg.png);">
+            全部
+        </div>-->
+        <!--左侧菜单-->
+        <div style="position:absolute; overflow: hidden; width: 174px; height: 585px; top: 13px; left: 8px;">
+            <div id="menuName0" class="catalogNameCla" style="top: 0px;">
+            </div>
+            <div id="menuName1" class="catalogNameCla" style="top: 75px;">
+            </div>
+            <div id="menuName2" class="catalogNameCla" style="top: 150px;">
+            </div>
+            <div id="menuName3" class="catalogNameCla" style="top: 225px;">
+            </div>
+            <div id="menuName4" class="catalogNameCla" style="top: 300px;">
+            </div>
+            <div id="menuName5" class="catalogNameCla" style="top: 375px;">
+            </div>
+            <div id="menuName6" class="catalogNameCla" style="top: 450px;">
+            </div>
+            <div id="menuName7" class="catalogNameCla" style="top: 525px;">
+            </div>
+            <div id="menuName8" class="catalogNameCla" style="top: 590px;">
+            </div>
+        </div>
+    </div>
+    <!--右侧影片推荐 style="visibility:hidden;"-->
+    <div  id="recMovie">
+        <div style="position:absolute; width: 1000px; height: 615px; top: 60px; left: 225px;">
+            <div id="recMoviePage0" style="position:absolute; width: 1000px; height: 615px; ">
+                <div id="recMovie0" style="width: 979px; height: 348px; top: 9px; left: 8px; position:absolute;background-repeat: no-repeat;background-size: 100% 100%;" upmove="#" downmove="recMovie1" leftmove="catalog" rightmove="#">
+                	<div style="left: 604px;" class="scoreBgCla" id="score0"></div>
+                	<div style="position:absolute; overflow:hidden; width: 483px; height: 66px; top: 223px; visibility:hidden;">
+                    	<div id="recMovieName0" ></div>
+                        <div id="recMovieDesc0" ></div>
+                    </div>
+                </div>
+     
+                <div id="recMovie1" style="width: 483px; height: 235px; top: 368px; left: 8px; position:absolute;background-repeat: no-repeat;background-position: center;background-size: 100% 100%;" upmove="recMovie0" downmove="nextpage" leftmove="catalog" rightmove="recMovie2">
+               		<div style="right: 0px;" class="scoreBgCla" id="score1"></div>
+                	<div id="recMovieBg1" style="display: none;position:absolute; overflow:hidden; width: 100%; height: 90px; top: 196px; background-image:url(images/list/Poster-text-bar_small.png);">
+                    	<div id="recMovieName1" style="position:absolute; text-align:center; height: 61px; line-height: 61px; width: 100%; 
+	color:#FFF; font-size: 30px;"></div>
+                        <div id="recMovieDesc1" style="position:absolute; text-align:center; height: 22px; line-height: 52px; font-size:20px; width:100%; color:#FFF;  top: 38px;"></div>
+                    </div>
+                </div>
+                <div id="recMovie2" style="width: 483px; height: 235px; top: 368px; left: 503px; position:absolute; background-size: 100% 100%;" upmove="recMovie0" downmove="nextpage" leftmove="recMovie1" rightmove="#">
+                	<div style="right: 0px;" class="scoreBgCla" id="score2"></div>
+                	<div id="recMovieBg2" style="display: none;position:absolute; overflow:hidden; width: 100%; height: 90px; top: 196px; background-image:url(images/list/Poster-text-bar_small.png);">
+                    	<div id="recMovieName2" style="position:absolute; text-align:center; height: 36px; line-height: 61px; width: 100%; 
+	color:#FFF; font-size: 30px;"></div>
+                        <div id="recMovieDesc2" style="position:absolute; text-align:center; height: 22px; line-height: 52px; font-size:20px; width:100%; color:#FFF;  top: 38px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="recMoviePage1" style="position:absolute; width: 1000px; height: 615px; visibility:hidden;">
+                <div id="recMovie3" style="width: 483px; height: 594px; top: 9px; left: 8px; position:absolute;background-size: 100% 100%;"  upmove="uppage" downmove="nextpage" leftmove="catalog" rightmove="recMovie4">
+                	<div style="right: 0px;" class="scoreBgCla" id="score3"></div>
+                	<div id="recMovieBg3" style="display: none;position:absolute; overflow:hidden; width: 100%; height: 143px; bottom: 0px; background-image:url(images/list/Poster-text-bar_big.png)">
+                    	<div id="recMovieName3" class="recMovieName" style="top: 18px; overflow: auto; height: 72px;"></div>
+                        <div id="recMovieDesc3" class="recMovieDesc" style="top: 94px;"></div>
+                    </div>
+                </div>
+                <div id="recMovie4" style="width: 483px; height: 290px; top: 9px; left: 503px; position:absolute;background-size: 100% 100%;" upmove="uppage" downmove="recMovie5" leftmove="recMovie3" rightmove="#">
+               	 	<div style="right: 0px;" class="scoreBgCla" id="score4"></div>
+                	<div id="recMovieBg4" style="display: none;position:absolute; overflow:hidden; width: 100%; height: 88px; top: 223px; background-image:url(images/list/Poster-text-bar_small.png);">
+                    	<div id="recMovieName4" class="recMovieName" style="line-height: 60px;height: 60px;"></div>
+                        <div id="recMovieDesc4" class="recMovieDesc" style="top: 50px;"></div>
+                    </div>
+                </div>
+                <div id="recMovie5" style="width: 483px; height: 290px; top: 312px; left: 503px; position:absolute;background-size: 100% 100%;" upmove="recMovie4" downmove="nextpage" leftmove="recMovie3" rightmove="#">
+                	<div style="right: -3px;" class="scoreBgCla" id="score5"></div>
+                	<div id="recMovieBg5" style="display: none;position:absolute; overflow:hidden; width: 100%; height: 87px; top: 223px; background-image:url(images/list/Poster-text-bar_small.png);">
+                    	<div id="recMovieName5" class="recMovieName" style="height: 50px;line-height: 55px"></div>
+                        <div id="recMovieDesc5" class="recMovieDesc" style="top: 52px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="recMoviePage2" style="position:absolute; width: 1000px; height: 615px; visibility:hidden;" >
+                <div id="recMovie6" style="width: 483px; height: 290px; top: 9px; left: 8px; position:absolute;background-size: 100% 100%;" upmove="uppage" downmove="recMovie8" leftmove="catalog" rightmove="recMovie7">
+               		<div style="right: 0px;" class="scoreBgCla" id="score6"></div>
+                	<div id="recMovieBg6" style="display: none;position:absolute; overflow:hidden; width: 100%; height: 82px; top: 223px;  background-image:url(images/list/Poster-text-bar_small.png);" >
+                    	<div id="recMovieName6" class="recMovieName" style="line-height: 60px;height: 60px;"></div>
+                        <div id="recMovieDesc6" class="recMovieDesc" style="top: 50px;"></div>
+                    </div>
+                </div>
+                <div id="recMovie7" style="width: 483px; height: 290px; top: 9px; left: 503px; position:absolute;background-size: 100% 100%;" upmove="uppage" downmove="recMovie9" leftmove="recMovie6" rightmove="#">
+                	<div style="right: 0px;" class="scoreBgCla" id="score7"></div>
+                    <div id="recMovieBg7" style="display: none;position:absolute; overflow:hidden; width: 100%; height: 87px; top: 223px;  background-image:url(images/list/Poster-text-bar_small.png);" >
+                		<div id="recMovieName7" class="recMovieName" style="line-height: 60px;height: 60px;"></div>
+                   		 <div id="recMovieDesc7" class="recMovieDesc" style="top: 50px;"></div>
+                    </div>
+                </div>
+                <div id="recMovie8" style="width: 483px; height: 290px; top: 312px; left: 8px; position:absolute;background-size: 100% 100%;" upmove="recMovie6" downmove="#" leftmove="catalog" rightmove="recMovie9">
+                	<div style="right: 0px;" class="scoreBgCla" id="score8"></div>
+                    <div id="recMovieBg8" style="display: none;position:absolute; overflow:hidden; width: 100%; height: 87px; top: 223px;  background-image:url(images/list/Poster-text-bar_small.png);" >
+                  		<div id="recMovieName8" class="recMovieName" style="line-height: 60px;height: 60px;"></div>
+                    	<div id="recMovieDesc8" class="recMovieDesc" style="top: 50px;"></div>
+                    </div>
+                </div>
+                <div id="recMovie9" style="width: 483px; height: 290px; top: 312px; left: 503px; position:absolute;background-size: 100% 100%;" upmove="recMovie7" downmove="#" leftmove="recMovie8" rightmove="#">
+                	<div style="right: -3px;" class="scoreBgCla" id="score9"></div>
+                    <div id="recMovieBg9" style="display: none;position:absolute; overflow:hidden; width: 100%; height: 87px; top: 223px;  background-image:url(images/list/Poster-text-bar_small.png);" >
+                		<div id="recMovieName9" class="recMovieName" style="line-height: 60px;height: 60px;"></div>
+                    	<div id="recMovieDesc9" class="recMovieDesc" style="top: 50px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="position:absolute; width:27px; height: 100px; top: 320px; left: 1231px;">
+        	<div id="moveRecPageNum0" class="moveRecPageNumCla" style=" background-image:url(images/list/page_focus_green.png);top: 10px;"></div>
+            <div id="moveRecPageNum1" class="moveRecPageNumCla" style=" background-image:url(images/list/page_not_selected.png);top: 42px;"></div>
+            <div id="moveRecPageNum2" class="moveRecPageNumCla" style=" background-image:url(images/list/page_not_selected.png);top: 68px;"></div>
+        </div>
+    </div>
+    <div style="display:none;" id="vodList">
+        <div class="listCountPageCla">
+            <div id="totalCount" style="float:right;">
+                /0部
+            </div>
+            <div id="count" style="float:right;">
+                0
+            </div>
+        </div>
+        <div style="width: 1000px; height: 600px; position: absolute; top: 80px; left: 230px;">
+            <div style="background-image: url(images/list/listFocusBg.png); width: 208px; height: 309px;  -webkit-transition-duration: 200ms;  position: absolute; top: -18px; left: -14px; display: none;" id="listFocusBg">
+            </div>
+            <div id="rows0" class="rowsCla">
+                <div id="pInfoRow0Cell0" style="left: 17px;" class="pInfoCla">
+                    <div class="pImgCla">
+                        <img src="images/defaultImg.png" id="imgRow0Cell0" style="width: 176px; height: 244px;"/>
+                    </div>
+                    <div id="scoreRow0Cell0" class="movieScoreCla"></div>
+                    <div id="markRow0Cell0" class="HDMarkCla"></div>
+                    <div id="pNameRow0Cell0" class="listPNamePageCla"></div>
+                </div>
+                <div id="pInfoRow0Cell1" style="left: 213px;" class="pInfoCla">
+                    <div class="pImgCla">
+                        <img src="images/defaultImg.png" id="imgRow0Cell1" style="width: 176px; height: 244px;"/>
+                    </div>
+                    <div id="scoreRow0Cell1" class="movieScoreCla"></div>
+                    <div id="markRow0Cell1" class="HDMarkCla"></div>
+                    <div id="pNameRow0Cell1" class="listPNamePageCla"></div>
+                </div>
+                <div id="pInfoRow0Cell2" style="left: 409px;" class="pInfoCla">
+                    <div class="pImgCla">
+                        <img src="images/defaultImg.png" id="imgRow0Cell2" style="width: 176px; height: 244px;"/>
+                    </div>
+                    <div id="scoreRow0Cell2" class="movieScoreCla"></div>
+                    <div id="markRow0Cell2" class="HDMarkCla"></div>
+                    <div id="pNameRow0Cell2" class="listPNamePageCla"></div>
+                </div>
+                <div id="pInfoRow0Cell3" style="left: 605px;" class="pInfoCla">
+                    <div class="pImgCla">
+                        <img src="images/defaultImg.png" id="imgRow0Cell3" style="width: 176px; height: 244px;" />
+                    </div>
+                    <div id="scoreRow0Cell3" class="movieScoreCla"></div>
+                    <div id="markRow0Cell3" class="HDMarkCla"></div>
+                    <div id="pNameRow0Cell3" class="listPNamePageCla"></div>
+                </div>
+                <div id="pInfoRow0Cell4" style="left: 801px;" class="pInfoCla">
+                    <div class="pImgCla">
+                        <img src="images/defaultImg.png" id="imgRow0Cell4" style="width: 176px; height: 244px;" />
+                    </div>
+                    <div id="scoreRow0Cell4" class="movieScoreCla"></div>
+                    <div id="markRow0Cell4" class="HDMarkCla"></div>
+                    <div id="pNameRow0Cell4" class="listPNamePageCla"></div>
+                </div>
+            </div>
+            <div id="rows1" class="rowsCla" style="top: 293px;">
+                <div id="pInfoRow1Cell0" style="left: 17px;" class="pInfoCla">
+                    <div class="pImgCla">
+                        <img src="images/defaultImg.png" id="imgRow1Cell0" style="width: 176px; height: 244px;" />
+                    </div>
+                    <div id="scoreRow1Cell0" class="movieScoreCla"></div>
+                    <div id="markRow1Cell0" class="HDMarkCla"></div>
+                    <div id="pNameRow1Cell0" class="listPNamePageCla"></div>
+                </div>
+                <div id="pInfoRow1Cell1" style="left: 213px;" class="pInfoCla">
+                    <div class="pImgCla">
+                        <img src="images/defaultImg.png" id="imgRow1Cell1" style="width: 176px; height: 244px;" />
+                    </div>
+                    <div id="markRow1Cell1" class="HDMarkCla"></div>
+                    <div id="pNameRow1Cell1" class="listPNamePageCla"></div>
+                    <div id="scoreRow1Cell1" class="movieScoreCla"></div>
+                </div>
+                <div id="pInfoRow1Cell2" style="left: 409px;" class="pInfoCla">
+                    <div class="pImgCla">
+                        <img src="images/defaultImg.png" id="imgRow1Cell2" style="width: 176px; height: 244px;"
+                        />
+                    </div>
+                    <div id="scoreRow1Cell2" class="movieScoreCla"></div>
+                    <div id="markRow1Cell2" class="HDMarkCla"></div>
+                    <div id="pNameRow1Cell2" class="listPNamePageCla"></div>
+                </div>
+                <div id="pInfoRow1Cell3" style="left: 605px;" class="pInfoCla">
+                    <div class="pImgCla">
+                        <img src="images/defaultImg.png" id="imgRow1Cell3" style="width: 176px; height: 244px;" />
+                    </div>
+                    <div id="scoreRow1Cell3" class="movieScoreCla"></div>
+                    <div id="markRow1Cell3" class="HDMarkCla"></div>
+                    <div id="pNameRow1Cell3" class="listPNamePageCla"></div>
+                </div>
+                <div id="pInfoRow1Cell4" style="left: 801px;" class="pInfoCla">
+                    <div class="pImgCla">
+                        <img src="images/defaultImg.png" id="imgRow1Cell4" style="width: 176px; height: 244px;" />
+                    </div>
+                    <div id="scoreRow1Cell4" class="movieScoreCla"></div>
+                    <div id="markRow1Cell4" class="HDMarkCla"></div>
+                    <div id="pNameRow1Cell4" class="listPNamePageCla"></div>
+                </div>
+               
+            </div>
+            <!---webkit-transition: 200ms;-->
+            <div style="width: 175px; height: 244px; top: 15px; left: 16px; position: absolute;  visibility: hidden;"
+            id="listFocus">
+            </div>
+        </div>
+
+    <div style="width: 19px; position: absolute; left: 1230px; top: 93px;">
+        <img src="images/scrollBg0.png" width="19" height="9" />
+        <br />
+        <img src="images/scrollBg1.png" width="19" height="574" />
+        <img src="images/scrollBg2.png" width="19" height="12" />
+    </div>
+    <div style="width: 19px; position: absolute; left: 1230px; top: 90px;"
+    id="scroll">
+        <img src="images/scrollFocus0.png" width="19" height="9" />
+        <br />
+        <img src="images/scrollFocus1.png" width="19" height="20" id="scrollBar"
+        />
+        <img src="images/scrollFocus2.png" width="19" height="12" />
+    </div>
+    <div id="pageInfo" style="position:absolute; color:#FFFFFF; left: 1130px; top: 675px; font-size:22px;"></div>
+    
+</div>
+
+
+<div style="background-image:url(images/list/oneMenuBg.png); width: 319px; height: 720px; position: absolute; left: 0px; top: 0px; display: none;z-index: 10000;" id="homeMenu">
+<div style=" width:219px; height: 617px; position: absolute; top: 105px; left: 45px; overflow: hidden;">
+    	<div id="oneMenuDiv0" style="top: 0px;" class="oneMenuDivCla">
+            <div style="top: 0px; left: 0px;" class="oneMenuBgCla" id="oneMFRow0Cell0">
+                <div class="menuImgCla" id="oneMIRow0Cell0"></div>
+                <div class="menuNameCla" id="oneMNRow0Cell0"></div>
+            </div>
+            <div style="top: 0px; left: 102px;" class="oneMenuBgCla" id="oneMFRow0Cell1">
+                <div class="menuImgCla"  id="oneMIRow0Cell1"></div>
+                <div class="menuNameCla" id="oneMNRow0Cell1" ></div>
+            </div>
+        </div>
+        
+        <div id="oneMenuDiv1"  style="top: 103px;" class="oneMenuDivCla">
+            <div style="left: 0px;" class="oneMenuBgCla" id="oneMFRow1Cell0">
+                <div class="menuImgCla" id="oneMIRow1Cell0"></div>
+                <div class="menuNameCla" id="oneMNRow1Cell0"></div>
+            </div>
+            <div style="left: 102px;" class="oneMenuBgCla" id="oneMFRow1Cell1">
+                <div class="menuImgCla" id="oneMIRow1Cell1"></div>
+                <div class="menuNameCla" id="oneMNRow1Cell1"></div>
+            </div>
+        </div>
+        
+        <div id="oneMenuDiv2"  style="top: 206px;" class="oneMenuDivCla">
+            <div style=" left: 0px;" class="oneMenuBgCla" id="oneMFRow2Cell0">
+                <div class="menuImgCla" id="oneMIRow2Cell0"></div>
+                <div class="menuNameCla" id="oneMNRow2Cell0"></div>
+            </div>
+            <div style="left: 102px;" class="oneMenuBgCla" id="oneMFRow2Cell1">
+                <div class="menuImgCla" id="oneMIRow2Cell1"></div>
+                <div class="menuNameCla" id="oneMNRow2Cell1"></div>
+            </div>
+        </div>
+        
+        <div id="oneMenuDiv3"  style="top: 309px;" class="oneMenuDivCla">
+            <div style="left: 0px;" class="oneMenuBgCla" id="oneMFRow3Cell0">
+                <div class="menuImgCla" id="oneMIRow3Cell0"></div>
+                <div class="menuNameCla" id="oneMNRow3Cell0"></div>
+            </div>
+            <div style="left: 102px;" class="oneMenuBgCla" id="oneMFRow3Cell1">
+                <div class="menuImgCla" id="oneMIRow3Cell1"></div>
+                <div class="menuNameCla" id="oneMNRow3Cell1"></div>
+            </div>
+        </div>
+        <div id="oneMenuDiv4"  style="top: 412px;" class="oneMenuDivCla">
+            <div style="left: 0px;" class="oneMenuBgCla" id="oneMFRow4Cell0">
+                <div class="menuImgCla" id="oneMIRow4Cell0"></div>
+                <div class="menuNameCla" id="oneMNRow4Cell0"></div>
+            </div>
+            <div style="left: 102px;" class="oneMenuBgCla" id="oneMFRow4Cell1">
+                <div class="menuImgCla" id="oneMIRow4Cell1"></div>
+                <div class="menuNameCla" id="oneMNRow4Cell1"></div>
+            </div>
+        </div>
+        <div id="oneMenuDiv5"  style="top: 515px;" class="oneMenuDivCla">
+            <div style="left: 0px;" class="oneMenuBgCla" id="oneMFRow5Cell0">
+                <div class="menuImgCla" id="oneMIRow5Cell0"></div>
+                <div class="menuNameCla" id="oneMNRow5Cell0"></div>
+            </div>
+            <div style="left: 102px;" class="oneMenuBgCla" id="oneMFRow5Cell1">
+                <div class="menuImgCla" id="oneMIRow5Cell1"></div>
+                <div class="menuNameCla" id="oneMNRow5Cell1"></div>
+            </div>
+        </div>
+        <div id="oneMenuDiv6"  style="top: 617px;" class="oneMenuDivCla">
+            <div style="left: 0px;" class="oneMenuBgCla" id="oneMFRow6Cell0">
+                <div class="menuImgCla" id="oneMIRow6Cell0"></div>
+                <div class="menuNameCla" id="oneMNRow6Cell0"></div>
+            </div>
+            <div style="left: 102px;" class="oneMenuBgCla" id="oneMFRow6Cell1">
+                <div class="menuImgCla" id="oneMIRow6Cell1"></div>
+                <div class="menuNameCla" id="oneMNRow6Cell1"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<div id="oneMenuFocus" style="position: absolute; width: 106px; height: 106px; left: 42px; top: 100px; visibility: hidden; z-index: 10001;"></div>
+</body>
+</html>

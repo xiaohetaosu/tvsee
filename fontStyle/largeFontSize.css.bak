@@ -1,0 +1,687 @@
+/*大字体*/
+@charset "utf-8";
+body {
+	overflow:hidden;
+	color: #FFFFFF;
+	font-family: "黑体";	
+}
+/*观看历史页面*/
+.recordPNameCla{
+	position: absolute; 
+	top: 204px; 
+	height: 30px; 
+	width: 100%; 
+	text-align: center; 
+	/*color: #A6A29D;	*/
+	color: #FFFFFF;
+	font-size: 26px;
+}
+.recordMenuCla{
+	position: absolute;
+	width: 68px; 
+	height: 218px;
+	background-image:url(../images/record/nBar_0.png);
+	color: #FFF;
+	font-size: 34px;
+	text-align:center;
+	left: 69px;
+	visibility: hidden;
+	line-height:36px;
+}
+.recordCountCla{
+	position: absolute; 
+	top: 52px; 
+	left: 255px; 
+	width: auto; 
+	height: 40px; 
+	line-height:40px; 
+	font-size: 40px; 
+	color: #FFF;
+}
+.recordTitleCla{
+	position: absolute;
+	top: 52px;
+	left: 75px;
+	width: 167px;
+	height: 40px;
+	line-height:40px;
+	font-size: 40px;
+	color: #FFF;
+	background-image:url(../images/record/title.png);
+}
+.recordMenuFocusCla{
+	position: absolute; 
+	width: 68px; 
+	left: 69px; 
+	height: 218px; 
+	top: 30px; 
+	background-image:url(../images/record/nBar_1.png); 
+	visibility: hidden; 
+	color: #FFF; 
+	font-size: 34px; 
+	text-align:center; 
+	line-height:36px; 
+	z-index: 1
+}
+/*收藏页面*/
+.favoritePNameCla{
+	position: absolute; 
+	top: 207px; 
+	height: 30px; 
+	width: 100%; 
+	text-align: center; 
+	/*color: #A6A29D;	*/
+	color: #FFFFFF;
+	font-size: 24px;
+}
+.favoriteMenuCla{
+	position: absolute;
+	width: 68px; 
+	height: 218px;
+	background-image:url(../images/record/nBar_0.png);
+	color: #FFF;
+
+	text-align:center;
+	left: 69px;
+	visibility: hidden;
+	font-size: 34px;
+	line-height: 36px; 
+}
+.menuFocusCla{
+	position: absolute; 
+	width: 68px; 
+	left: 69px; 
+	height: 218px; 
+	top: 30px; 
+	background-image:url(../images/record/nBar_1.png); 
+	visibility: hidden; 
+	color: #FFF; 
+	font-size: 34px; 
+	text-align:center; 
+	z-index: 1;
+	line-height: 36px;
+}
+.favCountCla{
+	position: absolute; 
+	top: 52px; 
+	left: 255px; 
+	width: auto; 
+	height: 40px; 
+	line-height:40px; 
+	font-size: 40px; 
+	color: #FFF;
+}
+.favTitleCla{
+	position: absolute; 
+	top: 52px; 
+	left: 75px; 
+	width: 167px; 
+	height: 40px; 
+	line-height:40px; 
+	font-size: 40px; 
+	color: #FFF; 
+	background-image:url(../images/record/favoriteTitle.png);
+}
+/*追剧页面*/
+.addTvPNameCla{
+	position: absolute;
+	top: 206px;
+	height: 30px;
+	width: 100%;
+	text-align: center;
+	/*color: #A6A29D;	*/
+	color: #FFFFFF;
+	left: 2px;
+	font-size: 24px; 
+}
+.episodeCla{
+	position: absolute; 
+
+	line-height: 30px; 
+	font-size: 26px; 
+	color:#FFB000;
+	left: 5px;
+}
+.episodeTipCla{
+	position: absolute; 
+	left: 78px; 
+	color: #FFF; 
+	line-height: 30px;
+	font-size: 18px; 
+}
+.addTvCountCla{
+	position: absolute;
+	top: 22px; 
+	left: 255px; 
+	width: auto; 
+	height: 40px; 
+	line-height:40px; 
+	font-size: 40px;
+	color: #FFF;
+}
+/*列表页面*/
+.listPNameCla{
+	position: absolute; 
+	top: 204px; 
+	height: 30px; 
+	width: 100%; 
+	text-align: center; 
+	/*color: #A6A29D;	*/
+	color: #FFFFFF;
+	font-size: 26px; 
+}
+.listMenuCla{
+	position: absolute; 
+	height: 56px; 
+	line-height: 56px;  
+	width: 195px; 
+	text-align: center; 
+	font-size: 28px; 
+	color:#FFF;
+	background-image:url(../images/list/menuFocus0_1.png);
+}
+.menuNameCla{
+	color:#FFF;
+	position: absolute;
+	top: 70px; 
+	font-size: 22px; 
+	left: 5px;
+	color: #FFF; 
+	text-align:center; 
+	line-height: 15px; 
+	width: 90%;
+}
+.menuFocusName1Cla{
+	 position:absolute; 
+	 left:10px; 
+	 top:0px; 
+	 width:180px; 
+	 text-align:center; 
+	 height:100%; 
+	 font-size:30px; 
+	 line-height:59px; 
+	 color:#ffc000;
+}
+.menuFocusName0Cla{
+	 position:absolute; 
+	 left:10px;  
+	 top:0px; 
+	 width:180px; 
+	 text-align:center; 
+	 color:#FFF; 
+	 height:100%; 
+	 font-size:30px; 
+	 line-height:59px;
+}
+.listTitleCla{
+	 position:absolute; 
+	 top:20px; 
+	 left:25px; 
+	 width:152px; 
+	 height:40px; 
+	 line-height:40px; 
+	 font-size:32px; 
+	 color:#FFF;
+}
+.listCountCla{
+	 position:absolute; 
+	 top:71px; 
+	 left:2px; 
+	 width:180px; 
+	 height:26px; 
+	 line-height:26px; 
+	 font-size:26px; 
+	 color:#FFF;
+}
+/*最近更新页面*/
+.ruListPNameCla{
+	position: absolute;
+	top: 206px;
+	height: 30px;
+	width: 100%;
+	text-align: center;
+	/*color: #A6A29D;	*/
+	color: #FFFFFF;
+	left: 2px;
+	font-size: 24px; 
+}
+
+.ruListCountCla{
+	position: absolute;
+	top: 22px; 
+	left: 255px; 
+	width: auto; 
+	height: 40px; 
+	line-height:40px; 
+	font-size: 40px;
+	color: #FFF;
+}
+/*搜索页面*/
+.searchTitleCla{
+	 position: absolute; 
+	 top: 30px; 
+	 left: 565px; 
+	 width: auto; 
+	 height: 40px; 
+	 line-height:40px; 
+	 font-size: 40px; 
+	 color: #FFF;
+	 z-index:3;
+}
+.searchCountCla{
+	 position: absolute; 
+	 top: 30px; 
+	 left: 655px; 
+	 width: auto; 
+	 height: 40px; 
+	 line-height:40px; 
+	 font-size: 40px; 
+	 color: #FFF; 
+	 z-index:3;
+}
+.selButStyle{
+	color:#F7BA02;
+	font-size: 34px;
+}
+.noSelButStyle{
+	color:#FFFFFF;
+	font-size: 30px;
+}
+.moveStyle{
+	color:#FFFFFF;
+	font-size: 34px;
+}
+.claSelCla{
+	color:#F7BA02;
+	font-size: 34px;
+}
+.claNoSelCla{
+	color:#FFFFFF;
+	font-size: 30px;
+}
+.claMoveCla{
+	color:#FFFFFF;
+	font-size: 34px;
+}
+.searchInputStyle{
+	position:absolute;
+	top:-4px;
+	width: 400px; 
+	height: 74px; 
+	left: 16px;
+	line-height: 74px; 
+	font-size: 40px; 
+	color:#FFBE00;
+}
+.lwStyle{
+	position: absolute;
+	font-size: 30px; 
+	text-align:center; 
+	line-height: 69px; 
+	width: 502px;
+	height:69px;
+	left: 13px;
+}
+.typeNameStyle{
+	position: absolute;
+	font-size: 30px; 
+	text-align:center; 
+	line-height: 49px; 
+	width: 123px;
+	height:55px;
+	left:-2px;
+	top:-2px;
+}
+.searchPNameCla{
+	position: absolute; 
+	top: 205px; 
+	height: 30px; 
+	width: 100%; 
+	text-align: center; 
+	font-size: 26px; 
+}
+.letStyle{
+	position: absolute;
+	width: 120px;
+	height:79px; 
+	top: 34px; 
+	text-align:center; 
+	font-size: 26px; 
+}
+.numStyle{
+	position: absolute;
+	width: 120px;
+	height:79px; 
+	top: 8px; 
+	text-align:center; 
+	font-size: 26px; 
+}
+.selKey{
+	font-size: 34px; 
+}
+.noSelKey{
+	font-size: 30px; 
+}
+#wordsBg{
+	position:absolute;
+	width:74px;
+	height:73px;
+	top:275px;
+	left:30px;
+	background-image: url(../images/search/no_words_bg.png);
+	display:none;
+}
+#wordsPrompt{
+	position:absolute;
+	width:400px;
+	height:50px;
+	top:300px;
+	left:113px;
+	font-size:28px;
+	display:none;
+}
+/*回看页面*/
+#pageLogo{
+	position:absolute;
+	left:43px;
+	top:30px;
+	width:92px;
+	height:50px;
+	background-image:url(../images/watchtv/channelTitle.png);
+}
+.wtCountCla{
+	position:absolute;
+	left:70px;
+	top:70px;
+	width:50px;
+	color:#F7BA02;
+	font-size:26px;
+	text-align:right;
+}
+.wtTotalCountCla{
+	position:absolute;
+	left:120px;
+	top:70px;
+	width:100px;
+	font-size:26px;
+	text-align:left;
+}
+.wtMenuSelCla{
+	font-size:32px;
+	color:#F7BA02;
+	display:block;
+	background-image:url(../images/watchtv/menu_sel.png);
+}
+.wtMenuNoSelCla{
+	font-size:28px;
+	color:#FFFFFF;
+	display:block;
+	background-image:url(../images/watchtv/meun_nosel.png);
+}
+.wtMenuMoveCla{
+	font-size:32px;
+	color:#FFFFFF;
+	display:block;
+	background-image:url(../images/watchtv/meun_nosel.png);
+}
+.chNameCla{
+	position:absolute;
+	left:0px;
+	top:151px;
+	width:148px;
+	height:30px;
+	text-align:center;
+	font-size:24px;
+	z-index:9999;
+}
+#movieList{
+	position:absolute;
+	left:206px;
+	top:48px;
+	width:200px;
+	display:none;
+}
+#channelAndDate{
+	position:absolute;
+	left:0px;
+	top:7px;
+	width:300px;
+	font-size:24px;
+	text-align:right;
+}
+#liveMovieName{
+	position:absolute;
+	left:35px;
+	top:-2px;
+	width:381px;
+	height:40px;
+	line-height:40px;
+	font-size:28px;
+	text-align:left;
+	z-index:9999;
+	color:#FFFFFF;
+}
+
+#moreTvSel{
+	position:absolute;
+	left:740px;
+	top:-8px;
+	width:173px;
+	height:55px;
+	line-height:55px;
+	text-align:center;
+	font-size:26px;
+	z-index:9999;
+	background-image:url(../images/watchtv/moreTv.png);
+}
+.movieNameCla{
+	position:absolute;
+	left:43px;
+	width:400px;
+	height:34px;
+	text-align:left;
+	line-height:34px;
+	font-size:26px;
+	z-index:9999;
+	color:#FFFFFF;
+}
+/*播放页面*/
+.playBgCla{
+	background-color: transparent; 
+	width: 1280px; 
+	height: 720px; 
+	margin:0px; 
+	overflow: hidden;
+	font-family: "黑体";	
+	background-image: url(../images/global_tm.gif);
+}
+.movNameCla{
+	 position:absolute;
+	 width:247px;
+	 height:34px;
+	 top:2px;
+	 left:35px;
+	 line-height:34px;
+	 font-size:24px;
+	 text-align:left;
+	 z-index:9999
+}
+.tvCla{
+	 position:absolute;
+	 width:242px;
+	 height:64px;
+	 top:5px;
+	 left:43px;
+	 line-height:64px;
+	 font-size:26px; 
+	 text-align:center; 
+	 background-image:url(../images/watchtv/tvplayNosel.png);
+}
+.channelCla{
+	 position:absolute;
+	 width:238px;
+	 height:53px;
+	 left:43px;
+	 line-height:55px;
+	 font-size:26px; 
+	 text-align:center; 
+	 z-index:9999;
+	 background-image:url(../images/watchtv/chPlayNosel.png);
+}
+.selectTitleCla{
+	width:90px;
+	height:23px; 
+	color:#FFF; 
+	font-size:24px;
+}
+.continueButCla{
+	padding-left:49px;
+	font-size:20px;
+}
+.exitButCla{
+	padding-left:49px;
+	font-size:20px;
+}
+.qingXiDuCla{
+	width:100%; 
+	height:40px; 
+	line-height:40px;
+	font-size:24px;
+}
+.keyiCla{
+	width:80px;
+	height:40px;
+	line-height:40px;
+	margin-left:13px;
+	font-size:24px;
+}
+.addTvCla{
+	height:100%; 
+	line-height:57px;
+    margin-left:50px;
+    font-size:20px;
+}
+.selNumberCla{
+	height:30px;
+	line-height:30px;
+	font-size:24px;
+}
+.preNumberCla{
+	line-height:57px; 
+	margin-left:54px;
+	font-size:20px;
+}
+.nxtNumberCla{
+	line-height:57px; 
+	margin-left:54px;
+	font-size:20px;
+}
+.recTitleCla{
+	height:30px; 
+	line-height:30px;
+	font-size:24px;
+}
+.classfyNameCla{
+	position:absolute;
+	top:21px;
+	left:60px;
+	width:100px;
+	font-size:26px;
+	color:#FFFFFF;
+	text-align:right;
+}
+.curCountCla{
+	position:absolute;
+	top:21px;
+	left:164px;
+	width:30px;
+	font-size:26px;
+	text-align:right;
+	color:#FFFFFF;
+}
+.totalCountCla{
+	position:absolute;
+	top:21px;
+	left:193px;
+	width:50px;
+	font-size:26px;
+	text-align:left;
+}
+.curMovieNameCla{
+	 position:absolute;
+	 top:24px;
+	 left:142px;
+	 font-size:20px;
+}
+.liveLineCla{
+	 position:absolute;
+	 left:140px; 
+	 top:50px; 
+	 width:450px;
+	 height:3px;
+}
+.nxtMovieNameCla{
+	 position:absolute; 
+	 top:92px;
+	 left:142px;
+	 font-size:20px;
+}
+.channelLogoCla{
+	 position:absolute; 
+	 left:20px;
+	 top:18px;
+	 border:1px solid #FFFFFF;
+	 width:110px;
+	 height:110px;
+}
+.curChannelNameCla{
+	 position:absolute; 
+	 width:110px;
+	 top:136px;
+	 left:20px;
+	 font-size:20px;
+	 text-align:center;
+}
+.liveMsgCla{
+	 position:absolute;
+	 top:130px;
+	 left:140px;
+	 width:500px;
+}
+.liveDesc1Cla{
+	 position:absolute;
+	 top:0px;
+	 left:0px;
+	 font-size:20px;
+}
+.liveArrowCla{
+	 position:absolute;
+	 top:3px;
+	 left:216px;
+	 width:28px;
+	 height:15px;
+}
+.liveDesc2Cla{
+	 position:absolute;
+	 top:0px;
+	 left:246px;
+	 font-size:20px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
